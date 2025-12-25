@@ -1,24 +1,24 @@
 # ===== Environment =====
-client/.env
-server/.env
-server/.env.*
-!server/.env.example
+frontend/.env
+backend/.env
+backend/.env.*
+!backend/.env.example
 
 # ===== Node =====
-client/node_modules/
-server/node_modules/
-client/node_modules/.bin
+frontend/node_modules/
+backend/node_modules
+frontend/node_modules/.bin
 # ===== Build outputs =====
-client/dist/
-client/dist-ssr/
-server/dist/
-server/build/
-server/tsconfig.tsbuildinfo
+frontend/dist/
+frontend/dist-ssr/
+backend/dist/
+backend/build/
+backend/tsconfig.tsbuildinfo
 
 # ===== Logs =====
 logs/
-client/logs/
-server/logs/
+frontend/logs/
+backend/logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -32,7 +32,7 @@ lerna-debug.log*
 .tmp/
 
 # ===== Uploads =====
-server/uploads/
+backend/uploads/
 
 # ===== Local configs =====
 *.local
