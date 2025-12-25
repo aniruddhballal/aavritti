@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const DateNavigator = () => {
+interface DateNavigatorProps {
+  onDateSelect: (date: Date) => void;
+}
+
+const DateNavigator = ({ onDateSelect }: DateNavigatorProps) => {
   const startDate = new Date(2025, 11, 25); // December 25, 2025
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -66,6 +70,7 @@ const DateNavigator = () => {
     
     if (isDateAvailable(clickedDate)) {
       setSelectedDate(clickedDate);
+      onDateSelect(clickedDate);
     }
   };
 
