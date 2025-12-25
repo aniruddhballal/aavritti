@@ -68,7 +68,10 @@ const DateNavigator = () => {
     
     if (isDateAvailable(clickedDate)) {
       setSelectedDate(clickedDate);
-      const dateString = clickedDate.toISOString().split('T')[0];
+      const year = clickedDate.getFullYear();
+      const month = String(clickedDate.getMonth() + 1).padStart(2, '0');
+      const dayStr = String(clickedDate.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${dayStr}`;
       navigate(`/daily/${dateString}`);
     }
   };
