@@ -1,5 +1,11 @@
+import DateNavigator from './components/DateNavigator'
+
 function App() {
-  return <h1>Hello</h1>
+  return (
+    <div>
+      <DateNavigator />
+    </div>
+  )
 }
 
 export default App
