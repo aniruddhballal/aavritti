@@ -25,7 +25,18 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const today = new Date().toISOString().split('T')[0];
+  // Get today's date in IST timezone (YYYY-MM-DD format)
+  const getTodayIST = () => {
+    const now = new Date();
+    return now.toLocaleDateString('en-CA', { 
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  };
+
+  const today = getTodayIST();
 
   useEffect(() => {
     fetchCategories();
@@ -109,6 +120,18 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
       startTime: '',
       endTime: ''
     }));
+  };
+
+  // Format date for display in IST
+  const formatDateIST = (dateString: string) => {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('en-US', { 
+      timeZone: 'Asia/Kolkata',
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
   };
 
   return (
@@ -202,7 +225,7 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">
-                  Start Time *
+                  Start Time (IST) *
                 </label>
                 <input
                   type="time"
@@ -216,7 +239,7 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
               </div>
               <div>
                 <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 mb-1">
-                  End Time *
+                  End Time (IST) *
                 </label>
                 <input
                   type="time"
@@ -256,12 +279,7 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
 
         <div className="bg-gray-50 rounded-md p-3">
           <small className="text-gray-600">
-            📅 Date: {new Date(today).toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
+            📅 Date: {formatDateIST(today)} (IST)
           </small>
         </div>
 

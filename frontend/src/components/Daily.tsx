@@ -18,18 +18,29 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
+    // Format time in IST
     return date.toLocaleTimeString('en-US', { 
+      timeZone: 'Asia/Kolkata',
       hour: '2-digit', 
       minute: '2-digit',
       hour12: true 
     });
   };
 
-  // Check if the selected date is today (in IST or local timezone)
+  // Get today's date in IST timezone
+  const getTodayIST = () => {
+    const now = new Date();
+    return now.toLocaleDateString('en-CA', { 
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }); // Returns YYYY-MM-DD format in IST
+  };
+
+  // Check if the selected date is today in IST
   const isToday = () => {
-    const today = new Date();
-    const todayString = today.toISOString().split('T')[0];
-    return dateString === todayString;
+    return dateString === getTodayIST();
   };
 
   const fetchActivities = async () => {
@@ -111,7 +122,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
             </div>
           </div>
 
-          {/* Only show Add Activity form if viewing today's date */}
+          {/* Only show Add Activity form if viewing today's date (IST) */}
           {isToday() && (
             <div className="mb-6">
               <AddActivityForm onActivityAdded={fetchActivities} />
@@ -122,8 +133,8 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
           {!isToday() && (
             <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4 text-blue-700">
               <p className="text-sm">
-                📅 You're viewing a {new Date(dateString) > new Date() ? 'future' : 'past'} date. 
-                Activities can only be added for today's date.
+                📅 You're viewing a {new Date(dateString) > new Date(getTodayIST()) ? 'future' : 'past'} date. 
+                Activities can only be added for today's date (IST timezone).
               </p>
             </div>
           )}
@@ -157,7 +168,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                         <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
                           <Clock size={14} />
-                          <span>{formatTime(activity.timestamp)}</span>
+                          <span>{formatTime(activity.timestamp)} IST</span>
                         </div>
                       </div>
                     </div>
