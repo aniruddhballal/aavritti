@@ -14,6 +14,8 @@ export interface Activity {
   description: string;
   timestamp: string;
   completed: boolean;
+  category?: string;
+  duration?: number;
 }
 
 export interface DailyData {
@@ -27,6 +29,8 @@ export interface CreateActivityData {
   date: string;
   title: string;
   description: string;
+  category?: string;
+  duration?: number;
   completed?: boolean;
 }
 
@@ -39,6 +43,12 @@ export const getActivities = async (date: string): Promise<DailyData> => {
 // Create a new activity
 export const createActivity = async (data: CreateActivityData): Promise<Activity> => {
   const response = await api.post<Activity>('/activities', data);
+  return response.data;
+};
+
+// Get categories
+export const getCategories = async () => {
+  const response = await api.get('/activities/meta/categories');
   return response.data;
 };
 
