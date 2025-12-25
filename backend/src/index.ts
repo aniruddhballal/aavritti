@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import activitiesRouter from './routes/activities.js';
+import activitiesRouter from './routes/activities';
 
 const app = express();
 

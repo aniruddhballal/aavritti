@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "target": "ES2020",
-
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "module": "commonjs",
+    "target": "esnext",
     "types": ["node"],
 
     "sourceMap": true,
@@ -11,7 +11,8 @@
     "declarationMap": true,
 
     "strict": true,
-    "verbatimModuleSyntax": true,
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": false,
     "isolatedModules": true,
     "skipLibCheck": true
   }
