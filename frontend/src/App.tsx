@@ -1,15 +1,14 @@
-import { useState } from 'react'
+import { Routes, Route } from 'react-router-dom'
 import DateNavigator from './components/DateNavigator'
-import Daily from './components/Daily'
+import DailyWrapper from './components/DailyWrapper'
 
 function App() {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-
-  if (selectedDate) {
-    return <Daily selectedDate={selectedDate} onBack={() => setSelectedDate(null)} />
-  }
-
-  return <DateNavigator onDateSelect={setSelectedDate} />
+  return (
+    <Routes>
+      <Route path="/" element={<DateNavigator />} />
+      <Route path="/daily/:date" element={<DailyWrapper />} />
+    </Routes>
+  )
 }
 
 export default App

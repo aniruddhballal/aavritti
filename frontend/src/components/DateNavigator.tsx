@@ -1,11 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface DateNavigatorProps {
-  onDateSelect: (date: Date) => void;
-}
-
-const DateNavigator = ({ onDateSelect }: DateNavigatorProps) => {
+const DateNavigator = () => {
+  const navigate = useNavigate();
   const startDate = new Date(2025, 11, 25); // December 25, 2025
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -70,7 +68,8 @@ const DateNavigator = ({ onDateSelect }: DateNavigatorProps) => {
     
     if (isDateAvailable(clickedDate)) {
       setSelectedDate(clickedDate);
-      onDateSelect(clickedDate);
+      const dateString = clickedDate.toISOString().split('T')[0];
+      navigate(`/daily/${dateString}`);
     }
   };
 
