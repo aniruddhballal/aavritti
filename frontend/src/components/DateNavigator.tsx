@@ -4,9 +4,18 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DateNavigator = () => {
   const navigate = useNavigate();
+  
+  // Get current date in IST
+  const getISTDate = () => {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+    const istTime = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
+    istTime.setHours(0, 0, 0, 0);
+    return istTime;
+  };
+  
   const startDate = new Date(2025, 11, 25); // December 25, 2025
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const today = getISTDate();
   
   const [selectedDate, setSelectedDate] = useState(today);
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
@@ -25,7 +34,10 @@ const DateNavigator = () => {
   };
 
   const isDateAvailable = (date: Date) => {
-    return date >= startDate && date <= today;
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    const todayIST = getISTDate();
+    return checkDate >= startDate && checkDate <= todayIST;
   };
 
   const generateCalendarDays = () => {
@@ -83,8 +95,9 @@ const DateNavigator = () => {
 
   const calendarDays = generateCalendarDays();
 
+  const todayIST = getISTDate();
   const canGoPrev = currentYear > 2025 || (currentYear === 2025 && currentMonth > 11);
-  const canGoNext = currentYear < today.getFullYear() || (currentYear === today.getFullYear() && currentMonth < today.getMonth());
+  const canGoNext = currentYear < todayIST.getFullYear() || (currentYear === todayIST.getFullYear() && currentMonth < todayIST.getMonth());
 
   return (
     <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
@@ -128,7 +141,8 @@ const DateNavigator = () => {
           date.setHours(0, 0, 0, 0);
           const isAvailable = isDateAvailable(date);
           const isSelected = selectedDate.getTime() === date.getTime();
-          const isToday = today.getTime() === date.getTime();
+          const todayIST = getISTDate();
+          const isToday = todayIST.getTime() === date.getTime();
 
           return (
             <button
