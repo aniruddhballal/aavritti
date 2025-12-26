@@ -8,7 +8,7 @@ const api = axios.create({
 });
 
 export interface Activity {
-  id: string;
+  _id: string;
   date: string;
   title: string;
   description: string;
@@ -47,6 +47,12 @@ export const getActivities = async (date: string): Promise<DailyData> => {
 // Create a new activity
 export const createActivity = async (data: CreateActivityData): Promise<Activity> => {
   const response = await api.post<Activity>('/activities', data);
+  return response.data;
+};
+
+// Update an existing activity
+export const updateActivity = async (id: string, data: Partial<CreateActivityData>): Promise<Activity> => {
+  const response = await api.put<Activity>(`/activities/${id}`, data);
   return response.data;
 };
 

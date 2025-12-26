@@ -82,4 +82,37 @@ router.post('/', async (req, res) => {
   }
 });
 
+// Update an existing activity
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { category, title, description, duration, startTime, endTime } = req.body;
+    
+    // Find the activity first
+    const activity = await Activity.findById(id);
+    
+    if (!activity) {
+      return res.status(404).json({ error: 'Activity not found' });
+    }
+    
+    // Validate category if provided
+    if (category && !Object.values(ActivityCategory).includes(category)) {
+      return res.status(400).json({ error: 'Invalid category' });
+    }
+    
+    // Update fields
+    if (category) activity.category = category;
+    if (title) activity.title = title;
+    if (description !== undefined) activity.description = description;
+    if (duration) activity.duration = Number(duration);
+    if (startTime !== undefined) activity.startTime = startTime;
+    if (endTime !== undefined) activity.endTime = endTime;
+    
+    await activity.save();
+    res.json(activity);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update activity' });
+  }
+});
+
 export default router;

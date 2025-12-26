@@ -1,27 +1,34 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Circle, Clock } from 'lucide-react';
+import { ArrowLeft, Circle, Clock, Edit2, X, Save } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { getActivities} from '../api/api';
-import type { DailyData } from '../api/api';
+import { getActivities, updateActivity } from '../api/api';
+import type { DailyData, Activity } from '../api/api';
 import AddActivityForm from './AddActivityForm';
 
 const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateString: string; onBack: () => void }) => {
   const [data, setData] = useState<DailyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    category: '',
+    duration: 0,
+    startTime: '',
+    endTime: ''
+  });
 
   // Category colors mapping
   const CATEGORY_COLORS: Record<string, string> = {
-    work: '#3b82f6',
-    exercise: '#22c55e',
-    learning: '#a855f7',
-    social: '#f59e0b',
-    hobbies: '#ec4899',
-    health: '#14b8a6',
-    chores: '#6366f1',
-    entertainment: '#ef4444',
-    other: '#64748b'
+    physical: '#3b82f6',
+    spiritual: '#22c55e',
+    academic: '#a855f7',
+    project: '#f59e0b',
+    entertainment: '#ec4899'
   };
+
+  const CATEGORIES = ['physical', 'spiritual', 'academic', 'project', 'entertainment'];
 
   const formatDate = (date: Date) => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -61,7 +68,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     const categoryTotals: Record<string, number> = {};
     
     data.activities.forEach(activity => {
-      const category = activity.category || 'other';
+      const category = activity.category || 'physical';
       const duration = activity.duration || 0;
       categoryTotals[category] = (categoryTotals[category] || 0) + duration;
     });
@@ -70,7 +77,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
       name: category.charAt(0).toUpperCase() + category.slice(1),
       value: minutes,
       hours: (minutes / 60).toFixed(1),
-      color: CATEGORY_COLORS[category] || CATEGORY_COLORS.other
+      color: CATEGORY_COLORS[category] || CATEGORY_COLORS.physical
     }));
   };
 
@@ -94,6 +101,50 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleEditClick = (activity: Activity) => {
+    setEditingActivity(activity);
+    setEditForm({
+      title: activity.title || '',
+      description: activity.description || '',
+      category: activity.category || 'physical',
+      duration: activity.duration || 0,
+      startTime: activity.startTime || '',
+      endTime: activity.endTime || ''
+    });
+  };
+
+  const handleEditChange = (field: string, value: any) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingActivity) return;
+
+    try {
+      await updateActivity(editingActivity._id, {
+        ...editForm,
+        date: dateString
+      });
+
+      setEditingActivity(null);
+      await fetchActivities();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update activity');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingActivity(null);
+    setEditForm({
+      title: '',
+      description: '',
+      category: '',
+      duration: 0,
+      startTime: '',
+      endTime: ''
+    });
   };
 
   useEffect(() => {
@@ -222,7 +273,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
               <div className="space-y-3">
                 {data.activities.map((activity) => (
                   <div
-                    key={activity.id}
+                    key={activity._id}
                     className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start gap-3">
@@ -230,8 +281,8 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                         <Circle 
                           className="text-gray-400" 
                           size={20} 
-                          fill={CATEGORY_COLORS[activity.category || 'other']}
-                          style={{ color: CATEGORY_COLORS[activity.category || 'other'] }}
+                          fill={CATEGORY_COLORS[activity.category || 'physical']}
+                          style={{ color: CATEGORY_COLORS[activity.category || 'physical'] }}
                         />
                       </div>
                       <div className="flex-1">
@@ -239,21 +290,30 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                           <h3 className="font-semibold text-gray-800">
                             {activity.title}
                           </h3>
-                          <div className="text-right">
-                            {activity.startTime && activity.endTime && (
-                              <div className="text-xs text-gray-500 mb-1">
-                                {activity.startTime} - {activity.endTime}
-                              </div>
-                            )}
-                            <span className="text-sm font-medium text-gray-600">
-                              {activity.duration ? `${Math.floor(activity.duration / 60)}h ${activity.duration % 60}m` : ''}
-                            </span>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              {activity.startTime && activity.endTime && (
+                                <div className="text-xs text-gray-500 mb-1">
+                                  {activity.startTime} - {activity.endTime}
+                                </div>
+                              )}
+                              <span className="text-sm font-medium text-gray-600">
+                                {activity.duration ? `${Math.floor(activity.duration / 60)}h ${activity.duration % 60}m` : ''}
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => handleEditClick(activity)}
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit activity"
+                            >
+                              <Edit2 size={16} />
+                            </button>
                           </div>
                         </div>
                         {activity.category && (
                           <span 
                             className="inline-block mt-1 px-2 py-1 text-xs font-medium rounded-full text-white"
-                            style={{ backgroundColor: CATEGORY_COLORS[activity.category] || CATEGORY_COLORS.other }}
+                            style={{ backgroundColor: CATEGORY_COLORS[activity.category] || CATEGORY_COLORS.physical }}
                           >
                             {activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
                           </span>
@@ -272,6 +332,124 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
           </div>
         </div>
       </div>
+
+      {/* ADD THIS EDIT MODAL HERE - right before the final two closing </div> tags */}
+      {editingActivity && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-800">Edit Activity</h2>
+              <button
+                onClick={handleCancelEdit}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Category *
+                </label>
+                <select
+                  value={editForm.category}
+                  onChange={(e) => handleEditChange('category', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>
+                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  value={editForm.title}
+                  onChange={(e) => handleEditChange('title', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => handleEditChange('description', e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Duration (minutes) *
+                </label>
+                <input
+                  type="number"
+                  value={editForm.duration}
+                  onChange={(e) => handleEditChange('duration', parseInt(e.target.value) || 0)}
+                  min="1"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <small className="text-gray-500 mt-1 block">
+                  {editForm.duration} minutes = {Math.floor(editForm.duration / 60)}h {editForm.duration % 60}m
+                </small>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Start Time
+                  </label>
+                  <input
+                    type="time"
+                    value={editForm.startTime}
+                    onChange={(e) => handleEditChange('startTime', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Time
+                  </label>
+                  <input
+                    type="time"
+                    value={editForm.endTime}
+                    onChange={(e) => handleEditChange('endTime', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleCancelEdit}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveEdit}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Save size={18} />
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
