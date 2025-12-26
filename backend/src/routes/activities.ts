@@ -31,13 +31,19 @@ router.get('/meta/categories', (_req, res) => {
   });
 });
 
-// Add a new activity (only for today's date)
+// Add a new activity (only for today's date in IST)
 router.post('/', async (req, res) => {
   try {
     const { date, category, title, description, duration } = req.body;
     
-    // Validate that the date is today
-    const today = new Date().toISOString().split('T')[0];
+    // Validate that the date is today IN IST TIMEZONE
+    const today = new Date().toLocaleDateString('en-CA', { 
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    
     if (date !== today) {
       return res.status(400).json({ 
         error: 'You can only add activities for today' 
