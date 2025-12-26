@@ -67,9 +67,6 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
     e.preventDefault();
     setError('');
 
-    console.log('Form data at submit:', formData); // Debug: Check form state
-    console.log('Duration mode:', durationMode); // Debug: Check mode
-
     // Convert duration from HH:MM to minutes
     let durationInMinutes = 0;
     
@@ -101,21 +98,13 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
         category: formData.category,
         title: formData.title,
         duration: durationInMinutes,
-        description: formData.description
+        description: formData.description,
+        // Include start/end times if they were entered
+        ...(formData.startTime && { startTime: formData.startTime }),
+        ...(formData.endTime && { endTime: formData.endTime })
       };
 
-      // Add start/end times if they exist (regardless of empty strings)
-      if (formData.startTime && formData.startTime.trim() !== '') {
-        activityData.startTime = formData.startTime.trim();
-      }
-      if (formData.endTime && formData.endTime.trim() !== '') {
-        activityData.endTime = formData.endTime.trim();
-      }
-
-      console.log('Activity data being sent to API:', activityData); // Debug: Check what's sent
-
-      const result = await createActivity(activityData);
-      console.log('API response:', result); // Debug: Check what backend returns
+      await createActivity(activityData);
 
       setFormData({
         category: '',
@@ -128,7 +117,6 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
       
       onActivityAdded();
     } catch (err) {
-      console.error('Error creating activity:', err); // Debug: Check errors
       setError(err instanceof Error ? err.message : 'Failed to add activity');
     } finally {
       setIsSubmitting(false);
