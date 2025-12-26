@@ -51,4 +51,19 @@ router.put('/cache-entries/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Delete a cache entry
+router.delete('/cache-entries/:id', async (req: Request, res: Response) => {
+  try {
+    const deletedEntry = await CacheEntry.findByIdAndDelete(req.params.id);
+    
+    if (!deletedEntry) {
+      return res.status(404).json({ message: 'Cache entry not found' });
+    }
+    
+    res.json({ message: 'Cache entry deleted successfully', deletedEntry });
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+});
+
 export default router;

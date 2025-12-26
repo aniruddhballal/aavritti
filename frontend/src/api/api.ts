@@ -94,4 +94,9 @@ export const updateCacheEntry = async (id: string, data: Partial<CreateCacheEntr
   return response.data;
 };
 
+// Delete a cache entry
+export const deleteCacheEntry = async (id: string): Promise<void> => {
+  await api.delete(`/cache-entries/${id}`);
+};
+
 export default api;

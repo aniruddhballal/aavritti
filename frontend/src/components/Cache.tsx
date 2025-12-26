@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { createCacheEntry} from '../api/api';
-import type { CacheEntry} from '../api/api';
+import { createCacheEntry } from '../api/api';
+import type { CacheEntry } from '../api/api';
+import { Trash2 } from 'lucide-react';
 
 interface EntryPosition {
   x: number;
@@ -55,6 +56,34 @@ const Cache = () => {
     ));
   };
 
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    const confirmed = window.confirm('Are you sure you want to delete this cache entry?');
+    
+    if (!confirmed) return;
+
+    try {
+      // Call the delete API (we'll add this to api.ts)
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/cache-entries/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        // Remove from local state
+        setEntries(entries.filter(entry => entry._id !== id));
+        console.log('Deleted cache entry:', id);
+      } else {
+        console.error('Failed to delete cache entry');
+      }
+    } catch (error) {
+      console.error('Error deleting cache entry:', error);
+    }
+  };
+
   const formatTimestamp = (timestamp: Date) => {
     const date = new Date(timestamp);
     return date.toLocaleString('en-US', {
@@ -95,13 +124,22 @@ const Cache = () => {
             transform: 'translate(-50%, -50%)' // Center the box on click position
           }}
         >
-          <div className="mb-3">
-            <label className="block text-xs font-semibold text-gray-500 mb-1">
-              Timestamp
-            </label>
-            <div className="text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded">
-              {formatTimestamp(entry.timestamp)}
+          <div className="flex justify-between items-start mb-3">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-500 mb-1">
+                Timestamp
+              </label>
+              <div className="text-sm text-gray-700 bg-gray-50 px-2 py-1 rounded">
+                {formatTimestamp(entry.timestamp)}
+              </div>
             </div>
+            <button
+              onClick={(e) => handleDelete(entry._id, e)}
+              className="ml-2 p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+              title="Delete entry"
+            >
+              <Trash2 size={18} />
+            </button>
           </div>
 
           <div className="mb-3">
