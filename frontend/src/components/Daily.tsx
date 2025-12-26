@@ -18,6 +18,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     startTime: '',
     endTime: ''
   });
+  const [validationError, setValidationError] = useState<string>('');
 
   // Category colors mapping
   const CATEGORY_COLORS: Record<string, string> = {
@@ -113,10 +114,35 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
       startTime: activity.startTime || '',
       endTime: activity.endTime || ''
     });
+    setValidationError(''); // Clear any previous validation errors
   };
 
   const handleEditChange = (field: string, value: any) => {
-    setEditForm(prev => ({ ...prev, [field]: value }));
+    const updatedForm = { ...editForm, [field]: value };
+    setEditForm(updatedForm);
+    
+    // Validate after update
+    const error = validateDuration(updatedForm);
+    setValidationError(error);
+  };
+
+  const validateDuration = (form: typeof editForm): string => {
+    // Only validate if both start and end times are provided
+    if (form.startTime && form.endTime) {
+      const today = getTodayIST();
+      const start = new Date(`${today}T${form.startTime}`);
+      const end = new Date(`${today}T${form.endTime}`);
+      const calculatedMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
+      
+      if (calculatedMinutes <= 0) {
+        return 'End time must be after start time';
+      }
+      
+      if (calculatedMinutes !== form.duration) {
+        return `Duration mismatch: Start/End times = ${calculatedMinutes} mins, but Duration field = ${form.duration} mins. Please fix one of them.`;
+      }
+    }
+    return '';
   };
 
   const handleSaveEdit = async () => {
@@ -145,6 +171,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
       startTime: '',
       endTime: ''
     });
+    setValidationError(''); // Clear validation error
   };
 
   useEffect(() => {
@@ -430,6 +457,12 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                 </div>
               </div>
 
+            {validationError && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
+                ⚠️ {validationError}
+              </div>
+            )}
+
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={handleCancelEdit}
@@ -439,6 +472,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                 </button>
                 <button
                   onClick={handleSaveEdit}
+                  disabled={!!validationError}
                   className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
                 >
                   <Save size={18} />
