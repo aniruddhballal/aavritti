@@ -50,3 +50,6 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# personal notes
+pending.txt
