@@ -19,11 +19,33 @@ router.post('/cache-entries', async (req: Request, res: Response) => {
   }
 });
 
-// Get all cache entries (you might need this later)
+// Get all cache entries
 router.get('/cache-entries', async (req: Request, res: Response) => {
   try {
     const entries = await CacheEntry.find().sort({ timestamp: -1 });
     res.json(entries);
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+});
+
+// Update a cache entry
+router.put('/cache-entries/:id', async (req: Request, res: Response) => {
+  try {
+    const updatedEntry = await CacheEntry.findByIdAndUpdate(
+      req.params.id,
+      {
+        title: req.body.title,
+        body: req.body.body
+      },
+      { new: true }
+    );
+    
+    if (!updatedEntry) {
+      return res.status(404).json({ message: 'Cache entry not found' });
+    }
+    
+    res.json(updatedEntry);
   } catch (error) {
     res.status(500).json({ message: (error as Error).message });
   }
