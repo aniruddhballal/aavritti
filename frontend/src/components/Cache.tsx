@@ -1,7 +1,12 @@
 import { useState } from 'react';
-import { createCacheEntry, updateCacheEntry } from '../api/api';
-import type { CacheEntry } from '../api/api';
 import { Trash2 } from 'lucide-react';
+
+interface CacheEntry {
+  _id: string;
+  title: string;
+  body: string;
+  timestamp: Date;
+}
 
 interface EntryPosition {
   x: number;
@@ -11,13 +16,31 @@ interface EntryPosition {
 const Cache = () => {
   const [entries, setEntries] = useState<(CacheEntry & EntryPosition)[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  const createCacheEntry = async (data: { title: string; body: string }) => {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/cache-entries`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  };
+
+  const updateCacheEntry = async (id: string, data: Partial<CacheEntry>) => {
+    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/cache-entries/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  };
 
   const handleClick = async (e: React.MouseEvent<HTMLDivElement>) => {
-    // Get click position relative to the viewport
     const x = e.clientX;
     const y = e.clientY;
 
-    // Check if click is on an existing entry (we'll ignore those clicks)
     const target = e.target as HTMLElement;
     if (target.closest('.cache-entry-box')) {
       return;
@@ -35,13 +58,43 @@ const Cache = () => {
       
       console.log('Created new cache entry:', newEntry);
       
-      // Add the new entry with its position
       setEntries([...entries, { ...newEntry, x, y }]);
     } catch (error) {
       console.error('Error creating cache entry:', error);
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const handleMouseDown = (id: string, e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON') {
+      return;
+    }
+
+    const entry = entries.find(e => e._id === id);
+    if (!entry) return;
+
+    setDragging(id);
+    setDragOffset({
+      x: e.clientX - entry.x,
+      y: e.clientY - entry.y
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!dragging) return;
+
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+
+    setEntries(entries.map(entry =>
+      entry._id === dragging ? { ...entry, x: newX, y: newY } : entry
+    ));
+  };
+
+  const handleMouseUp = () => {
+    setDragging(null);
   };
 
   const handleTitleChange = (id: string, value: string) => {
@@ -88,8 +141,7 @@ const Cache = () => {
     if (!confirmed) return;
 
     try {
-      // Call the delete API
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/cache-entries/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/cache-entries/${id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -97,7 +149,6 @@ const Cache = () => {
       });
 
       if (response.ok) {
-        // Remove from local state
         setEntries(entries.filter(entry => entry._id !== id));
         console.log('Deleted cache entry:', id);
       } else {
@@ -122,8 +173,11 @@ const Cache = () => {
 
   return (
     <div 
-      className="w-full h-screen bg-gray-50 cursor-pointer relative overflow-auto"
+      className="w-full h-screen bg-gray-50 relative overflow-auto"
       onClick={handleClick}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      style={{ cursor: dragging ? 'grabbing' : 'pointer' }}
     >
       {entries.length === 0 && !isCreating && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -145,8 +199,10 @@ const Cache = () => {
             left: `${entry.x}px`,
             top: `${entry.y}px`,
             width: '300px',
-            transform: 'translate(-50%, -50%)' // Center the box on click position
+            transform: 'translate(-50%, -50%)',
+            cursor: dragging === entry._id ? 'grabbing' : 'grab'
           }}
+          onMouseDown={(e) => handleMouseDown(entry._id, e)}
         >
           <div className="flex justify-between items-start mb-3">
             <div className="flex-1">
