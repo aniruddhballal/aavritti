@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, Sector } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
 import { Eye, EyeOff } from 'lucide-react';
 import type { Activity } from '../types/activity';
 import { getCategoryColor } from '../utils/categoryColors';
@@ -153,9 +153,14 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   };
 
   // Custom label for pie slices
-  const renderLabel = ({ percent }: any) => {
-    if (percent < 0.05) return ''; // Don't show label for very small slices
-    return `${(percent * 100).toFixed(0)}%`;
+  const renderLabel = (props: any) => {
+    const { percent, value } = props;
+    if (percent < 0.05) return null; // Don't show label for very small slices
+    const totalMinutes = value;
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const timeStr = `${hours}:${minutes.toString().padStart(2, '0')}`;
+    return `${(percent * 100).toFixed(0)}% (${timeStr})`;
   };
 
   // Active shape for hover effect
@@ -218,8 +223,8 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
             data={displayData}
             cx="50%"
             cy="45%"
-            labelLine={false}
             label={renderLabel}
+            labelLine={false}
             outerRadius={90}
             fill="#8884d8"
             dataKey="value"
@@ -227,7 +232,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
             onMouseEnter={(_, index) => setActiveIndex(index)}
             onMouseLeave={() => setActiveIndex(null)}
             {...(activeIndex !== null && { activeShape: renderActiveShape })}
-            style={{ cursor: showingSubcategories ? 'default' : 'pointer' }}
+            style={{ cursor: showingSubcategories ? 'default' : 'pointer', fontSize: '13.5px' }}
           >
             {displayData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -241,15 +246,53 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
               return `${hours}:${minutes.toString().padStart(2, '0')}`;
             }}
           />
-          {!showingSubcategories && (
-            <Legend 
-              verticalAlign="bottom" 
-              height={60}
-              formatter={(value, entry: any) => `${value} (${entry.payload.hours})`}
-            />
-          )}
         </PieChart>
       </ResponsiveContainer>
+
+      {/* Custom Legend for Categories */}
+      {!showingSubcategories && categoryData.length > 0 && (
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {categoryData.map((entry, index) => (
+            <div key={index} className="flex items-center gap-2 text-sm">
+              <div 
+                className="w-3 h-3 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: entry.color }}
+              />
+              <span className="text-gray-700">
+                {entry.name}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Custom Legend for Subcategories */}
+      {showingSubcategories && displayData.length > 0 && (
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {displayData.map((entry, index) => {
+            const words = entry.name.split(' ');
+            const displayName = words.slice(0, 3).join(' ');
+            return (
+              <div key={index} className="flex items-center gap-2 text-sm">
+                <div 
+                  className="w-3 h-3 rounded-sm flex-shrink-0"
+                  style={{ backgroundColor: entry.color }}
+                />
+                <span className="text-gray-700 truncate">
+                  {displayName}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Subcategory info */}
+      {showingSubcategories && (
+        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
+          📊 Showing individual activities within this category. Reset to view all categories.
+        </div>
+      )}
 
       {/* Click instruction */}
       {!showingSubcategories && categoryData.length > 1 && (
@@ -284,13 +327,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
               );
             })}
           </div>
-        </div>
-      )}
-
-      {/* Subcategory info */}
-      {showingSubcategories && (
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-          📊 Showing individual activities within this category. Hide more categories to drill down further.
         </div>
       )}
     </div>
