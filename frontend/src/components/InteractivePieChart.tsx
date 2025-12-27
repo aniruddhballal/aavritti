@@ -39,13 +39,17 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       }
     });
 
-    return Object.entries(categoryTotals).map(([category, minutes]) => ({
-      name: category.charAt(0).toUpperCase() + category.slice(1),
-      value: minutes,
-      hours: (minutes / 60).toFixed(1),
-      color: getCategoryColor(category),
-      category: category
-    }));
+    return Object.entries(categoryTotals).map(([category, minutes]) => {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return {
+        name: category.charAt(0).toUpperCase() + category.slice(1),
+        value: minutes,
+        hours: `${hours}:${mins.toString().padStart(2, '0')}`,
+        color: getCategoryColor(category),
+        category: category
+      };
+    });
   };
 
   // Get subcategory data for a specific category
@@ -78,10 +82,13 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       const newLight = Math.max(50, Math.min(200, light + variation));
       const variedColor = `#${hue.toString(16).padStart(2, '0')}${sat.toString(16).padStart(2, '0')}${newLight.toString(16).padStart(2, '0')}`;
 
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+
       return {
         name: subcategory,
         value: minutes,
-        hours: (minutes / 60).toFixed(1),
+        hours: `${hours}:${mins.toString().padStart(2, '0')}`,
         color: variedColor,
         subcategory: subcategory
       };
@@ -227,12 +234,17 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
             ))}
           </Pie>
           <Tooltip 
-            formatter={(value: any) => `${(value / 60).toFixed(1)} hours`}
+            formatter={(value: any) => {
+              const totalMinutes = value;
+              const hours = Math.floor(totalMinutes / 60);
+              const minutes = totalMinutes % 60;
+              return `${hours}:${minutes.toString().padStart(2, '0')}`;
+            }}
           />
           <Legend 
             verticalAlign="bottom" 
             height={60}
-            formatter={(value, entry: any) => `${value} (${entry.payload.hours}h)`}
+            formatter={(value, entry: any) => `${value} (${entry.payload.hours})`}
           />
         </PieChart>
       </ResponsiveContainer>
