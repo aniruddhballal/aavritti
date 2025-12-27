@@ -241,11 +241,13 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
               return `${hours}:${minutes.toString().padStart(2, '0')}`;
             }}
           />
-          <Legend 
-            verticalAlign="bottom" 
-            height={60}
-            formatter={(value, entry: any) => `${value} (${entry.payload.hours})`}
-          />
+          {!showingSubcategories && (
+            <Legend 
+              verticalAlign="bottom" 
+              height={60}
+              formatter={(value, entry: any) => `${value} (${entry.payload.hours})`}
+            />
+          )}
         </PieChart>
       </ResponsiveContainer>
 
