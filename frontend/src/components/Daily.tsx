@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { activityService } from '../services';
 import type { DailyData, Activity } from '../types/activity';
 import AddActivityForm from './AddActivityForm';
+import { categoryColors, getCategoryColor } from '../utils/categoryColors';
 
 const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateString: string; onBack: () => void }) => {
   const [data, setData] = useState<DailyData | null>(null);
@@ -20,16 +21,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
   });
   const [validationError, setValidationError] = useState<string>('');
 
-  // Category colors mapping
-  const CATEGORY_COLORS: Record<string, string> = {
-    physical: '#3b82f6',
-    spiritual: '#22c55e',
-    academic: '#a855f7',
-    project: '#f59e0b',
-    entertainment: '#ec4899'
-  };
-
-  const CATEGORIES = ['physical', 'spiritual', 'academic', 'project', 'entertainment'];
+  const CATEGORIES = Object.keys(categoryColors);
 
   const formatDate = (date: Date) => {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -69,7 +61,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     const categoryTotals: Record<string, number> = {};
     
     data.activities.forEach(activity => {
-      const category = activity.category || 'physical';
+      const category = activity.category || CATEGORIES[0];
       const duration = activity.duration || 0;
       categoryTotals[category] = (categoryTotals[category] || 0) + duration;
     });
@@ -78,7 +70,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
       name: category.charAt(0).toUpperCase() + category.slice(1),
       value: minutes,
       hours: (minutes / 60).toFixed(1),
-      color: CATEGORY_COLORS[category] || CATEGORY_COLORS.physical
+      color: getCategoryColor(category)
     }));
   };
 
@@ -109,7 +101,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     setEditForm({
       title: activity.title || '',
       description: activity.description || '',
-      category: activity.category || 'physical',
+      category: activity.category || CATEGORIES[0],
       duration: activity.duration || 0,
       startTime: activity.startTime || '',
       endTime: activity.endTime || ''
@@ -308,8 +300,8 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                         <Circle 
                           className="text-gray-400" 
                           size={20} 
-                          fill={CATEGORY_COLORS[activity.category || 'physical']}
-                          style={{ color: CATEGORY_COLORS[activity.category || 'physical'] }}
+                          fill={getCategoryColor(activity.category || CATEGORIES[0])}
+                          style={{ color: getCategoryColor(activity.category || CATEGORIES[0]) }}
                         />
                       </div>
                       <div className="flex-1">
@@ -340,7 +332,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                         {activity.category && (
                           <span 
                             className="inline-block mt-1 px-2 py-1 text-xs font-medium rounded-full text-white"
-                            style={{ backgroundColor: CATEGORY_COLORS[activity.category] || CATEGORY_COLORS.physical }}
+                            style={{ backgroundColor: getCategoryColor(activity.category) }}
                           >
                             {activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
                           </span>
