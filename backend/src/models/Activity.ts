@@ -32,7 +32,8 @@ export enum CommuteSubcategory {
   METRO = 'metro',
   BUS = 'bus',
   AUTO = 'auto',
-  BIKE = 'bike'
+  BIKE = 'bike',
+  CAR = 'car'
 }
 
 export enum CinemaSubcategory {

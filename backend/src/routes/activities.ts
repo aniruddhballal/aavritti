@@ -45,7 +45,7 @@ router.get('/meta/categories', (_req, res) => {
     { 
       value: 'commute', 
       label: 'Commute',
-      subcategories: ['metro', 'bus', 'auto', 'bike']
+      subcategories: ['metro', 'bus', 'auto', 'bike', 'car']
     },
     { 
       value: 'cinema', 
