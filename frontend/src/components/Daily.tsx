@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Circle, Clock, Edit2, X, Save } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { getActivities, updateActivity } from '../api/api';
-import type { DailyData, Activity } from '../api/api';
+import { activityService } from '../services';
+import type { DailyData, Activity } from '../types/activity';
 import AddActivityForm from './AddActivityForm';
 
 const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateString: string; onBack: () => void }) => {
@@ -95,7 +95,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     setError(null);
     
     try {
-      const result = await getActivities(dateString);
+      const result = await activityService.getActivities(dateString);
       setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -149,7 +149,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     if (!editingActivity) return;
 
     try {
-      await updateActivity(editingActivity._id, {
+      await activityService.updateActivity(editingActivity._id, {
         ...editForm,
         date: dateString
       });

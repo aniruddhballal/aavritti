@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { createActivity, getCategories } from '../api/api';
-import type { CreateActivityData } from '../api/api';
+import { activityService } from '../services';
+import type { CreateActivityData } from '../types/activity';
 
 interface Category {
   value: string;
@@ -56,7 +56,7 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
 
   const fetchCategories = async () => {
     try {
-      const data = await getCategories();
+      const data = await activityService.getCategories();
       setCategories(data.categories);
     } catch (err) {
       console.error('Failed to fetch categories:', err);
@@ -104,7 +104,7 @@ const AddActivityForm: React.FC<AddActivityFormProps> = ({ onActivityAdded }) =>
         ...(formData.endTime && { endTime: formData.endTime })
       };
 
-      await createActivity(activityData);
+      await activityService.createActivity(activityData);
 
       setFormData({
         category: '',
