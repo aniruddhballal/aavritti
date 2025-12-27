@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ArrowLeft, Circle, Clock, Edit2, X, Save } from 'lucide-react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { activityService } from '../services';
 import type { DailyData, Activity } from '../types/activity';
 import AddActivityForm from './AddActivityForm';
+import InteractivePieChart from './InteractivePieChart';
 import { categoryColors, getCategoryColor } from '../utils/categoryColors';
 
 const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateString: string; onBack: () => void }) => {
@@ -54,26 +54,6 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     return dateString === getTodayIST();
   };
 
-  // Calculate category data for pie chart
-  const getCategoryData = () => {
-    if (!data?.activities || data.activities.length === 0) return [];
-
-    const categoryTotals: Record<string, number> = {};
-    
-    data.activities.forEach(activity => {
-      const category = activity.category || CATEGORIES[0];
-      const duration = activity.duration || 0;
-      categoryTotals[category] = (categoryTotals[category] || 0) + duration;
-    });
-
-    return Object.entries(categoryTotals).map(([category, minutes]) => ({
-      name: category.charAt(0).toUpperCase() + category.slice(1),
-      value: minutes,
-      hours: (minutes / 60).toFixed(1),
-      color: getCategoryColor(category)
-    }));
-  };
-
   const getTotalTime = () => {
     if (!data?.activities) return '0h 0m';
     const totalMinutes = data.activities.reduce((sum, activity) => sum + (activity.duration || 0), 0);
@@ -106,20 +86,18 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
       startTime: activity.startTime || '',
       endTime: activity.endTime || ''
     });
-    setValidationError(''); // Clear any previous validation errors
+    setValidationError('');
   };
 
   const handleEditChange = (field: string, value: any) => {
     const updatedForm = { ...editForm, [field]: value };
     setEditForm(updatedForm);
     
-    // Validate after update
     const error = validateDuration(updatedForm);
     setValidationError(error);
   };
 
   const validateDuration = (form: typeof editForm): string => {
-    // Only validate if both start and end times are provided
     if (form.startTime && form.endTime) {
       const today = getTodayIST();
       const start = new Date(`${today}T${form.startTime}`);
@@ -163,7 +141,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
       startTime: '',
       endTime: ''
     });
-    setValidationError(''); // Clear validation error
+    setValidationError('');
   };
 
   useEffect(() => {
@@ -197,8 +175,6 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     );
   }
 
-  const categoryData = getCategoryData();
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
@@ -229,38 +205,18 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
               </div>
             </div>
 
-            {/* Pie Chart Section */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              {categoryData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="45%"
-                      labelLine={false}
-                      label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={70}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      formatter={(value: any) => `${(value / 60).toFixed(1)} hours`}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={50}
-                      formatter={(value, entry: any) => `${value} (${entry.payload.hours}h)`}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+            {/* Interactive Pie Chart Section */}
+            <div>
+              {data?.activities && data.activities.length > 0 ? (
+                <InteractivePieChart 
+                  activities={data.activities} 
+                  categories={CATEGORIES}
+                />
               ) : (
-                <div className="flex items-center justify-center h-[300px] text-gray-500">
-                  No activity data to display
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <div className="flex items-center justify-center h-[400px] text-gray-500">
+                    No activity data to display
+                  </div>
                 </div>
               )}
             </div>
@@ -352,7 +308,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
         </div>
       </div>
 
-      {/* ADD THIS EDIT MODAL HERE - right before the final two closing </div> tags */}
+      {/* Edit Modal */}
       {editingActivity && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -449,11 +405,11 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                 </div>
               </div>
 
-            {validationError && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
-                ⚠️ {validationError}
-              </div>
-            )}
+              {validationError && (
+                <div className="bg-red-50 border border-red-200 rounded-md p-3 text-red-700 text-sm">
+                  ⚠️ {validationError}
+                </div>
+              )}
 
               <div className="flex gap-3 pt-4">
                 <button
@@ -465,7 +421,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                 <button
                   onClick={handleSaveEdit}
                   disabled={!!validationError}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save size={18} />
                   Save Changes
