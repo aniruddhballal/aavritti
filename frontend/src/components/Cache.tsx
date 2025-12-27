@@ -210,7 +210,10 @@ const Cache = () => {
       style={{ cursor: dragging ? 'grabbing' : 'pointer' }}
     >
       <button
-        onClick={() => navigate('/')}
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate('/');
+        }}
         className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors bg-white px-4 py-2 rounded-lg shadow-md z-10"
       >
         <ArrowLeft size={20} />
