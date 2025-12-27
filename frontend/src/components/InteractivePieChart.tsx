@@ -146,9 +146,9 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   };
 
   // Custom label for pie slices
-  const renderLabel = ({ name, percent }: any) => {
+  const renderLabel = ({ percent }: any) => {
     if (percent < 0.05) return ''; // Don't show label for very small slices
-    return `${name} ${(percent * 100).toFixed(0)}%`;
+    return `${(percent * 100).toFixed(0)}%`;
   };
 
   // Active shape for hover effect
