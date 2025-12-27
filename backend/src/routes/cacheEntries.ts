@@ -66,4 +66,23 @@ router.delete('/cache-entries/:id', async (req: Request, res: Response) => {
   }
 });
 
+// Update a cache entry (PATCH - partial update)
+router.patch('/cache-entries/:id', async (req: Request, res: Response) => {
+  try {
+    const updatedEntry = await CacheEntry.findByIdAndUpdate(
+      req.params.id,
+      req.body, // This allows partial updates
+      { new: true }
+    );
+    
+    if (!updatedEntry) {
+      return res.status(404).json({ message: 'Cache entry not found' });
+    }
+    
+    res.json(updatedEntry);
+  } catch (error) {
+    res.status(500).json({ message: (error as Error).message });
+  }
+});
+
 export default router;
