@@ -149,7 +149,7 @@ router.put('/:id', async (req, res) => {
     
     // Update fields
     if (category) activity.category = category;
-    if (subcategory !== undefined) activity.subcategory = subcategory;
+    if (subcategory !== undefined) activity.subcategory = subcategory || undefined; // Convert empty string to undefined
     if (title) activity.title = title;
     if (description !== undefined) activity.description = description;
     if (duration) activity.duration = Number(duration);

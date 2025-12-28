@@ -137,7 +137,8 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     try {
       await activityService.updateActivity(editingActivity._id, {
         ...editForm,
-        date: dateString
+        date: dateString,
+        subcategory: editForm.subcategory || undefined // Convert empty string to undefined
       });
 
       setEditingActivity(null);

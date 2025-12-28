@@ -8,8 +8,8 @@ export interface Activity {
   category?: string;
   subcategory?: string;
   duration?: number;
-  startTime?: string; // Add this
-  endTime?: string; // Add this
+  startTime?: string;
+  endTime?: string;
 }
 
 export interface CreateActivityData {
@@ -17,9 +17,10 @@ export interface CreateActivityData {
   title: string;
   description: string;
   category?: string;
+  subcategory?: string;
   duration?: number;
-  startTime?: string; // Add this
-  endTime?: string; // Add this
+  startTime?: string;
+  endTime?: string;
   completed?: boolean;
 }
 
