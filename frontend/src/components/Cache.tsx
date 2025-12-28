@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, ArrowLeft } from 'lucide-react';
+import { Trash2, ArrowLeft, Plus } from 'lucide-react';
 
 interface CacheEntry {
   _id: string;
@@ -67,15 +67,9 @@ const Cache = () => {
     fetchEntries();
   }, []);
 
-  const handleClick = async (e: React.MouseEvent<HTMLDivElement>) => {
-    const x = e.clientX;
-    const y = e.clientY;
-
-    const target = e.target as HTMLElement;
-    if (target.closest('.cache-entry-box')) {
-      return;
-    }
-
+  const handleCreateEntry = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    
     if (isCreating) return;
     
     setIsCreating(true);
@@ -87,6 +81,10 @@ const Cache = () => {
       });
       
       console.log('Created new cache entry:', newEntry);
+      
+      // Position new entry in center of viewport
+      const x = window.innerWidth / 2;
+      const y = window.innerHeight / 2;
       
       setEntries([...entries, { ...newEntry, x, y }]);
     } catch (error) {
@@ -204,21 +202,31 @@ const Cache = () => {
   return (
     <div 
       className="w-full h-screen bg-gray-50 relative overflow-auto"
-      onClick={handleClick}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      style={{ cursor: dragging ? 'grabbing' : 'pointer' }}
+      style={{ cursor: dragging ? 'grabbing' : 'default' }}
     >
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          navigate('/');
-        }}
-        className="absolute top-6 left-6 flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors bg-white px-4 py-2 rounded-lg shadow-md z-10"
-      >
-        <ArrowLeft size={20} />
-        <span>Back to Calendar</span>
-      </button>
+      <div className="absolute top-6 left-6 flex items-center gap-3 z-10">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate('/');
+          }}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors bg-white px-4 py-2 rounded-lg shadow-md"
+        >
+          <ArrowLeft size={20} />
+          <span>Back to Calendar</span>
+        </button>
+
+        <button
+          onClick={handleCreateEntry}
+          disabled={isCreating}
+          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white px-4 py-2 rounded-lg shadow-md transition-colors"
+        >
+          <Plus size={20} />
+          <span>{isCreating ? 'Creating...' : 'Create New Cache Entry'}</span>
+        </button>
+      </div>
 
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -228,13 +236,7 @@ const Cache = () => {
 
       {!isLoading && entries.length === 0 && !isCreating && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <p className="text-2xl text-gray-400">Click/tap to jot</p>
-        </div>
-      )}
-      
-      {isCreating && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <p className="text-xl text-gray-500">Creating...</p>
+          <p className="text-2xl text-gray-400">Click "Create New Cache Entry" to start</p>
         </div>
       )}
 
