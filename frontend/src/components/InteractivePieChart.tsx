@@ -396,25 +396,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
         </div>
       )}
 
-      {/* Info messages */}
-      {drillLevel === 'subcategory' && (
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-          📊 Showing subcategories within {drilldownCategory}. Click a slice to hide it.
-        </div>
-      )}
-      
-      {drillLevel === 'activity' && (
-        <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-          📊 Showing individual activities. Use navigation buttons to go back.
-        </div>
-      )}
-
-      {drillLevel === 'category' && displayData.length > 1 && (
-        <div className="mt-4 text-center text-sm text-gray-600">
-          💡 Click on any category slice to hide it from the chart
-        </div>
-      )}
-
       {/* Category visibility controls */}
       {drillLevel === 'category' && getCategoryData().length > 0 && (
         <div className="mt-6 pt-4 border-t border-gray-200">
