@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, ZoomIn, EyeOff as HideIcon } from 'lucide-react';
 import type { Activity } from '../types/activity';
 import { getCategoryColor } from '../utils/categoryColors';
 
@@ -30,7 +30,17 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
   const [hiddenSubcategories, setHiddenSubcategories] = useState<Set<string>>(new Set());
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const isManualBackRef = useRef(false);
+  
+  // Selection and popover state
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [popoverPosition, setPopoverPosition] = useState<{ x: number; y: number } | null>(null);
+  
+  // Touch tracking
+  const touchStartTime = useRef<number>(0);
+  // const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimeout = useRef<number | null>(null);
+  const isTouchDevice = useRef<boolean>(false);
+
   // Check if a category has any activities with subcategories
   const hasSubcategories = (category: string): boolean => {
     return activities.some(
@@ -85,7 +95,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     const entries = Object.entries(subcategoryTotals);
     
     return entries.map(([subcategory, minutes], index) => {
-      // Create color variations for subcategories
       const hue = parseInt(baseColor.slice(1, 3), 16);
       const sat = parseInt(baseColor.slice(3, 5), 16);
       const light = parseInt(baseColor.slice(5, 7), 16);
@@ -120,7 +129,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     const baseColor = getCategoryColor(category);
     
     return filteredActivities.map((activity, index) => {
-      // Create color variations for activities
       const hue = parseInt(baseColor.slice(1, 3), 16);
       const sat = parseInt(baseColor.slice(3, 5), 16);
       const light = parseInt(baseColor.slice(5, 7), 16);
@@ -158,57 +166,104 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
 
   const displayData = getDisplayData();
 
-  // Auto-drill logic
-  useEffect(() => {
-    if (isManualBackRef.current) {
-      isManualBackRef.current = false;
-      return;
-    }
+  // Explicit zoom in action
+  const handleZoomIn = (entry: ChartData) => {
     if (drillLevel === 'category') {
-      const categoryData = getCategoryData();
-      const visibleCategories = categoryData.filter(cat => !hiddenCategories.has(cat.category || ''));
+      const category = entry.category!;
+      setDrilldownCategory(category);
       
-      if (visibleCategories.length === 1) {
-        const category = visibleCategories[0].category!;
-        setDrilldownCategory(category);
-        
-        if (hasSubcategories(category)) {
-          setDrillLevel('subcategory');
-        } else {
-          setDrillLevel('activity');
-        }
-      }
-    } else if (drillLevel === 'subcategory' && drilldownCategory) {
-      const subcategoryData = getSubcategoryData(drilldownCategory);
-      const visibleSubcategories = subcategoryData.filter(sub => !hiddenSubcategories.has(sub.subcategory || ''));
-      
-      if (visibleSubcategories.length === 1) {
-        setDrilldownSubcategory(visibleSubcategories[0].subcategory!);
+      if (hasSubcategories(category)) {
+        setDrillLevel('subcategory');
+      } else {
         setDrillLevel('activity');
       }
+    } else if (drillLevel === 'subcategory') {
+      setDrilldownSubcategory(entry.subcategory!);
+      setDrillLevel('activity');
     }
-  }, [hiddenCategories, hiddenSubcategories, drillLevel, drilldownCategory]);
+    
+    closePopover();
+  };
 
-  // Handle pie slice click
-  const handlePieClick = (entry: any) => {
+  // Explicit hide action
+  const handleHideItem = (entry: ChartData) => {
+    // Prevent hiding if it's the only visible slice
+    if (displayData.length === 1) {
+      closePopover();
+      return;
+    }
+    
+    if (drillLevel === 'category') {
+      setHiddenCategories(prev => new Set([...prev, entry.category!]));
+    } else if (drillLevel === 'subcategory') {
+      setHiddenSubcategories(prev => new Set([...prev, entry.subcategory!]));
+    }
+    
+    closePopover();
+  };
+
+  // Close popover
+  const closePopover = () => {
+    setSelectedIndex(null);
+    setPopoverPosition(null);
+  };
+
+  // Handle touch start
+  const handleTouchStart = (entry: ChartData, index: number) => {
+    isTouchDevice.current = true;
+    touchStartTime.current = Date.now();
+    
+    // Set up long press detection
+    longPressTimeout.current = setTimeout(() => {
+      // Long press detected - hide item
+      if (drillLevel !== 'activity') {
+        handleHideItem(entry);
+      }
+    }, 500); // 500ms for long press
+  };
+
+  // Handle touch end
+  const handleTouchEnd = (entry: ChartData, index: number) => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+    
+    const touchDuration = Date.now() - touchStartTime.current;
+    
+    // Short tap - zoom in
+    if (touchDuration < 500 && drillLevel !== 'activity') {
+      handleZoomIn(entry);
+    }
+  };
+
+  // Handle mouse click (desktop)
+  const handlePieClick = (entry: any, index: number, event: any) => {
+    // If it's a touch device, ignore mouse events (they fire after touch events)
+    if (isTouchDevice.current) {
+      return;
+    }
+    
     if (drillLevel === 'activity') {
-      // At activity level, don't do anything on click
       return;
     }
 
-    const itemName = entry.name;
-    const shouldHide = window.confirm(
-      `Do you want to hide "${itemName}" from the pie chart?`
-    );
-
-    if (shouldHide) {
-      if (drillLevel === 'category') {
-        setHiddenCategories(prev => new Set([...prev, entry.category]));
-      } else if (drillLevel === 'subcategory') {
-        setHiddenSubcategories(prev => new Set([...prev, entry.subcategory]));
-      }
-      setActiveIndex(null);
+    // Get the click position for popover
+    const svg = event.currentTarget.closest('svg');
+    const rect = svg.getBoundingClientRect();
+    
+    // If clicking the same slice, close popover
+    if (selectedIndex === index) {
+      closePopover();
+      return;
     }
+    
+    // Set selected and show popover
+    setSelectedIndex(index);
+    setPopoverPosition({
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top
+    });
   };
 
   // Toggle category visibility
@@ -245,13 +300,14 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     setHiddenCategories(new Set());
     setHiddenSubcategories(new Set());
     setActiveIndex(null);
+    closePopover();
   };
 
   const handleBackToSubcategories = () => {
-    isManualBackRef.current = true;
     setDrillLevel('subcategory');
     setDrilldownSubcategory(null);
     setHiddenSubcategories(new Set());
+    closePopover();
   };
 
   // Custom label for pie slices
@@ -307,7 +363,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   }
 
   return (
-    <div className="bg-gray-50 rounded-lg pt-6 pb-6 pl-6 pr-3">
+    <div className="bg-gray-50 rounded-lg pt-6 pb-6 pl-6 pr-3 relative">
       {/* Header with navigation */}
       <div className="mb-4">
         <div className="flex items-center gap-3 w-full">
@@ -339,7 +395,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                 (() => {
                   if (hiddenCategories.size === 0) return null;
                   
-                  // Get all categories from activities
                   const allCategories = Array.from(new Set(activities.map(a => a.category || categories[0])));
                   const visibleCategories = allCategories.filter(cat => !hiddenCategories.has(cat));
                   const hiddenCategoryList = Array.from(hiddenCategories);
@@ -362,7 +417,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
 
       {/* Pie Chart */}
       {displayData.length > 0 ? (
-        <>
+        <div className="relative">
           <ResponsiveContainer width="100%" height={350}>
             <PieChart>
               <Pie
@@ -374,10 +429,20 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                 outerRadius={90}
                 fill="#8884d8"
                 dataKey="value"
-                onClick={handlePieClick}
-                onMouseEnter={(_, index) => setActiveIndex(index)}
-                onMouseLeave={() => setActiveIndex(null)}
-                {...(activeIndex !== null && { activeShape: renderActiveShape })}
+                onClick={(entry, index, event) => handlePieClick(entry, index, event)}
+                onTouchStart={(entry, index) => handleTouchStart(entry, index)}
+                onTouchEnd={(entry, index) => handleTouchEnd(entry, index)}
+                onMouseEnter={(_, index) => {
+                  if (selectedIndex !== index) {
+                    setActiveIndex(index);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (selectedIndex === null) {
+                    setActiveIndex(null);
+                  }
+                }}
+                {...(selectedIndex !== null ? { activeIndex: selectedIndex, activeShape: renderActiveShape } : activeIndex !== null ? { activeIndex: activeIndex, activeShape: renderActiveShape } : {})}
                 style={{ cursor: drillLevel === 'activity' ? 'default' : 'pointer', fontSize: '13.5px' }}
               >
                 {displayData.map((entry, index) => (
@@ -394,6 +459,44 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
               />
             </PieChart>
           </ResponsiveContainer>
+
+          {/* Contextual Popover */}
+          {selectedIndex !== null && popoverPosition && drillLevel !== 'activity' && (
+            <>
+              {/* Backdrop to close popover */}
+              <div 
+                className="fixed inset-0 z-10"
+                onClick={closePopover}
+              />
+              
+              {/* Popover */}
+              <div 
+                className="absolute z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[140px]"
+                style={{
+                  left: `${popoverPosition.x}px`,
+                  top: `${popoverPosition.y}px`,
+                  transform: 'translate(-50%, -100%) translateY(-8px)'
+                }}
+              >
+                <button
+                  onClick={() => handleZoomIn(displayData[selectedIndex])}
+                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                >
+                  <ZoomIn size={16} />
+                  <span>Zoom in</span>
+                </button>
+                {displayData.length > 1 && (
+                  <button
+                    onClick={() => handleHideItem(displayData[selectedIndex])}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                  >
+                    <HideIcon size={16} />
+                    <span>Hide</span>
+                  </button>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Legend */}
           <div className="mt-4 grid grid-cols-3 gap-2">
@@ -415,7 +518,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
               );
             })}
           </div>
-        </>
+        </div>
       ) : (
         <div className="flex items-center justify-center h-[350px] text-gray-500">
           No data to display at this level
