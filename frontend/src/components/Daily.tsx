@@ -15,11 +15,14 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     title: '',
     description: '',
     category: '',
+    subcategory: '',
     duration: 0,
     startTime: '',
     endTime: ''
   });
   const [validationError, setValidationError] = useState<string>('');
+  const [categories, setCategories] = useState<Array<{value: string; label: string; subcategories?: string[]}>>([]);
+  const [editSubcategories, setEditSubcategories] = useState<string[]>([]);
 
   const CATEGORIES = Object.keys(categoryColors);
 
@@ -78,19 +81,32 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
 
   const handleEditClick = (activity: Activity) => {
     setEditingActivity(activity);
+    const category = activity.category || CATEGORIES[0];
+    const selectedCategory = categories.find(cat => cat.value === category);
+    
     setEditForm({
       title: activity.title || '',
       description: activity.description || '',
-      category: activity.category || CATEGORIES[0],
+      category: category,
+      subcategory: activity.subcategory || '',
       duration: activity.duration || 0,
       startTime: activity.startTime || '',
       endTime: activity.endTime || ''
     });
+    setEditSubcategories(selectedCategory?.subcategories || []);
     setValidationError('');
   };
 
   const handleEditChange = (field: string, value: any) => {
     const updatedForm = { ...editForm, [field]: value };
+    
+    // Update subcategories when category changes
+    if (field === 'category') {
+      const selectedCategory = categories.find(cat => cat.value === value);
+      setEditSubcategories(selectedCategory?.subcategories || []);
+      updatedForm.subcategory = ''; // Clear subcategory when category changes
+    }
+    
     setEditForm(updatedForm);
     
     const error = validateDuration(updatedForm);
@@ -137,16 +153,31 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
       title: '',
       description: '',
       category: '',
+      subcategory: '',
       duration: 0,
       startTime: '',
       endTime: ''
     });
+    setEditSubcategories([]);
     setValidationError('');
   };
 
   useEffect(() => {
     fetchActivities();
   }, [dateString]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const data = await activityService.getCategories();
+      setCategories(data.categories);
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    }
+  };
 
   if (loading) {
     return (
@@ -341,13 +372,32 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                   onChange={(e) => handleEditChange('category', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  {CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>
-                      {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  {categories.map(cat => (
+                    <option key={cat.value} value={cat.value}>
+                      {cat.label}
                     </option>
                   ))}
                 </select>
               </div>
+              {editSubcategories.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subcategory *
+                  </label>
+                  <select
+                    value={editForm.subcategory}
+                    onChange={(e) => handleEditChange('subcategory', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select a subcategory</option>
+                    {editSubcategories.map(sub => (
+                      <option key={sub} value={sub}>
+                        {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
