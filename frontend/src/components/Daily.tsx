@@ -285,14 +285,23 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                             </button>
                           </div>
                         </div>
-                        {activity.category && (
-                          <span 
-                            className="inline-block mt-1 px-2 py-1 text-xs font-medium rounded-full text-white"
-                            style={{ backgroundColor: getCategoryColor(activity.category) }}
-                          >
-                            {activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {activity.category && (
+                            <span 
+                              className="inline-block px-2 py-1 text-xs font-medium rounded-full text-white"
+                              style={{ backgroundColor: getCategoryColor(activity.category) }}
+                            >
+                              {activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
+                            </span>
+                          )}
+                          {activity.subcategory && (
+                            <span 
+                              className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700"
+                            >
+                              {activity.subcategory.charAt(0).toUpperCase() + activity.subcategory.slice(1)}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-600 mt-2">{activity.description}</p>
                         <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
                           <Clock size={14} />
