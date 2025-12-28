@@ -58,7 +58,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       return {
         name: category.charAt(0).toUpperCase() + category.slice(1),
         value: minutes,
-        hours: `${hours}:${mins.toString().padStart(2, '0')}`,
+        hours: `${hours}h ${mins}m`,
         color: getCategoryColor(category),
         category: category
       };
@@ -100,7 +100,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       return {
         name: subcategory.charAt(0).toUpperCase() + subcategory.slice(1),
         value: minutes,
-        hours: `${hours}:${mins.toString().padStart(2, '0')}`,
+        hours: `${hours}h ${mins}m`,
         color: variedColor,
         subcategory: subcategory
       };
@@ -136,7 +136,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       return {
         name: activity.title,
         value: minutes,
-        hours: `${hours}:${mins.toString().padStart(2, '0')}`,
+        hours: `${hours}h ${mins}m`,
         color: variedColor,
         activityId: activity._id
       };
@@ -256,7 +256,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     const totalMinutes = value;
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    const timeStr = `${hours}:${minutes.toString().padStart(2, '0')}`;
+    const timeStr = `${hours}h ${minutes}m`;
     return `${(percent * 100).toFixed(0)}% (${timeStr})`;
   };
 
@@ -384,7 +384,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                   const totalMinutes = value;
                   const hours = Math.floor(totalMinutes / 60);
                   const minutes = totalMinutes % 60;
-                  return `${hours}:${minutes.toString().padStart(2, '0')}`;
+                  return `${hours}h ${minutes}m`;
                 }}
               />
             </PieChart>
