@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import type { Activity } from '../types/activity';
@@ -30,7 +30,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
   const [hiddenSubcategories, setHiddenSubcategories] = useState<Set<string>>(new Set());
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-
+  const isManualBackRef = useRef(false);
   // Check if a category has any activities with subcategories
   const hasSubcategories = (category: string): boolean => {
     return activities.some(
@@ -160,6 +160,10 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
 
   // Auto-drill logic
   useEffect(() => {
+    if (isManualBackRef.current) {
+      isManualBackRef.current = false;
+      return;
+    }
     if (drillLevel === 'category') {
       const categoryData = getCategoryData();
       const visibleCategories = categoryData.filter(cat => !hiddenCategories.has(cat.category || ''));
@@ -244,6 +248,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   };
 
   const handleBackToSubcategories = () => {
+    isManualBackRef.current = true;
     setDrillLevel('subcategory');
     setDrilldownSubcategory(null);
     setHiddenSubcategories(new Set());
