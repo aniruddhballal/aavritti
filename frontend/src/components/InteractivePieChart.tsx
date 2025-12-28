@@ -238,7 +238,9 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     setDrillLevel('category');
     setDrilldownCategory(null);
     setDrilldownSubcategory(null);
+    setHiddenCategories(new Set());
     setHiddenSubcategories(new Set());
+    setActiveIndex(null);
   };
 
   const handleBackToSubcategories = () => {
@@ -337,7 +339,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
               )}
             </div>
           </div>
-          {(hiddenCategories.size > 0 || hiddenSubcategories.size > 0 || drillLevel !== 'category') && (
+          {drillLevel === 'activity' && (
             <button
               onClick={handleResetAll}
               className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
