@@ -246,6 +246,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   const handleBackToSubcategories = () => {
     setDrillLevel('subcategory');
     setDrilldownSubcategory(null);
+    setHiddenSubcategories(new Set());
   };
 
   const handleResetAll = () => {
