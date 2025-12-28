@@ -305,7 +305,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     <div className="bg-gray-50 rounded-lg p-6">
       {/* Header with navigation */}
       <div className="mb-4">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-3 w-full">
           <div className="flex items-center gap-3">
             {drillLevel !== 'category' && (
               <button
@@ -318,16 +318,37 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                 <ArrowLeft size={20} />
               </button>
             )}
-            <div>
-              <h3 className="text-lg font-semibold text-gray-700">
-                {drillLevel === 'category' && 'Category Distribution'}
-                {drillLevel === 'subcategory' && 'Subcategory Breakdown'}
-                {drillLevel === 'activity' && 'Activity Breakdown'}
-              </h3>
-              {drillLevel !== 'category' && (
-                <p className="text-sm text-gray-600 mt-1">
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-700">
+              {drillLevel === 'category' && 'Category Distribution'}
+              {drillLevel === 'subcategory' && 'Subcategory Breakdown'}
+              {drillLevel === 'activity' && 'Activity Breakdown'}
+            </h3>
+            <div className="min-h-[24px] mt-1">
+              {drillLevel !== 'category' ? (
+                <p className="text-sm text-gray-600">
                   {getBreadcrumb()}
                 </p>
+              ) : (
+                (() => {
+                  if (hiddenCategories.size === 0) return null;
+                  
+                  // Get all categories from activities
+                  const allCategories = Array.from(new Set(activities.map(a => a.category || categories[0])));
+                  const visibleCategories = allCategories.filter(cat => !hiddenCategories.has(cat));
+                  const hiddenCategoryList = Array.from(hiddenCategories);
+                  
+                  const showHidden = hiddenCategoryList.length <= visibleCategories.length;
+                  const list = showHidden ? hiddenCategoryList : visibleCategories;
+                  const label = showHidden ? 'Hidden' : 'Active';
+                  
+                  return (
+                    <p className="text-sm text-gray-600">
+                      {label}: {list.map(cat => cat.charAt(0).toUpperCase() + cat.slice(1)).join(', ')}
+                    </p>
+                  );
+                })()
               )}
             </div>
           </div>
