@@ -430,8 +430,8 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                 fill="#8884d8"
                 dataKey="value"
                 onClick={(entry, index, event) => handlePieClick(entry, index, event)}
-                onTouchStart={(entry) => handleTouchStart(entry)}
-                onTouchEnd={(entry) => handleTouchEnd(entry)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
                 onMouseEnter={(_, index) => {
                   if (selectedIndex !== index) {
                     setActiveIndex(index);
