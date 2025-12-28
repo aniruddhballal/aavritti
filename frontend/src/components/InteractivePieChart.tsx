@@ -209,7 +209,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   };
 
   // Handle touch start
-  const handleTouchStart = (entry: ChartData, index: number) => {
+  const handleTouchStart = (entry: ChartData) => {
     isTouchDevice.current = true;
     touchStartTime.current = Date.now();
     
@@ -223,7 +223,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   };
 
   // Handle touch end
-  const handleTouchEnd = (entry: ChartData, index: number) => {
+  const handleTouchEnd = (entry: ChartData) => {
     if (longPressTimeout.current) {
       clearTimeout(longPressTimeout.current);
       longPressTimeout.current = null;
@@ -238,7 +238,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   };
 
   // Handle mouse click (desktop)
-  const handlePieClick = (entry: any, index: number, event: any) => {
+  const handlePieClick = (_entry: any, index: number, event: any) => {
     // If it's a touch device, ignore mouse events (they fire after touch events)
     if (isTouchDevice.current) {
       return;
@@ -430,8 +430,8 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                 fill="#8884d8"
                 dataKey="value"
                 onClick={(entry, index, event) => handlePieClick(entry, index, event)}
-                onTouchStart={(entry, index) => handleTouchStart(entry, index)}
-                onTouchEnd={(entry, index) => handleTouchEnd(entry, index)}
+                onTouchStart={(entry) => handleTouchStart(entry)}
+                onTouchEnd={(entry) => handleTouchEnd(entry)}
                 onMouseEnter={(_, index) => {
                   if (selectedIndex !== index) {
                     setActiveIndex(index);
