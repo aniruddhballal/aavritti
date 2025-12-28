@@ -148,6 +148,23 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     }
   };
 
+  const handleDeleteActivity = async () => {
+    if (!editingActivity) return;
+    
+    // Optional: Add confirmation dialog
+    if (!window.confirm('Are you sure you want to delete this activity? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await activityService.deleteActivity(editingActivity._id);
+      setEditingActivity(null);
+      await fetchActivities();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete activity');
+    }
+  };
+
   const handleCancelEdit = () => {
     setEditingActivity(null);
     setEditForm({
@@ -473,15 +490,24 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
 
               <div className="flex gap-3 pt-4">
                 <button
+                  onClick={handleDeleteActivity}
+                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                  title="Delete activity"
+                >
+                  <X size={18} />
+                  Delete
+                </button>
+                <div className="flex-1"></div>
+                <button
                   onClick={handleCancelEdit}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveEdit}
                   disabled={!!validationError}
-                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Save size={18} />
                   Save Changes

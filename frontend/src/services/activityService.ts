@@ -17,6 +17,11 @@ export const activityService = {
     return response.data;
   },
 
+  deleteActivity: async (id: string): Promise<{ message: string; activity: Activity }> => {
+    const response = await api.delete(`/activities/${id}`);
+    return response.data;
+  },
+  
   getCategories: async () => {
     const response = await api.get('/activities/meta/categories');
     return response.data;
