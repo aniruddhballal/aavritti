@@ -67,6 +67,10 @@ router.get('/meta/categories', (_req, res) => {
     { 
       value: 'project', 
       label: 'Project'
+    },
+    { 
+      value: 'recreation', 
+      label: 'Recreation'
     }
   ];
 
