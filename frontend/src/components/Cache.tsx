@@ -19,8 +19,6 @@ const Cache = () => {
   const [entries, setEntries] = useState<(CacheEntry & EntryPosition)[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [dragging, setDragging] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   const createCacheEntry = async (data: { title: string; body: string }) => {
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/cache-entries`, {
@@ -92,37 +90,6 @@ const Cache = () => {
     } finally {
       setIsCreating(false);
     }
-  };
-
-  const handleMouseDown = (id: string, e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON') {
-      return;
-    }
-
-    const entry = entries.find(e => e._id === id);
-    if (!entry) return;
-
-    setDragging(id);
-    setDragOffset({
-      x: e.clientX - entry.x,
-      y: e.clientY - entry.y
-    });
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragging) return;
-
-    const newX = e.clientX - dragOffset.x;
-    const newY = e.clientY - dragOffset.y;
-
-    setEntries(entries.map(entry =>
-      entry._id === dragging ? { ...entry, x: newX, y: newY } : entry
-    ));
-  };
-
-  const handleMouseUp = () => {
-    setDragging(null);
   };
 
   const handleTitleChange = (id: string, value: string) => {
@@ -200,12 +167,7 @@ const Cache = () => {
   };
 
   return (
-    <div 
-      className="w-full h-screen bg-gray-50 relative overflow-auto"
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      style={{ cursor: dragging ? 'grabbing' : 'default' }}
-    >
+    <div className="w-full h-screen bg-gray-50 relative overflow-auto">
       <div className="absolute top-6 left-6 flex items-center gap-3 z-10">
         <button
           onClick={(e) => {
@@ -248,10 +210,8 @@ const Cache = () => {
             left: `${entry.x}px`,
             top: `${entry.y}px`,
             width: '300px',
-            transform: 'translate(-50%, -50%)',
-            cursor: dragging === entry._id ? 'grabbing' : 'grab'
+            transform: 'translate(-50%, -50%)'
           }}
-          onMouseDown={(e) => handleMouseDown(entry._id, e)}
         >
           <div className="flex justify-between items-start mb-3">
             <div className="flex-1">
