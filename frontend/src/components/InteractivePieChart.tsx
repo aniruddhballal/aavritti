@@ -249,15 +249,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     setHiddenSubcategories(new Set());
   };
 
-  const handleResetAll = () => {
-    setDrillLevel('category');
-    setDrilldownCategory(null);
-    setDrilldownSubcategory(null);
-    setHiddenCategories(new Set());
-    setHiddenSubcategories(new Set());
-    setActiveIndex(null);
-  };
-
   // Custom label for pie slices
   const renderLabel = (props: any) => {
     const { percent, value } = props;
@@ -340,14 +331,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
               )}
             </div>
           </div>
-          {drillLevel === 'activity' && (
-            <button
-              onClick={handleResetAll}
-              className="px-3 py-1.5 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
-            >
-              Reset All
-            </button>
-          )}
         </div>
       </div>
 
