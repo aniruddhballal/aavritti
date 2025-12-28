@@ -302,7 +302,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   }
 
   return (
-    <div className="bg-gray-50 rounded-lg p-6">
+    <div className="bg-gray-50 rounded-lg pt-6 pb-6 pl-6 pr-3">
       {/* Header with navigation */}
       <div className="mb-4">
         <div className="flex items-center gap-3 w-full">
