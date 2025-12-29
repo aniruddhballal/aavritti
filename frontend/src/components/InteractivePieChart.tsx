@@ -317,8 +317,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     const totalMinutes = value;
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
-    const timeStr = `${hours}h ${minutes}m`;
-    return `${(percent * 100).toFixed(0)}% (${timeStr})`;
+    return `${hours}h ${minutes}m`;
   };
 
   // Active shape for hover effect
@@ -505,6 +504,9 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                 ? entry.name.split(' ').slice(0, 3).join(' ')
                 : entry.name;
               
+              const totalValue = displayData.reduce((sum, item) => sum + item.value, 0);
+              const percentage = ((entry.value / totalValue) * 100).toFixed(1);
+              
               return (
                 <div key={index} className="flex items-center gap-2 text-sm">
                   <div 
@@ -512,7 +514,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                     style={{ backgroundColor: entry.color }}
                   />
                   <span className="text-gray-700 truncate">
-                    {displayName}
+                    {displayName} ({percentage}%)
                   </span>
                 </div>
               );
