@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Circle, Clock, Edit2, X, Save } from 'lucide-react';
+import { ArrowLeft, Circle, Clock, Edit2, X, Save, ChevronLeft, ChevronRight } from 'lucide-react';
 import { activityService } from '../services';
 import type { DailyData, Activity } from '../types/activity';
 import AddActivityForm from './AddActivityForm';
 import InteractivePieChart from './InteractivePieChart';
 import { categoryColors, getCategoryColor } from '../utils/categoryColors';
+import { useNavigate } from 'react-router-dom';
 
 const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateString: string; onBack: () => void }) => {
+  const navigate = useNavigate();
   const [data, setData] = useState<DailyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +53,53 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
       month: '2-digit',
       day: '2-digit'
     });
+  };
+
+  const getISTDate = () => {
+    const now = new Date();
+    const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+    const istTime = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
+    istTime.setHours(0, 0, 0, 0);
+    return istTime;
+  };
+
+  const isDateAvailable = (date: Date) => {
+    const startDate = new Date(2025, 11, 25); // December 25, 2025
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+    const todayIST = getISTDate();
+    return checkDate >= startDate && checkDate <= todayIST;
+  };
+
+  const navigateToDate = (direction: 'prev' | 'next') => {
+    const currentDate = new Date(selectedDate);
+    const newDate = new Date(currentDate);
+    
+    if (direction === 'prev') {
+      newDate.setDate(newDate.getDate() - 1);
+    } else {
+      newDate.setDate(newDate.getDate() + 1);
+    }
+    
+    if (isDateAvailable(newDate)) {
+      const year = newDate.getFullYear();
+      const month = String(newDate.getMonth() + 1).padStart(2, '0');
+      const day = String(newDate.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+      navigate(`/daily/${dateString}`);
+    }
+  };
+
+  const canNavigatePrev = () => {
+    const prevDate = new Date(selectedDate);
+    prevDate.setDate(prevDate.getDate() - 1);
+    return isDateAvailable(prevDate);
+  };
+
+  const canNavigateNext = () => {
+    const nextDate = new Date(selectedDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+    return isDateAvailable(nextDate);
   };
 
   const isToday = () => {
@@ -236,9 +285,29 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
         </button>
 
         <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {formatDate(selectedDate)}
-          </h1>
+          <div className="flex items-center justify-between mb-2">
+            <button
+              onClick={() => navigateToDate('prev')}
+              disabled={!canNavigatePrev()}
+              className={`p-2 rounded-full ${canNavigatePrev() ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
+              title="Previous day"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            
+            <h1 className="text-3xl font-bold text-gray-800">
+              {formatDate(selectedDate)}
+            </h1>
+            
+            <button
+              onClick={() => navigateToDate('next')}
+              disabled={!canNavigateNext()}
+              className={`p-2 rounded-full ${canNavigateNext() ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
+              title="Next day"
+            >
+              <ChevronRight size={24} />
+            </button>
+          </div>
           <p className="text-gray-500 mb-8">View your activities and progress for this day</p>
 
           <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
