@@ -37,9 +37,9 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   
   // Touch tracking
   const touchStartTime = useRef<number>(0);
-  // const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
   const longPressTimeout = useRef<number | null>(null);
   const isTouchDevice = useRef<boolean>(false);
+  const [showInstructions, setShowInstructions] = useState(true);
 
   // Check if a category has any activities with subcategories
   const hasSubcategories = (category: string): boolean => {
@@ -364,7 +364,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   return (
     <div className="bg-gray-50 rounded-lg pt-6 pb-6 pl-6 pr-3 relative">
       {/* Header with navigation */}
-      <div className="mb-4">
+      <div className="mb-4 space-y-3">
         <div className="flex items-center gap-3 w-full">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-3">
@@ -535,6 +535,28 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       ) : (
         <div className="flex items-center justify-center h-[350px] text-gray-500">
           No data to display at this level
+        </div>
+      )}
+
+      {/* Instructions */}
+      {showInstructions && drillLevel !== 'activity' && (
+        <div className="mt-6 pt-4 border-t border-gray-200 bg-blue-50 rounded-lg p-4 relative">
+          <button
+            onClick={() => setShowInstructions(false)}
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            title="Dismiss"
+          >
+            ×
+          </button>
+          <h4 className="text-sm font-semibold text-blue-900 mb-2">💡 Interactive Chart</h4>
+          <div className="text-sm text-blue-800 space-y-1">
+            <p>
+              <strong>Desktop:</strong> Click any slice to see options for zooming in or hiding
+            </p>
+            <p>
+              <strong>Touch devices:</strong> Tap to zoom in, long-press to hide
+            </p>
+          </div>
         </div>
       )}
 
