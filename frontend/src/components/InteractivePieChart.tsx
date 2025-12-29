@@ -528,7 +528,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       {/* Category visibility controls */}
       {drillLevel === 'category' && getCategoryData().length > 0 && (
         <div className="mt-6 pt-4 border-t border-gray-200">
-          <h4 className="text-sm font-medium text-gray-700 mb-3">Category Visibility</h4>
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Category Visibility (Click to hide)</h4>
           <div className="flex flex-wrap gap-2">
             {getCategoryData().map((cat) => {
               const isHidden = hiddenCategories.has(cat.category || '');
