@@ -4,7 +4,7 @@ import { useDateNavigation } from './hooks/useDateNavigation';
 import { useActivityEdit } from './hooks/useActivityEdit';
 import { categoryColors } from '../../utils/categoryColors';
 import DailyHeader from './DailyHeader';
-import DailyStats from './DailyStats';
+import InteractivePieChart from '../InteractivePieChart';
 import ActivityList from './ActivityList';
 import EditActivityModal from './EditActivityModal';
 
@@ -83,11 +83,23 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
         />
 
         <div className="bg-white rounded-lg shadow-lg p-8 mt-6">
-          <DailyStats
-            activities={data?.activities || []}
-            categories={CATEGORIES}
-          />
+          {/* Interactive Pie Chart */}
+          <div className="mb-8">
+            {data?.activities && data.activities.length > 0 ? (
+              <InteractivePieChart 
+                activities={data.activities} 
+                categories={CATEGORIES}
+              />
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-6">
+                <div className="flex items-center justify-center h-[400px] text-gray-500">
+                  No activity data to display
+                </div>
+              </div>
+            )}
+          </div>
 
+          {/* Activity List */}
           <ActivityList
             activities={data?.activities || []}
             isToday={isToday()}
