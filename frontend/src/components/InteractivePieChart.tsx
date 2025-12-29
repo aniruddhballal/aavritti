@@ -362,7 +362,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   }
 
   return (
-    <div className="bg-gray-50 rounded-lg pt-6 pb-6 pl-6 pr-3 relative">
+    <div className="bg-gray-50 rounded-lg pt-6 pb-6 px-6 relative">
       {/* Header with navigation */}
       <div className="mb-4 space-y-3">
         <div className="flex items-center gap-3 w-full">
@@ -425,115 +425,120 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
         </div>
       </div>
 
-      {/* Pie Chart */}
+      {/* Main Content: Pie Chart + Legend Side by Side on Desktop */}
       {displayData.length > 0 ? (
-        <div className="relative">
-          <ResponsiveContainer width="100%" height={350}>
-            <PieChart>
-              <Pie
-                data={displayData}
-                cx="50%"
-                cy="45%"
-                label={renderLabel}
-                labelLine={false}
-                outerRadius={90}
-                fill="#8884d8"
-                dataKey="value"
-                onClick={(entry, index, event) => handlePieClick(entry, index, event)}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-                onMouseEnter={(_, index) => {
-                  if (selectedIndex !== index) {
-                    setActiveIndex(index);
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (selectedIndex === null) {
-                    setActiveIndex(null);
-                  }
-                }}
-                {...(selectedIndex !== null ? { activeIndex: selectedIndex, activeShape: renderActiveShape } : activeIndex !== null ? { activeIndex: activeIndex, activeShape: renderActiveShape } : {})}
-                style={{ cursor: drillLevel === 'activity' ? 'default' : 'pointer', fontSize: '13.5px' }}
-              >
-                {displayData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value: any) => {
-                  const totalMinutes = value;
-                  const hours = Math.floor(totalMinutes / 60);
-                  const minutes = totalMinutes % 60;
-                  return `${hours}h ${minutes}m`;
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-
-          {/* Contextual Popover */}
-          {selectedIndex !== null && popoverPosition && drillLevel !== 'activity' && (
-            <>
-              {/* Backdrop to close popover */}
-              <div 
-                className="fixed inset-0 z-10"
-                onClick={closePopover}
-              />
-              
-              {/* Popover */}
-              <div 
-                className="absolute z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[140px]"
-                style={{
-                  left: `${popoverPosition.x}px`,
-                  top: `${popoverPosition.y}px`,
-                  transform: 'translate(-50%, -100%) translateY(-8px)'
-                }}
-              >
-                <button
-                  onClick={() => handleZoomIn(displayData[selectedIndex])}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+        <div className="flex flex-col lg:flex-row gap-6 items-start">
+          {/* Pie Chart */}
+          <div className="relative flex-1 w-full lg:w-auto">
+            <ResponsiveContainer width="100%" height={400}>
+              <PieChart>
+                <Pie
+                  data={displayData}
+                  cx="50%"
+                  cy="50%"
+                  label={renderLabel}
+                  labelLine={false}
+                  outerRadius={120}
+                  fill="#8884d8"
+                  dataKey="value"
+                  onClick={(entry, index, event) => handlePieClick(entry, index, event)}
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                  onMouseEnter={(_, index) => {
+                    if (selectedIndex !== index) {
+                      setActiveIndex(index);
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (selectedIndex === null) {
+                      setActiveIndex(null);
+                    }
+                  }}
+                  {...(selectedIndex !== null ? { activeIndex: selectedIndex, activeShape: renderActiveShape } : activeIndex !== null ? { activeIndex: activeIndex, activeShape: renderActiveShape } : {})}
+                  style={{ cursor: drillLevel === 'activity' ? 'default' : 'pointer', fontSize: '13.5px' }}
                 >
-                  <ZoomIn size={16} />
-                  <span>Zoom in</span>
-                </button>
-                {displayData.length > 1 && (
+                  {displayData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value: any) => {
+                    const totalMinutes = value;
+                    const hours = Math.floor(totalMinutes / 60);
+                    const minutes = totalMinutes % 60;
+                    return `${hours}h ${minutes}m`;
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+
+            {/* Contextual Popover */}
+            {selectedIndex !== null && popoverPosition && drillLevel !== 'activity' && (
+              <>
+                {/* Backdrop to close popover */}
+                <div 
+                  className="fixed inset-0 z-10"
+                  onClick={closePopover}
+                />
+                
+                {/* Popover */}
+                <div 
+                  className="absolute z-20 bg-white rounded-lg shadow-lg border border-gray-200 py-1 min-w-[140px]"
+                  style={{
+                    left: `${popoverPosition.x}px`,
+                    top: `${popoverPosition.y}px`,
+                    transform: 'translate(-50%, -100%) translateY(-8px)'
+                  }}
+                >
                   <button
-                    onClick={() => handleHideItem(displayData[selectedIndex])}
+                    onClick={() => handleZoomIn(displayData[selectedIndex])}
                     className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
                   >
-                    <HideIcon size={16} />
-                    <span>Hide</span>
+                    <ZoomIn size={16} />
+                    <span>Zoom in</span>
                   </button>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Legend */}
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {displayData.map((entry, index) => {
-              const displayName = drillLevel === 'activity' 
-                ? entry.name.split(' ').slice(0, 3).join(' ')
-                : entry.name;
-              
-              const totalValue = displayData.reduce((sum, item) => sum + item.value, 0);
-              const percentage = ((entry.value / totalValue) * 100).toFixed(1);
-              
-              return (
-                <div key={index} className="flex items-center gap-2 text-sm">
-                  <div 
-                    className="w-3 h-3 rounded-sm flex-shrink-0"
-                    style={{ backgroundColor: entry.color }}
-                  />
-                  <span className="text-gray-700 truncate">
-                    {displayName} ({percentage}%)
-                  </span>
+                  {displayData.length > 1 && (
+                    <button
+                      onClick={() => handleHideItem(displayData[selectedIndex])}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <HideIcon size={16} />
+                      <span>Hide</span>
+                    </button>
+                  )}
                 </div>
-              );
-            })}
+              </>
+            )}
+          </div>
+
+          {/* Legend - Side by side on desktop, below on mobile */}
+          <div className="w-full lg:w-80 lg:flex-shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+              {displayData.map((entry, index) => {
+                const displayName = drillLevel === 'activity' 
+                  ? entry.name.split(' ').slice(0, 3).join(' ')
+                  : entry.name;
+                
+                const totalValue = displayData.reduce((sum, item) => sum + item.value, 0);
+                const percentage = ((entry.value / totalValue) * 100).toFixed(1);
+                
+                return (
+                  <div key={index} className="flex items-center gap-2 text-sm">
+                    <div 
+                      className="w-3 h-3 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: entry.color }}
+                    />
+                    <span className="text-gray-700 truncate">
+                      {displayName} ({percentage}%)
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-center h-[350px] text-gray-500">
+        <div className="flex items-center justify-center h-[400px] text-gray-500">
           No data to display at this level
         </div>
       )}

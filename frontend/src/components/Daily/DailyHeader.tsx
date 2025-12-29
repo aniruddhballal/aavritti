@@ -10,6 +10,8 @@ interface DailyHeaderProps {
   canNavigateNext: () => boolean;
   navigateToDate: (direction: 'prev' | 'next') => void;
   onBack: () => void;
+  totalActivities: number;
+  totalTime: string;
 }
 
 const DailyHeader = ({
@@ -18,7 +20,9 @@ const DailyHeader = ({
   canNavigatePrev,
   canNavigateNext,
   navigateToDate,
-  onBack
+  onBack,
+  totalActivities,
+  totalTime
 }: DailyHeaderProps) => {
   return (
     <>
@@ -54,9 +58,21 @@ const DailyHeader = ({
             <ChevronRight size={24} />
           </button>
         </div>
-        <p className="text-gray-500 mb-8 text-center">
+        <p className="text-gray-500 mb-6 text-center">
           View your activities and progress for this day
         </p>
+
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-blue-50 rounded-lg p-6">
+            <div className="text-3xl font-bold text-blue-600">{totalActivities}</div>
+            <div className="text-sm text-blue-700">Total Activities</div>
+          </div>
+          <div className="bg-green-50 rounded-lg p-6">
+            <div className="text-3xl font-bold text-green-600">{totalTime}</div>
+            <div className="text-sm text-green-700">Total Time Recorded</div>
+          </div>
+        </div>
       </div>
     </>
   );

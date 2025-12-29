@@ -78,12 +78,12 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
           canNavigateNext={canNavigateNext}
           navigateToDate={navigateToDate}
           onBack={onBack}
+          totalActivities={data?.totalActivities || 0}
+          totalTime={getTotalTime()}
         />
 
         <div className="bg-white rounded-lg shadow-lg p-8 mt-6">
           <DailyStats
-            totalActivities={data?.totalActivities || 0}
-            totalTime={getTotalTime()}
             activities={data?.activities || []}
             categories={CATEGORIES}
           />
