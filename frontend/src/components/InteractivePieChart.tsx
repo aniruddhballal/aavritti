@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
-import { Eye, EyeOff, ArrowLeft, ZoomIn, EyeOff as HideIcon } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, ZoomIn, EyeOff as HideIcon, RotateCcw  } from 'lucide-react';
 import type { Activity } from '../types/activity';
 import { getCategoryColor } from '../utils/categoryColors';
 
@@ -367,17 +367,19 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       <div className="mb-4">
         <div className="flex items-center gap-3 w-full">
           <div className="flex items-center gap-3">
-            {drillLevel !== 'category' && (
-              <button
-                onClick={drillLevel === 'activity' && drilldownSubcategory 
-                  ? handleBackToSubcategories 
-                  : handleBackToCategories}
-                className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
-                title={drillLevel === 'activity' && drilldownSubcategory ? 'Back to Subcategories' : 'Back to Categories'}
-              >
-                <ArrowLeft size={20} />
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {drillLevel !== 'category' && (
+                <button
+                  onClick={drillLevel === 'activity' && drilldownSubcategory 
+                    ? handleBackToSubcategories 
+                    : handleBackToCategories}
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-colors"
+                  title={drillLevel === 'activity' && drilldownSubcategory ? 'Back to Subcategories' : 'Back to Categories'}
+                >
+                  <ArrowLeft size={20} />
+                </button>
+              )}
+            </div>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-700">
@@ -410,6 +412,15 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                 })()
               )}
             </div>
+          </div>
+          <div className="ml-auto self-start">
+            <button
+              onClick={handleBackToCategories}
+              className="pt-0 pr-2 text-gray-600 hover:text-gray-900 transition-colors group"
+              title="Reset to Categories"
+            >
+              <RotateCcw size={20} className="transition-transform duration-500 group-hover:rotate-[-360deg]" />
+            </button>
           </div>
         </div>
       </div>
