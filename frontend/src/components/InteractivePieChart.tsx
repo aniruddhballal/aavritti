@@ -498,7 +498,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
           )}
 
           {/* Legend */}
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          <div className="mt-4 grid grid-cols-2 gap-2">
             {displayData.map((entry, index) => {
               const displayName = drillLevel === 'activity' 
                 ? entry.name.split(' ').slice(0, 3).join(' ')
