@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import Daily from './Daily';
+import Daily from './Daily/Daily';
 
 function DailyWrapper() {
   const navigate = useNavigate();
