@@ -308,8 +308,9 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
               <ChevronRight size={24} />
             </button>
           </div>
-          <p className="text-gray-500 mb-8">View your activities and progress for this day</p>
-
+          <p className="text-gray-500 mb-8 text-center">
+            View your activities and progress for this day
+          </p>
           <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Stats Section */}
             <div className="space-y-4">
