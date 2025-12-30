@@ -3,15 +3,19 @@ import DateNavigator from './components/DateNavigator'
 import RAM from './components/RAM.tsx'
 import Cache from './components/Cache'
 import DailyWrapper from './components/DailyWrapper'
+import { DarkModeProvider } from './contexts/DarkModeContext';
 
 function App() {
   return (
-    <Routes>
+    <DarkModeProvider>
+      <Routes>
       <Route path="/" element={<DateNavigator />} />
       <Route path="/daily/:date" element={<DailyWrapper />} />
       <Route path="/ram" element={<RAM />} />
       <Route path="/cache" element={<Cache />} />
     </Routes>
+    </DarkModeProvider>
+    
   )
 }
 
