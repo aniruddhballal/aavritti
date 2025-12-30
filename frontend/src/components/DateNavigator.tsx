@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Cpu, HardDrive } from 'lucide-react';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 const DateNavigator = () => {
   const navigate = useNavigate();
+  const { isDarkMode } = useDarkMode();
   
   // Get current date in IST
   const getISTDate = () => {
@@ -100,26 +102,50 @@ const DateNavigator = () => {
   const canGoNext = currentYear < todayIST.getFullYear() || (currentYear === todayIST.getFullYear() && currentMonth < todayIST.getMonth());
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-lg">
+    <div className={`w-full max-w-md mx-auto p-6 rounded-lg shadow-lg transition-colors ${
+      isDarkMode ? 'bg-gray-800' : 'bg-white'
+    }`}>
       <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-gray-800">{formatSelectedDate()}</h2>
+        <h2 className={`text-2xl font-bold ${
+          isDarkMode ? 'text-gray-100' : 'text-gray-800'
+        }`}>
+          {formatSelectedDate()}
+        </h2>
       </div>
 
       <div className="mb-4 flex items-center justify-between">
         <button
           onClick={handlePrevMonth}
           disabled={!canGoPrev}
-          className={`p-2 rounded-full ${canGoPrev ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
+          className={`p-2 rounded-full transition-colors ${
+            canGoPrev 
+              ? isDarkMode
+                ? 'hover:bg-gray-700 text-gray-300'
+                : 'hover:bg-gray-100 text-gray-700'
+              : isDarkMode
+                ? 'text-gray-600 cursor-not-allowed'
+                : 'text-gray-300 cursor-not-allowed'
+          }`}
         >
           <ChevronLeft size={20} />
         </button>
-        <h3 className="text-lg font-semibold text-gray-800">
+        <h3 className={`text-lg font-semibold ${
+          isDarkMode ? 'text-gray-100' : 'text-gray-800'
+        }`}>
           {months[currentMonth]} {currentYear}
         </h3>
         <button
           onClick={handleNextMonth}
           disabled={!canGoNext}
-          className={`p-2 rounded-full ${canGoNext ? 'hover:bg-gray-100 text-gray-700' : 'text-gray-300 cursor-not-allowed'}`}
+          className={`p-2 rounded-full transition-colors ${
+            canGoNext 
+              ? isDarkMode
+                ? 'hover:bg-gray-700 text-gray-300'
+                : 'hover:bg-gray-100 text-gray-700'
+              : isDarkMode
+                ? 'text-gray-600 cursor-not-allowed'
+                : 'text-gray-300 cursor-not-allowed'
+          }`}
         >
           <ChevronRight size={20} />
         </button>
@@ -127,7 +153,12 @@ const DateNavigator = () => {
 
       <div className="grid grid-cols-7 gap-2">
         {daysOfWeek.map(day => (
-          <div key={day} className="text-center text-sm font-semibold text-gray-600 py-2">
+          <div 
+            key={day} 
+            className={`text-center text-sm font-semibold py-2 ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-600'
+            }`}
+          >
             {day}
           </div>
         ))}
@@ -150,10 +181,24 @@ const DateNavigator = () => {
               onClick={() => handleDateClick(day)}
               disabled={!isAvailable}
               className={`aspect-square rounded-lg flex items-center justify-center text-sm font-medium transition-colors
-                ${isSelected ? 'bg-blue-500 text-white' : ''}
-                ${!isSelected && isToday ? 'bg-blue-100 text-blue-700' : ''}
-                ${!isSelected && !isToday && isAvailable ? 'hover:bg-gray-100 text-gray-700' : ''}
-                ${!isAvailable ? 'text-gray-300 cursor-not-allowed' : ''}
+                ${isSelected 
+                  ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                  : ''}
+                ${!isSelected && isToday 
+                  ? isDarkMode
+                    ? 'bg-blue-900/40 text-blue-300'
+                    : 'bg-blue-100 text-blue-700'
+                  : ''}
+                ${!isSelected && !isToday && isAvailable 
+                  ? isDarkMode
+                    ? 'hover:bg-gray-700 text-gray-300'
+                    : 'hover:bg-gray-100 text-gray-700'
+                  : ''}
+                ${!isAvailable 
+                  ? isDarkMode
+                    ? 'text-gray-600 cursor-not-allowed'
+                    : 'text-gray-300 cursor-not-allowed'
+                  : ''}
               `}
             >
               {day}
@@ -165,14 +210,22 @@ const DateNavigator = () => {
       <div className="mt-6 grid grid-cols-2 gap-4">
         <button
           onClick={() => navigate('/ram')}
-          className="py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+          className={`py-3 px-4 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+            isDarkMode
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
         >
           <HardDrive size={20} />
           RAM
         </button>
         <button
           onClick={() => navigate('/cache')}
-          className="py-3 px-4 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+          className={`py-3 px-4 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 ${
+            isDarkMode
+              ? 'bg-green-600 hover:bg-green-700 text-white'
+              : 'bg-green-500 hover:bg-green-600 text-white'
+          }`}
         >
           <Cpu size={20} />
           Cache
