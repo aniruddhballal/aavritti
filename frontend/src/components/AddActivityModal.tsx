@@ -35,17 +35,17 @@ const AddActivityModal = ({
   const [error, setError] = useState('');
 
   // Get today's date in IST timezone (YYYY-MM-DD)
-    const getTodayIST = () => {
+  const getTodayIST = () => {
     const now = new Date();
     return now.toLocaleDateString('en-CA', {
-        timeZone: 'Asia/Kolkata',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
+      timeZone: 'Asia/Kolkata',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
     });
-    };
+  };
 
-    const today = getTodayIST();
+  const today = getTodayIST();
 
   // Calculate duration from start/end times
   useEffect(() => {
@@ -184,6 +184,24 @@ const AddActivityModal = ({
           }
         }
 
+        @keyframes shimmer {
+          0% {
+            background-position: -200% center;
+          }
+          100% {
+            background-position: 200% center;
+          }
+        }
+
+        @keyframes pulseGlow {
+          0%, 100% {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+          }
+          50% {
+            box-shadow: 0 0 12px 2px rgba(59, 130, 246, 0.15);
+          }
+        }
+
         .modal-content {
           animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -219,6 +237,26 @@ const AddActivityModal = ({
           box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);
         }
 
+        .btn-primary::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+          );
+          transition: left 0.5s;
+        }
+
+        .btn-primary:not(:disabled):hover::before {
+          left: 100%;
+        }
+
         .btn-secondary {
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -230,6 +268,18 @@ const AddActivityModal = ({
           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
         }
 
+        .btn-secondary:active {
+          transform: translateY(0);
+        }
+
+        .icon-hover {
+          transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary:not(:disabled):hover .icon-hover {
+          transform: scale(1.1);
+        }
+
         .close-btn {
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -239,12 +289,16 @@ const AddActivityModal = ({
           transform: rotate(90deg);
         }
 
-        .mode-btn {
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        .close-btn:active {
+          background-color: #e2e8f0;
         }
 
-        .mode-btn:not(.active):hover {
-          background-color: #e2e8f0;
+        .label-text {
+          transition: color 0.15s ease;
+        }
+
+        .input-field:focus + .label-text {
+          color: #3b82f6;
         }
 
         .select-wrapper {
@@ -263,18 +317,38 @@ const AddActivityModal = ({
           border-right: 4px solid transparent;
           border-top: 5px solid #64748b;
           pointer-events: none;
+          transition: transform 0.2s ease;
+        }
+
+        .select-wrapper:hover::after {
+          border-top-color: #475569;
         }
 
         select {
           appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: none;
         }
 
         .error-alert {
           animation: modalFadeIn 0.2s ease-out;
         }
+
+        .mode-btn {
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .mode-btn:not(.active):hover {
+          background-color: #e2e8f0;
+          transform: translateY(-1px);
+        }
+
+        .mode-btn.active {
+          box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+        }
       `}</style>
 
-      <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-opacity-30 backdrop-blur-lg flex items-center justify-center p-4 z-50">
         <div className="modal-content bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50 border-b border-gray-100 px-8 py-5 flex items-center justify-between">
             <h2 className="text-2xl font-semibold text-gray-800 tracking-tight">Add Activity</h2>
@@ -287,195 +361,193 @@ const AddActivityModal = ({
             </button>
           </div>
 
-          <div className="flex flex-col flex-1 overflow-hidden">
-            <div className="overflow-y-auto flex-1">
-              <div className="p-8 space-y-6">
+          <div className="overflow-y-auto flex-1">
+            <div className="p-8 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Category <span className="text-red-400">*</span>
+                </label>
+                <div className="select-wrapper">
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map(cat => (
+                      <option key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {subcategories.length > 0 && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Category <span className="text-red-400">*</span>
+                    Subcategory <span className="text-red-400">*</span>
                   </label>
                   <div className="select-wrapper">
                     <select
-                      name="category"
-                      value={formData.category}
+                      name="subcategory"
+                      value={formData.subcategory}
                       onChange={handleChange}
                       className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
                     >
-                      <option value="">Select a category</option>
-                      {categories.map(cat => (
-                        <option key={cat.value} value={cat.value}>
-                          {cat.label}
+                      <option value="">Select a subcategory</option>
+                      {subcategories.map(sub => (
+                        <option key={sub} value={sub}>
+                          {sub.charAt(0).toUpperCase() + sub.slice(1)}
                         </option>
                       ))}
                     </select>
                   </div>
                 </div>
+              )}
 
-                {subcategories.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Activity Title <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  placeholder="e.g., Morning Run"
+                  className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Duration Input Method <span className="text-red-400">*</span>
+                </label>
+                <div className="flex gap-3 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => handleDurationModeChange('manual')}
+                    className={`mode-btn flex-1 px-4 py-2.5 rounded-lg font-medium ${
+                      durationMode === 'manual'
+                        ? 'bg-green-500 text-white active'
+                        : 'bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    Enter HH:MM
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDurationModeChange('calculated')}
+                    className={`mode-btn flex-1 px-4 py-2.5 rounded-lg font-medium ${
+                      durationMode === 'calculated'
+                        ? 'bg-green-500 text-white active'
+                        : 'bg-gray-200 text-gray-700'
+                    }`}
+                  >
+                    Start/End Time
+                  </button>
+                </div>
+
+                {durationMode === 'manual' ? (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Subcategory <span className="text-red-400">*</span>
+                      Duration (HH:MM) <span className="text-red-400">*</span>
                     </label>
-                    <div className="select-wrapper">
-                      <select
-                        name="subcategory"
-                        value={formData.subcategory}
-                        onChange={handleChange}
-                        className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
-                      >
-                        <option value="">Select a subcategory</option>
-                        {subcategories.map(sub => (
-                          <option key={sub} value={sub}>
-                            {sub.charAt(0).toUpperCase() + sub.slice(1)}
-                          </option>
-                        ))}
-                      </select>
+                    <input
+                      type="text"
+                      name="duration"
+                      value={formData.duration}
+                      onChange={handleChange}
+                      placeholder="01:30"
+                      pattern="[0-9]{1,2}:[0-5][0-9]"
+                      className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                    />
+                    <div className="text-xs text-gray-500 mt-2 pl-1">
+                      Enter hours and minutes (e.g., 01:30 for 1 hour 30 minutes)
                     </div>
                   </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Activity Title <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleChange}
-                    placeholder="e.g., Morning Run"
-                    className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Duration Input Method <span className="text-red-400">*</span>
-                  </label>
-                  <div className="flex gap-3 mb-4">
-                    <button
-                      type="button"
-                      onClick={() => handleDurationModeChange('manual')}
-                      className={`mode-btn flex-1 px-4 py-2.5 rounded-lg font-medium ${
-                        durationMode === 'manual'
-                          ? 'bg-green-500 text-white active'
-                          : 'bg-gray-200 text-gray-700'
-                      }`}
-                    >
-                      Enter HH:MM
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDurationModeChange('calculated')}
-                      className={`mode-btn flex-1 px-4 py-2.5 rounded-lg font-medium ${
-                        durationMode === 'calculated'
-                          ? 'bg-green-500 text-white active'
-                          : 'bg-gray-200 text-gray-700'
-                      }`}
-                    >
-                      Start/End Time
-                    </button>
-                  </div>
-
-                  {durationMode === 'manual' ? (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Duration (HH:MM) <span className="text-red-400">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="duration"
-                        value={formData.duration}
-                        onChange={handleChange}
-                        placeholder="01:30"
-                        pattern="[0-9]{1,2}:[0-5][0-9]"
-                        className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
-                      />
-                      <div className="text-xs text-gray-500 mt-2 pl-1">
-                        Enter hours and minutes (e.g., 01:30 for 1 hour 30 minutes)
+                ) : (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-5">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Start Time <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="time"
+                          name="startTime"
+                          value={formData.startTime}
+                          onChange={handleChange}
+                          className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          End Time <span className="text-red-400">*</span>
+                        </label>
+                        <input
+                          type="time"
+                          name="endTime"
+                          value={formData.endTime}
+                          onChange={handleChange}
+                          className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                        />
                       </div>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Start Time <span className="text-red-400">*</span>
-                          </label>
-                          <input
-                            type="time"
-                            name="startTime"
-                            value={formData.startTime}
-                            onChange={handleChange}
-                            className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            End Time <span className="text-red-400">*</span>
-                          </label>
-                          <input
-                            type="time"
-                            name="endTime"
-                            value={formData.endTime}
-                            onChange={handleChange}
-                            className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
-                          />
+                    {formData.startTime && formData.endTime && formData.duration && (
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <div className="text-sm text-blue-700 font-medium">
+                          Calculated Duration: {formData.duration} minutes ({Math.floor(parseInt(formData.duration) / 60)}h {parseInt(formData.duration) % 60}m)
                         </div>
                       </div>
-                      {formData.startTime && formData.endTime && formData.duration && (
-                        <div className="bg-blue-50 rounded-lg p-3">
-                          <div className="text-sm text-blue-700 font-medium">
-                            Calculated Duration: {formData.duration} minutes ({Math.floor(parseInt(formData.duration) / 60)}h {parseInt(formData.duration) % 60}m)
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                    placeholder="Add details, links, or proof of activity..."
-                    rows={4}
-                    className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none resize-y bg-white text-gray-700"
-                  />
-                </div>
-
-                {error && (
-                  <div className="error-alert bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm flex items-start gap-2">
-                    <span className="text-base">⚠️</span>
-                    <span>{error}</span>
+                    )}
                   </div>
                 )}
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Description
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  placeholder="Add details, links, or proof of activity..."
+                  rows={4}
+                  className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none resize-y bg-white text-gray-700"
+                />
+              </div>
+
+              {error && (
+                <div className="error-alert bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm flex items-start gap-2">
+                  <span className="text-base">⚠️</span>
+                  <span>{error}</span>
+                </div>
+              )}
             </div>
+          </div>
 
-            <div className="sticky bottom-0 bg-gradient-to-t from-gray-50 to-white border-t border-gray-100 px-8 py-5">
-              <div className="flex gap-3 justify-end">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="btn-secondary px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="btn-primary px-6 py-2.5 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Plus size={18} strokeWidth={2} />
-                  {isSubmitting ? 'Adding...' : 'Add Activity'}
-                </button>
-              </div>
+          <div className="sticky bottom-0 bg-gradient-to-t from-gray-50 to-white border-t border-gray-100 px-8 py-5">
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-secondary px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="btn-primary px-6 py-2.5 bg-green-500 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
+                <Plus size={18} className="icon-hover" strokeWidth={2} />
+                {isSubmitting ? 'Adding...' : 'Add Activity'}
+              </button>
             </div>
           </div>
         </div>
