@@ -7,6 +7,7 @@ import type { Activity } from '../../types/activity';
 import ActivityItem from './ActivityItem';
 import AddActivityModal from '../AddActivityModal';
 import { activityService } from '../../services';
+import { useDarkMode } from '../../contexts/DarkModeContext';
 
 interface Category {
   value: string;
@@ -31,6 +32,7 @@ const ActivityList = ({
 }: ActivityListProps) => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const { isDarkMode } = useDarkMode();
 
   // Fetch categories on mount
   useEffect(() => {
@@ -75,14 +77,22 @@ const ActivityList = ({
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Header with title and add button */}
       <div className="mb-4 flex-shrink-0 flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-700">Activities</h2>
+        <h2 className={`text-xl font-semibold ${
+          isDarkMode ? 'text-gray-200' : 'text-gray-700'
+        }`}>
+          Activities
+        </h2>
         <button
           onClick={handleAddClick}
           disabled={!isToday}
           className={`p-2 mr-4 rounded-lg transition-all ${
             isToday
-              ? 'text-green-600 hover:bg-green-50 hover:text-green-700 active:scale-95'
-              : 'text-gray-300 cursor-not-allowed'
+              ? isDarkMode
+                ? 'text-green-400 hover:bg-green-900/30 hover:text-green-300 active:scale-95'
+                : 'text-green-600 hover:bg-green-50 hover:text-green-700 active:scale-95'
+              : isDarkMode
+                ? 'text-gray-600 cursor-not-allowed'
+                : 'text-gray-300 cursor-not-allowed'
           }`}
           title={isToday ? 'Add Activity' : 'Can only add activities for today'}
           aria-label="Add Activity"
@@ -93,7 +103,9 @@ const ActivityList = ({
       
       <div className="flex-1 min-h-0">
         {!activities || activities.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className={`text-center py-8 ${
+            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+          }`}>
             No activities recorded for this day
           </div>
         ) : (
