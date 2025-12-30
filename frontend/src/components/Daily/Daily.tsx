@@ -8,11 +8,13 @@ import DailyHeader from './DailyHeader';
 import InteractivePieChart from '../InteractivePieChart';
 import ActivityList from './ActivityList';
 import EditActivityModal from './EditActivityModal';
+import { useDarkMode } from '../../contexts/DarkModeContext';
 
 const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateString: string; onBack: () => void }) => {
   const CATEGORIES = Object.keys(categoryColors);
   const leftColumnRef = useRef<HTMLDivElement>(null);
   const [leftColumnHeight, setLeftColumnHeight] = useState(0);
+  const { isDarkMode } = useDarkMode();
 
   // Custom hooks
   const { data, loading, error, categories, fetchActivities, getTotalTime } = useDailyData(dateString);
@@ -71,24 +73,38 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex items-center justify-center">
-        <div className="text-gray-600">Loading activities...</div>
+      <div className={`min-h-screen p-6 flex items-center justify-center ${
+        isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+      }`}>
+        <div className={isDarkMode ? 'text-gray-300' : 'text-gray-600'}>
+          Loading activities...
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+      <div className={`min-h-screen p-4 lg:p-6 ${
+        isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+      }`}>
         <div className="max-w-7xl mx-auto">
           <button
             onClick={onBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+            className={`flex items-center gap-2 mb-6 transition-colors ${
+              isDarkMode
+                ? 'text-gray-400 hover:text-gray-100'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
           >
             <ArrowLeft size={20} />
             <span>Back to Calendar</span>
           </button>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          <div className={`border rounded-lg p-4 ${
+            isDarkMode
+              ? 'bg-red-900/20 border-red-800 text-red-300'
+              : 'bg-red-50 border-red-200 text-red-700'
+          }`}>
             Error: {error}
           </div>
         </div>
@@ -97,7 +113,9 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+    <div className={`min-h-screen p-4 lg:p-6 transition-colors ${
+      isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
+    }`}>
       {/* Wider max-width container for desktop */}
       <div className="max-w-7xl mx-auto">
         <DailyHeader
@@ -123,8 +141,15 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
                 />
               </div>
             ) : (
-              <div ref={leftColumnRef} className="bg-gray-50 rounded-lg p-6">
-                <div className="flex items-center justify-center h-[400px] text-gray-500">
+              <div 
+                ref={leftColumnRef} 
+                className={`rounded-lg p-6 ${
+                  isDarkMode ? 'bg-gray-800' : 'bg-gray-50'
+                }`}
+              >
+                <div className={`flex items-center justify-center h-[400px] ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                   No activity data to display
                 </div>
               </div>
@@ -133,7 +158,9 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
 
           {/* Right Column - Activity List */}
           <div 
-            className="bg-white rounded-lg shadow-lg p-6 lg:p-8 flex flex-col overflow-hidden"
+            className={`rounded-lg shadow-lg p-6 lg:p-8 flex flex-col overflow-hidden transition-colors ${
+              isDarkMode ? 'bg-gray-800' : 'bg-white'
+            }`}
             style={{
               maxHeight: leftColumnHeight > 0 ? `${leftColumnHeight}px` : 'calc(100vh + 100px)'
             }}
