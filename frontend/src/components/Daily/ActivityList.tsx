@@ -20,6 +20,18 @@ const ActivityList = ({
   onActivityAdded,
   onEditActivity 
 }: ActivityListProps) => {
+  // Sort activities by start time (earliest first)
+  // If startTime is missing, fall back to timestamp
+  const sortedActivities = [...activities].sort((a, b) => {
+    const timeA = a.startTime 
+      ? new Date(`${a.date}T${a.startTime}`).getTime()
+      : new Date(a.timestamp).getTime();
+    const timeB = b.startTime 
+      ? new Date(`${b.date}T${b.startTime}`).getTime()
+      : new Date(b.timestamp).getTime();
+    return timeA - timeB;
+  });
+
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {isToday && (
@@ -37,7 +49,7 @@ const ActivityList = ({
           </div>
         ) : (
           <div className="space-y-3 pr-2">
-            {activities.map((activity) => (
+            {sortedActivities.map((activity) => (
               <ActivityItem
                 key={activity._id}
                 activity={activity}
