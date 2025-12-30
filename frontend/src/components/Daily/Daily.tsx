@@ -102,7 +102,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
           </div>
 
           {/* Right Column - Activity List */}
-          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8 h-[960px] flex flex-col">
+          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8 h-[1100px] flex flex-col">
             <ActivityList
               activities={data?.activities || []}
               isToday={isToday()}
