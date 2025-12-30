@@ -79,7 +79,7 @@ const ActivityList = ({
         <button
           onClick={handleAddClick}
           disabled={!isToday}
-          className={`p-2 rounded-lg transition-all ${
+          className={`p-2 mr-4 rounded-lg transition-all ${
             isToday
               ? 'text-green-600 hover:bg-green-50 hover:text-green-700 active:scale-95'
               : 'text-gray-300 cursor-not-allowed'
