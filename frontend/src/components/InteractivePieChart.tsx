@@ -443,10 +443,10 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
 
       {/* Main Content: Pie Chart + Legend Side by Side on Desktop */}
       {displayData.length > 0 ? (
-        <div className={`flex flex-col lg:flex-row gap-6 items-start transition-all duration-500 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+        <div className={`flex flex-col gap-6 items-start transition-all duration-500 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
           {/* Pie Chart */}
-          <div className="relative flex-1 w-full lg:w-auto">
-            <ResponsiveContainer width="100%" height={400}>
+          <div className="relative w-full h-[400px]">
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={displayData}
@@ -549,8 +549,8 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
           </div>
 
           {/* Legend - Side by side on desktop, below on mobile */}
-          <div className="w-full lg:w-80 lg:flex-shrink-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
+          <div className="w-full">
+            <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
               {displayData.map((entry, index) => {
                 const displayName = drillLevel === 'activity' 
                   ? entry.name.split(' ').slice(0, 3).join(' ')
