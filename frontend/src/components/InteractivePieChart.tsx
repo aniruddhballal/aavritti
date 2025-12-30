@@ -39,7 +39,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   const touchStartTime = useRef<number>(0);
   const longPressTimeout = useRef<number | null>(null);
   const isTouchDevice = useRef<boolean>(false);
-  const [showInstructions, setShowInstructions] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
 
   // Check if a category has any activities with subcategories
@@ -615,15 +614,8 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       )}
 
       {/* Instructions */}
-      {showInstructions && drillLevel !== 'activity' && (
+      {drillLevel !== 'activity' && (
         <div className="mt-6 pt-4 border-t border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50/30 rounded-xl p-4 relative animate-in slide-in-from-bottom duration-500 border border-blue-100">
-          <button
-            onClick={() => setShowInstructions(false)}
-            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors duration-200 hover:scale-110 active:scale-95"
-            title="Dismiss"
-          >
-            <span className="text-lg leading-none">×</span>
-          </button>
           <div className="flex items-start gap-3">
             <Sparkles className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
             <div>
@@ -644,7 +636,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       {/* Category visibility controls */}
       {drillLevel === 'category' && getCategoryData().length > 0 && (
         <div className="mt-6 pt-5 border-t border-gray-200">
-          <h4 className="text-sm font-bold text-gray-700 mb-3 tracking-tight">Category Visibility</h4>
+          <h4 className="text-sm font-bold text-gray-700 mb-3 tracking-tight">Category Visibility (click/tap to hide)</h4>
           <div className="flex flex-wrap gap-2">
             {getCategoryData().map((cat) => {
               const isHidden = hiddenCategories.has(cat.category || '');
