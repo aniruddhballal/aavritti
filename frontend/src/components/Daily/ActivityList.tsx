@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Activity } from '../../types/activity';
 import ActivityItem from './ActivityItem';
-import AddActivityModal from '../AddActivityModal';
+import AddActivityModal from './AddActivityModal';
 import { activityService } from '../../services';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 
