@@ -4,6 +4,10 @@ export interface ICacheEntry extends Document {
   timestamp: Date;
   title: string;
   body: string;
+  position: {
+    x: number;
+    y: number;
+  };
 }
 
 const CacheEntrySchema: Schema = new Schema({
@@ -22,6 +26,13 @@ const CacheEntrySchema: Schema = new Schema({
     type: String, 
     default: '',
     trim: true 
+  },
+  position: {
+    type: {
+      x: { type: Number, default: 300 },
+      y: { type: Number, default: 300 }
+    },
+    default: { x: 300, y: 300 }
   }
 });
 
