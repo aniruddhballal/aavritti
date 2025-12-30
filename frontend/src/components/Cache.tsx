@@ -7,6 +7,10 @@ interface CacheEntry {
   title: string;
   body: string;
   timestamp: Date;
+  position?: {
+    x: number;
+    y: number;
+  };
 }
 
 interface EntryPosition {
@@ -27,8 +31,9 @@ const Cache = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
   const [isTouchDragging, setIsTouchDragging] = useState(false);
-
-  const createCacheEntry = async (data: { title: string; body: string }) => {
+  const [positionChanged, setPositionChanged] = useState<Set<string>>(new Set());
+  
+  const createCacheEntry = async (data: { title: string; body: string; position?: { x: number; y: number } }) => {
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/cache-entries`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -54,11 +59,11 @@ const Cache = () => {
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/cache-entries`);
         const data = await response.json();
         
-        // Assign random positions to existing entries with more spacing
+        // Use stored positions if available, otherwise assign default positions
         const entriesWithPositions = data.map((entry: CacheEntry, index: number) => ({
           ...entry,
-          x: 250 + (index % 4) * 380,
-          y: 250 + Math.floor(index / 4) * 320
+          x: entry.position?.x ?? (250 + (index % 4) * 380),
+          y: entry.position?.y ?? (250 + Math.floor(index / 4) * 320)
         }));
         
         setEntries(entriesWithPositions);
@@ -81,19 +86,20 @@ const Cache = () => {
     setIsCreating(true);
     
     try {
-      const newEntry = await createCacheEntry({
-        title: '',
-        body: ''
-      });
-      
-      console.log('Created new cache entry:', newEntry);
-      
       // Position new entry in center of viewport with scroll offset
       const scrollX = containerRef.current?.scrollLeft || 0;
       const scrollY = containerRef.current?.scrollTop || 0;
       const x = window.innerWidth / 2 + scrollX;
       const y = window.innerHeight / 2 + scrollY;
+
+      const newEntry = await createCacheEntry({
+        title: '',
+        body: '',
+        position: { x, y }
+      });
       
+      console.log('Created new cache entry:', newEntry);
+
       setEntries([...entries, { ...newEntry, x, y }]);
       
       // Focus on the new entry after a brief delay
@@ -202,6 +208,33 @@ const Cache = () => {
     }
   };
 
+  // Save position to backend
+  const savePosition = async (id: string, x: number, y: number) => {
+    try {
+      await updateCacheEntry(id, { 
+        position: { x, y } 
+      });
+      console.log('Saved position for entry:', id, { x, y });
+      
+      // Show brief save indicator
+      setSavingEntries(prev => new Set(prev).add(id));
+      setTimeout(() => {
+        setSavingEntries(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+        setPositionChanged(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
+      }, 800);
+    } catch (error) {
+      console.error('Error saving position:', error);
+    }
+  };
+
   // Unified drag handlers for both mouse and touch
   const startDrag = (id: string, clientX: number, clientY: number, target: EventTarget) => {
     // Don't start drag if clicking/touching on input elements or buttons
@@ -242,9 +275,20 @@ const Cache = () => {
           } 
         : entry
     ));
+
+    // Mark that position has changed
+    setPositionChanged(prev => new Set(prev).add(draggedEntry));
   };
 
   const endDrag = () => {
+    if (draggedEntry && positionChanged.has(draggedEntry)) {
+      const entry = entries.find(e => e._id === draggedEntry);
+      if (entry) {
+        // Save the new position to backend
+        savePosition(draggedEntry, entry.x, entry.y);
+      }
+    }
+    
     setDraggedEntry(null);
     setIsTouchDragging(false);
     setTouchStart(null);
@@ -532,7 +576,7 @@ const Cache = () => {
             <div>
               <h4 className="text-sm font-bold text-gray-800 mb-1">💡 Pro Tip</h4>
               <p className="text-xs text-gray-600 leading-relaxed">
-                Drag entries around to organize them. They auto-save as you type!
+                Drag entries around to organize them. Positions are saved automatically!
               </p>
             </div>
           </div>
