@@ -21,7 +21,7 @@ const ActivityList = ({
   onEditActivity 
 }: ActivityListProps) => {
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-y-auto">
       {isToday && (
         <div className="mb-6 flex-shrink-0">
           <AddActivityForm onActivityAdded={onActivityAdded} />
@@ -30,7 +30,7 @@ const ActivityList = ({
       
       <h2 className="text-xl font-semibold text-gray-700 mb-4 flex-shrink-0">Activities</h2>
       
-      <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="flex-1 min-h-0">
         {!activities || activities.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             No activities recorded for this day
