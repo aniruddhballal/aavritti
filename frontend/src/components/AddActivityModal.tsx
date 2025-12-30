@@ -1,5 +1,6 @@
 import { X, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { activityService } from '../services';
 
 interface Category {
   value: string;
@@ -126,21 +127,7 @@ const AddActivityModal = ({
         ...(formData.endTime && { endTime: formData.endTime })
       };
 
-      // Call the API
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [{
-            role: 'user',
-            content: `Create activity with data: ${JSON.stringify(activityData)}`
-          }]
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to create activity');
+    await activityService.createActivity(activityData); 
 
       onActivityAdded();
       onClose();
