@@ -461,7 +461,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       {displayData.length > 0 ? (
         <div className={`flex flex-col gap-6 items-start transition-all duration-500 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
           {/* Pie Chart */}
-          <div className="relative w-full h-[400px]">
+          <div className="relative w-full h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
