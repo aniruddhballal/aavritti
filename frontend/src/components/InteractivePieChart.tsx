@@ -443,7 +443,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                   cy="50%"
                   label={renderLabel}
                   labelLine={false}
-                  outerRadius={120}
+                  outerRadius={115}
                   fill="#8884d8"
                   dataKey="value"
                   onClick={(entry, index, event) => handlePieClick(entry, index, event)}
