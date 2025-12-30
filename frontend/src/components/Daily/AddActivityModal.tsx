@@ -1,7 +1,7 @@
 import { X, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { activityService } from '../services';
-import { useDarkMode } from '../contexts/DarkModeContext';
+import { activityService } from '../../services';
+import { useDarkMode } from '../../contexts/DarkModeContext';
 
 interface Category {
   value: string;
