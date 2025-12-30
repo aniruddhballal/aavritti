@@ -1,6 +1,7 @@
 import { X, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { activityService } from '../services';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 interface Category {
   value: string;
@@ -21,6 +22,7 @@ const AddActivityModal = ({
   onActivityAdded,
   categories
 }: AddActivityModalProps) => {
+  const { isDarkMode } = useDarkMode();
   const [subcategories, setSubcategories] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     category: '',
@@ -127,7 +129,7 @@ const AddActivityModal = ({
         ...(formData.endTime && { endTime: formData.endTime })
       };
 
-    await activityService.createActivity(activityData); 
+      await activityService.createActivity(activityData); 
 
       onActivityAdded();
       onClose();
@@ -171,24 +173,6 @@ const AddActivityModal = ({
           }
         }
 
-        @keyframes shimmer {
-          0% {
-            background-position: -200% center;
-          }
-          100% {
-            background-position: 200% center;
-          }
-        }
-
-        @keyframes pulseGlow {
-          0%, 100% {
-            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
-          }
-          50% {
-            box-shadow: 0 0 12px 2px rgba(59, 130, 246, 0.15);
-          }
-        }
-
         .modal-content {
           animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -198,14 +182,14 @@ const AddActivityModal = ({
         }
 
         .input-field:hover {
-          border-color: #cbd5e1;
-          background-color: #fafafa;
+          ${isDarkMode ? 'border-color: #4b5563;' : 'border-color: #cbd5e1;'}
+          ${isDarkMode ? 'background-color: #374151;' : 'background-color: #fafafa;'}
         }
 
         .input-field:focus {
-          border-color: #93c5fd;
-          background-color: #ffffff;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+          ${isDarkMode ? 'border-color: #60a5fa;' : 'border-color: #93c5fd;'}
+          ${isDarkMode ? 'background-color: #1f2937;' : 'background-color: #ffffff;'}
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, ${isDarkMode ? '0.15' : '0.08'});
         }
 
         .btn-primary {
@@ -216,12 +200,12 @@ const AddActivityModal = ({
 
         .btn-primary:not(:disabled):hover {
           transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
+          box-shadow: 0 4px 12px rgba(34, 197, 94, ${isDarkMode ? '0.35' : '0.25'});
         }
 
         .btn-primary:not(:disabled):active {
           transform: translateY(0);
-          box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);
+          box-shadow: 0 2px 6px rgba(34, 197, 94, ${isDarkMode ? '0.25' : '0.2'});
         }
 
         .btn-primary::before {
@@ -234,7 +218,7 @@ const AddActivityModal = ({
           background: linear-gradient(
             90deg,
             transparent,
-            rgba(255, 255, 255, 0.3),
+            rgba(255, 255, 255, ${isDarkMode ? '0.2' : '0.3'}),
             transparent
           );
           transition: left 0.5s;
@@ -249,10 +233,10 @@ const AddActivityModal = ({
         }
 
         .btn-secondary:hover {
-          background-color: #f8fafc;
-          border-color: #94a3b8;
+          ${isDarkMode ? 'background-color: #374151;' : 'background-color: #f8fafc;'}
+          ${isDarkMode ? 'border-color: #6b7280;' : 'border-color: #94a3b8;'}
           transform: translateY(-1px);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, ${isDarkMode ? '0.15' : '0.06'});
         }
 
         .btn-secondary:active {
@@ -272,20 +256,12 @@ const AddActivityModal = ({
         }
 
         .close-btn:hover {
-          background-color: #f1f5f9;
+          ${isDarkMode ? 'background-color: #374151;' : 'background-color: #f1f5f9;'}
           transform: rotate(90deg);
         }
 
         .close-btn:active {
-          background-color: #e2e8f0;
-        }
-
-        .label-text {
-          transition: color 0.15s ease;
-        }
-
-        .input-field:focus + .label-text {
-          color: #3b82f6;
+          ${isDarkMode ? 'background-color: #4b5563;' : 'background-color: #e2e8f0;'}
         }
 
         .select-wrapper {
@@ -302,13 +278,13 @@ const AddActivityModal = ({
           height: 0;
           border-left: 4px solid transparent;
           border-right: 4px solid transparent;
-          border-top: 5px solid #64748b;
+          border-top: 5px solid ${isDarkMode ? '#9ca3af' : '#64748b'};
           pointer-events: none;
           transition: transform 0.2s ease;
         }
 
         .select-wrapper:hover::after {
-          border-top-color: #475569;
+          border-top-color: ${isDarkMode ? '#d1d5db' : '#475569'};
         }
 
         select {
@@ -326,22 +302,34 @@ const AddActivityModal = ({
         }
 
         .mode-btn:not(.active):hover {
-          background-color: #e2e8f0;
+          ${isDarkMode ? 'background-color: #4b5563;' : 'background-color: #e2e8f0;'}
           transform: translateY(-1px);
         }
 
         .mode-btn.active {
-          box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+          box-shadow: 0 2px 8px rgba(34, 197, 94, ${isDarkMode ? '0.3' : '0.2'});
         }
       `}</style>
 
-      <div className="fixed inset-0 bg-opacity-30 backdrop-blur-lg flex items-center justify-center p-4 z-50">
-        <div className="modal-content bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-          <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50 border-b border-gray-100 px-8 py-5 flex items-center justify-between">
-            <h2 className="text-2xl font-semibold text-gray-800 tracking-tight">Add Activity</h2>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4 z-50">
+        <div className={`modal-content rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-colors ${
+          isDarkMode ? 'bg-gray-800' : 'bg-white'
+        }`}>
+          <div className={`sticky top-0 border-b px-8 py-5 flex items-center justify-between transition-colors ${
+            isDarkMode 
+              ? 'bg-gradient-to-b from-gray-800 to-gray-800/95 border-gray-700' 
+              : 'bg-gradient-to-b from-white to-gray-50 border-gray-100'
+          }`}>
+            <h2 className={`text-2xl font-semibold tracking-tight ${
+              isDarkMode ? 'text-gray-100' : 'text-gray-800'
+            }`}>
+              Add Activity
+            </h2>
             <button
               onClick={onClose}
-              className="close-btn p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+              className={`close-btn p-2 rounded-lg ${
+                isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+              }`}
               aria-label="Close modal"
             >
               <X size={20} strokeWidth={2} />
@@ -351,7 +339,9 @@ const AddActivityModal = ({
           <div className="overflow-y-auto flex-1">
             <div className="p-8 space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Category <span className="text-red-400">*</span>
                 </label>
                 <div className="select-wrapper">
@@ -359,7 +349,11 @@ const AddActivityModal = ({
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                    className={`input-field w-full px-4 py-2.5 border rounded-lg focus:outline-none transition-colors ${
+                      isDarkMode
+                        ? 'bg-gray-700 border-gray-600 text-gray-100'
+                        : 'bg-white border-gray-200 text-gray-700'
+                    }`}
                   >
                     <option value="">Select a category</option>
                     {categories.map(cat => (
@@ -373,7 +367,9 @@ const AddActivityModal = ({
 
               {subcategories.length > 0 && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className={`block text-sm font-medium mb-2 ${
+                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                  }`}>
                     Subcategory <span className="text-red-400">*</span>
                   </label>
                   <div className="select-wrapper">
@@ -381,7 +377,11 @@ const AddActivityModal = ({
                       name="subcategory"
                       value={formData.subcategory}
                       onChange={handleChange}
-                      className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                      className={`input-field w-full px-4 py-2.5 border rounded-lg focus:outline-none transition-colors ${
+                        isDarkMode
+                          ? 'bg-gray-700 border-gray-600 text-gray-100'
+                          : 'bg-white border-gray-200 text-gray-700'
+                      }`}
                     >
                       <option value="">Select a subcategory</option>
                       {subcategories.map(sub => (
@@ -395,7 +395,9 @@ const AddActivityModal = ({
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Activity Title <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -404,12 +406,18 @@ const AddActivityModal = ({
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="e.g., Morning Run"
-                  className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                  className={`input-field w-full px-4 py-2.5 border rounded-lg focus:outline-none transition-colors ${
+                    isDarkMode
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-500'
+                      : 'bg-white border-gray-200 text-gray-700 placeholder:text-gray-400'
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className={`block text-sm font-medium mb-3 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Duration Input Method <span className="text-red-400">*</span>
                 </label>
                 <div className="flex gap-3 mb-4">
@@ -419,7 +427,9 @@ const AddActivityModal = ({
                     className={`mode-btn flex-1 px-4 py-2.5 rounded-lg font-medium ${
                       durationMode === 'manual'
                         ? 'bg-green-500 text-white active'
-                        : 'bg-gray-200 text-gray-700'
+                        : isDarkMode
+                          ? 'bg-gray-700 text-gray-300'
+                          : 'bg-gray-200 text-gray-700'
                     }`}
                   >
                     Enter HH:MM
@@ -430,7 +440,9 @@ const AddActivityModal = ({
                     className={`mode-btn flex-1 px-4 py-2.5 rounded-lg font-medium ${
                       durationMode === 'calculated'
                         ? 'bg-green-500 text-white active'
-                        : 'bg-gray-200 text-gray-700'
+                        : isDarkMode
+                          ? 'bg-gray-700 text-gray-300'
+                          : 'bg-gray-200 text-gray-700'
                     }`}
                   >
                     Start/End Time
@@ -439,7 +451,9 @@ const AddActivityModal = ({
 
                 {durationMode === 'manual' ? (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium mb-2 ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
                       Duration (HH:MM) <span className="text-red-400">*</span>
                     </label>
                     <input
@@ -449,9 +463,15 @@ const AddActivityModal = ({
                       onChange={handleChange}
                       placeholder="01:30"
                       pattern="[0-9]{1,2}:[0-5][0-9]"
-                      className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                      className={`input-field w-full px-4 py-2.5 border rounded-lg focus:outline-none transition-colors ${
+                        isDarkMode
+                          ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-500'
+                          : 'bg-white border-gray-200 text-gray-700 placeholder:text-gray-400'
+                      }`}
                     />
-                    <div className="text-xs text-gray-500 mt-2 pl-1">
+                    <div className={`text-xs mt-2 pl-1 ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       Enter hours and minutes (e.g., 01:30 for 1 hour 30 minutes)
                     </div>
                   </div>
@@ -459,7 +479,9 @@ const AddActivityModal = ({
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-5">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={`block text-sm font-medium mb-2 ${
+                          isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
                           Start Time <span className="text-red-400">*</span>
                         </label>
                         <input
@@ -467,11 +489,17 @@ const AddActivityModal = ({
                           name="startTime"
                           value={formData.startTime}
                           onChange={handleChange}
-                          className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                          className={`input-field w-full px-4 py-2.5 border rounded-lg focus:outline-none transition-colors ${
+                            isDarkMode
+                              ? 'bg-gray-700 border-gray-600 text-gray-100'
+                              : 'bg-white border-gray-200 text-gray-700'
+                          }`}
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className={`block text-sm font-medium mb-2 ${
+                          isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
                           End Time <span className="text-red-400">*</span>
                         </label>
                         <input
@@ -479,13 +507,21 @@ const AddActivityModal = ({
                           name="endTime"
                           value={formData.endTime}
                           onChange={handleChange}
-                          className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none bg-white text-gray-700"
+                          className={`input-field w-full px-4 py-2.5 border rounded-lg focus:outline-none transition-colors ${
+                            isDarkMode
+                              ? 'bg-gray-700 border-gray-600 text-gray-100'
+                              : 'bg-white border-gray-200 text-gray-700'
+                          }`}
                         />
                       </div>
                     </div>
                     {formData.startTime && formData.endTime && formData.duration && (
-                      <div className="bg-blue-50 rounded-lg p-3">
-                        <div className="text-sm text-blue-700 font-medium">
+                      <div className={`rounded-lg p-3 ${
+                        isDarkMode ? 'bg-blue-900/30' : 'bg-blue-50'
+                      }`}>
+                        <div className={`text-sm font-medium ${
+                          isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                        }`}>
                           Calculated Duration: {formData.duration} minutes ({Math.floor(parseInt(formData.duration) / 60)}h {parseInt(formData.duration) % 60}m)
                         </div>
                       </div>
@@ -495,7 +531,9 @@ const AddActivityModal = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
                   Description
                 </label>
                 <textarea
@@ -504,12 +542,20 @@ const AddActivityModal = ({
                   onChange={handleChange}
                   placeholder="Add details, links, or proof of activity..."
                   rows={4}
-                  className="input-field w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none resize-y bg-white text-gray-700"
+                  className={`input-field w-full px-4 py-2.5 border rounded-lg focus:outline-none resize-y transition-colors ${
+                    isDarkMode
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-500'
+                      : 'bg-white border-gray-200 text-gray-700 placeholder:text-gray-400'
+                  }`}
                 />
               </div>
 
               {error && (
-                <div className="error-alert bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm flex items-start gap-2">
+                <div className={`error-alert border rounded-lg p-4 text-sm flex items-start gap-2 ${
+                  isDarkMode
+                    ? 'bg-red-900/30 border-red-800 text-red-300'
+                    : 'bg-red-50 border-red-200 text-red-700'
+                }`}>
                   <span className="text-base">⚠️</span>
                   <span>{error}</span>
                 </div>
@@ -517,12 +563,20 @@ const AddActivityModal = ({
             </div>
           </div>
 
-          <div className="sticky bottom-0 bg-gradient-to-t from-gray-50 to-white border-t border-gray-100 px-8 py-5">
+          <div className={`sticky bottom-0 border-t px-8 py-5 transition-colors ${
+            isDarkMode 
+              ? 'bg-gradient-to-t from-gray-800 to-gray-800/95 border-gray-700' 
+              : 'bg-gradient-to-t from-gray-50 to-white border-gray-100'
+          }`}>
             <div className="flex gap-3 justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                className="btn-secondary px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg font-medium"
+                className={`btn-secondary px-6 py-2.5 border rounded-lg font-medium ${
+                  isDarkMode
+                    ? 'border-gray-600 text-gray-300'
+                    : 'border-gray-300 text-gray-700'
+                }`}
               >
                 Cancel
               </button>
