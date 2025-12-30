@@ -1,9 +1,7 @@
-// (Individual activity card)
-// a component that renders an individual activity card with all its details (title, description, category, subcategory, time, duration) and an edit button.
-
 import { Circle, Clock, Edit2 } from 'lucide-react';
 import type { Activity } from '../../types/activity';
 import { getCategoryColor } from '../../utils/categoryColors';
+import { useDarkMode } from '../../contexts/DarkModeContext';
 
 interface ActivityItemProps {
   activity: Activity;
@@ -12,6 +10,8 @@ interface ActivityItemProps {
 }
 
 const ActivityItem = ({ activity, defaultCategory, onEdit }: ActivityItemProps) => {
+  const { isDarkMode } = useDarkMode();
+
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('en-US', { 
@@ -23,11 +23,15 @@ const ActivityItem = ({ activity, defaultCategory, onEdit }: ActivityItemProps) 
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div className={`border rounded-lg p-4 hover:shadow-md transition-all duration-200 ${
+      isDarkMode 
+        ? 'border-gray-700 bg-gray-800/50 hover:bg-gray-800 hover:border-gray-600' 
+        : 'border-gray-200 bg-white hover:bg-gray-50'
+    }`}>
       <div className="flex items-start gap-3">
         <div className="mt-1">
           <Circle 
-            className="text-gray-400" 
+            className={isDarkMode ? 'text-gray-600' : 'text-gray-400'}
             size={20} 
             fill={getCategoryColor(activity.category || defaultCategory)}
             style={{ color: getCategoryColor(activity.category || defaultCategory) }}
@@ -35,23 +39,33 @@ const ActivityItem = ({ activity, defaultCategory, onEdit }: ActivityItemProps) 
         </div>
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-gray-800">
+            <h3 className={`font-semibold ${
+              isDarkMode ? 'text-gray-100' : 'text-gray-800'
+            }`}>
               {activity.title}
             </h3>
             <div className="flex items-center gap-3">
               <div className="text-right">
                 {activity.startTime && activity.endTime && (
-                  <div className="text-xs text-gray-500 mb-1">
+                  <div className={`text-xs mb-1 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
                     {activity.startTime} - {activity.endTime}
                   </div>
                 )}
-                <span className="text-sm font-medium text-gray-600">
+                <span className={`text-sm font-medium ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                }`}>
                   {activity.duration ? `${Math.floor(activity.duration / 60)}h ${activity.duration % 60}m` : ''}
                 </span>
               </div>
               <button
                 onClick={() => onEdit(activity)}
-                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                className={`p-2 rounded-lg transition-colors ${
+                  isDarkMode
+                    ? 'text-gray-400 hover:text-blue-400 hover:bg-blue-900/30'
+                    : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+                }`}
                 title="Edit activity"
               >
                 <Edit2 size={16} />
@@ -69,14 +83,24 @@ const ActivityItem = ({ activity, defaultCategory, onEdit }: ActivityItemProps) 
             )}
             {activity.subcategory && (
               <span 
-                className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-gray-200 text-gray-700"
+                className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
+                  isDarkMode
+                    ? 'bg-gray-700 text-gray-300'
+                    : 'bg-gray-200 text-gray-700'
+                }`}
               >
                 {activity.subcategory.charAt(0).toUpperCase() + activity.subcategory.slice(1)}
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-600 mt-2">{activity.description}</p>
-          <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+          <p className={`text-sm mt-2 ${
+            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+          }`}>
+            {activity.description}
+          </p>
+          <div className={`flex items-center gap-1 text-xs mt-2 ${
+            isDarkMode ? 'text-gray-500' : 'text-gray-500'
+          }`}>
             <Clock size={14} />
             <span>{formatTime(activity.timestamp)} IST</span>
           </div>
