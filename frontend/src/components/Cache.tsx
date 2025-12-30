@@ -1,39 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, ArrowLeft, Plus, GripVertical, Sparkles, Save } from 'lucide-react';
+import { Trash2, ArrowLeft, Plus, Sparkles, Save } from 'lucide-react';
 
 interface CacheEntry {
   _id: string;
   title: string;
   body: string;
   timestamp: Date;
-  position?: {
-    x: number;
-    y: number;
-  };
-}
-
-interface EntryPosition {
-  x: number;
-  y: number;
 }
 
 const Cache = () => {
   const navigate = useNavigate();
-  const [entries, setEntries] = useState<(CacheEntry & EntryPosition)[]>([]);
+  const [entries, setEntries] = useState<CacheEntry[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [draggedEntry, setDraggedEntry] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [hoveredEntry, setHoveredEntry] = useState<string | null>(null);
-  const [focusedEntry, setFocusedEntry] = useState<string | null>(null);
+  const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
   const [savingEntries, setSavingEntries] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
-  const [isTouchDragging, setIsTouchDragging] = useState(false);
-  const [positionChanged, setPositionChanged] = useState<Set<string>>(new Set());
-  
-  const createCacheEntry = async (data: { title: string; body: string; position?: { x: number; y: number } }) => {
+
+  const createCacheEntry = async (data: { title: string; body: string }) => {
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/cache-entries`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -58,16 +43,8 @@ const Cache = () => {
       try {
         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/cache-entries`);
         const data = await response.json();
-        
-        // Use stored positions if available, otherwise assign default positions
-        const entriesWithPositions = data.map((entry: CacheEntry, index: number) => ({
-          ...entry,
-          x: entry.position?.x ?? (250 + (index % 4) * 380),
-          y: entry.position?.y ?? (250 + Math.floor(index / 4) * 320)
-        }));
-        
-        setEntries(entriesWithPositions);
-        console.log('Fetched cache entries:', entriesWithPositions);
+        setEntries(data);
+        console.log('Fetched cache entries:', data);
       } catch (error) {
         console.error('Error fetching cache entries:', error);
       } finally {
@@ -86,26 +63,18 @@ const Cache = () => {
     setIsCreating(true);
     
     try {
-      // Position new entry in center of viewport with scroll offset
-      const scrollX = containerRef.current?.scrollLeft || 0;
-      const scrollY = containerRef.current?.scrollTop || 0;
-      const x = window.innerWidth / 2 + scrollX;
-      const y = window.innerHeight / 2 + scrollY;
-
       const newEntry = await createCacheEntry({
         title: '',
-        body: '',
-        position: { x, y }
+        body: ''
       });
       
       console.log('Created new cache entry:', newEntry);
-
-      setEntries([...entries, { ...newEntry, x, y }]);
+      setEntries([...entries, newEntry]);
       
-      // Focus on the new entry after a brief delay
+      // Auto-expand the new entry
       setTimeout(() => {
-        setFocusedEntry(newEntry._id);
-      }, 300);
+        setExpandedEntry(newEntry._id);
+      }, 100);
     } catch (error) {
       console.error('Error creating cache entry:', error);
     } finally {
@@ -199,6 +168,7 @@ const Cache = () => {
 
       if (response.ok) {
         setEntries(entries.filter(entry => entry._id !== id));
+        setExpandedEntry(null);
         console.log('Deleted cache entry:', id);
       } else {
         console.error('Failed to delete cache entry');
@@ -208,152 +178,14 @@ const Cache = () => {
     }
   };
 
-  // Save position to backend
-  const savePosition = async (id: string, x: number, y: number) => {
-    try {
-      await updateCacheEntry(id, { 
-        position: { x, y } 
-      });
-      console.log('Saved position for entry:', id, { x, y });
-      
-      // Show brief save indicator
-      setSavingEntries(prev => new Set(prev).add(id));
-      setTimeout(() => {
-        setSavingEntries(prev => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-        setPositionChanged(prev => {
-          const next = new Set(prev);
-          next.delete(id);
-          return next;
-        });
-      }, 800);
-    } catch (error) {
-      console.error('Error saving position:', error);
-    }
+  const handleDotClick = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedEntry(expandedEntry === id ? null : id);
   };
 
-  // Unified drag handlers for both mouse and touch
-  const startDrag = (id: string, clientX: number, clientY: number, target: EventTarget) => {
-    // Don't start drag if clicking/touching on input elements or buttons
-    if ((target as HTMLElement).tagName === 'INPUT' || 
-        (target as HTMLElement).tagName === 'TEXTAREA' ||
-        (target as HTMLElement).tagName === 'BUTTON' ||
-        (target as HTMLElement).closest('button')) {
-      return false;
-    }
-
-    const entry = entries.find(e => e._id === id);
-    if (!entry) return false;
-
-    const scrollX = containerRef.current?.scrollLeft || 0;
-    const scrollY = containerRef.current?.scrollTop || 0;
-
-    setDraggedEntry(id);
-    setDragOffset({
-      x: clientX - entry.x + scrollX,
-      y: clientY - entry.y + scrollY
-    });
-
-    return true;
+  const handleClickOutside = () => {
+    setExpandedEntry(null);
   };
-
-  const moveDrag = (clientX: number, clientY: number) => {
-    if (!draggedEntry) return;
-
-    const scrollX = containerRef.current?.scrollLeft || 0;
-    const scrollY = containerRef.current?.scrollTop || 0;
-
-    setEntries(entries.map(entry => 
-      entry._id === draggedEntry 
-        ? { 
-            ...entry, 
-            x: clientX - dragOffset.x + scrollX, 
-            y: clientY - dragOffset.y + scrollY 
-          } 
-        : entry
-    ));
-
-    // Mark that position has changed
-    setPositionChanged(prev => new Set(prev).add(draggedEntry));
-  };
-
-  const endDrag = () => {
-    if (draggedEntry && positionChanged.has(draggedEntry)) {
-      const entry = entries.find(e => e._id === draggedEntry);
-      if (entry) {
-        // Save the new position to backend
-        savePosition(draggedEntry, entry.x, entry.y);
-      }
-    }
-    
-    setDraggedEntry(null);
-    setIsTouchDragging(false);
-    setTouchStart(null);
-  };
-
-  // Mouse handlers
-  const handleMouseDown = (id: string, e: React.MouseEvent<HTMLDivElement>) => {
-    const started = startDrag(id, e.clientX, e.clientY, e.target);
-    if (started) {
-      e.preventDefault();
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    moveDrag(e.clientX, e.clientY);
-  };
-
-  const handleMouseUp = () => {
-    endDrag();
-  };
-
-  // Touch handlers
-  const handleTouchStart = (id: string, e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    setTouchStart({ x: touch.clientX, y: touch.clientY });
-    
-    // Wait a bit to distinguish between tap and drag
-    setTimeout(() => {
-      if (touchStart) {
-        const started = startDrag(id, touch.clientX, touch.clientY, e.target);
-        if (started) {
-          setIsTouchDragging(true);
-        }
-      }
-    }, 100);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!isTouchDragging || !draggedEntry) return;
-    
-    const touch = e.touches[0];
-    moveDrag(touch.clientX, touch.clientY);
-    
-    // Prevent scrolling while dragging
-    e.preventDefault();
-  };
-
-  const handleTouchEnd = () => {
-    endDrag();
-  };
-
-  useEffect(() => {
-    if (draggedEntry) {
-      const handleGlobalMouseUp = () => endDrag();
-      const handleGlobalTouchEnd = () => endDrag();
-      
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.addEventListener('touchend', handleGlobalTouchEnd);
-      
-      return () => {
-        document.removeEventListener('mouseup', handleGlobalMouseUp);
-        document.removeEventListener('touchend', handleGlobalTouchEnd);
-      };
-    }
-  }, [draggedEntry]);
 
   const formatTimestamp = (timestamp: Date) => {
     const date = new Date(timestamp);
@@ -381,14 +213,7 @@ const Cache = () => {
     <div 
       ref={containerRef}
       className="w-full h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 relative overflow-auto"
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      style={{ 
-        cursor: draggedEntry ? 'grabbing' : 'default',
-        touchAction: isTouchDragging ? 'none' : 'auto'
-      }}
+      onClick={handleClickOutside}
     >
       {/* Animated background pattern */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
@@ -450,123 +275,112 @@ const Cache = () => {
         </div>
       )}
 
-      {/* Cache Entries */}
-      {entries.map((entry) => {
-        const isDragged = draggedEntry === entry._id;
-        const isHovered = hoveredEntry === entry._id;
-        const isFocused = focusedEntry === entry._id;
-        const isSaving = savingEntries.has(entry._id);
+      {/* Cache Entries as Grid of Dots */}
+      <div className="pt-24 px-8 pb-8" onClick={(e) => e.stopPropagation()}>
+        <div className="flex flex-wrap gap-4">
+          {entries.map((entry, index) => {
+            const isExpanded = expandedEntry === entry._id;
+            const isSaving = savingEntries.has(entry._id);
 
-        return (
-          <div
-            key={entry._id}
-            className={`cache-entry-box absolute bg-white rounded-2xl shadow-lg border-2 transition-all duration-200 ${
-              isDragged 
-                ? 'border-blue-400 shadow-2xl scale-105 rotate-2' 
-                : isHovered || isFocused
-                ? 'border-blue-300 shadow-xl scale-[1.02]'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
-            style={{
-              left: `${entry.x}px`,
-              top: `${entry.y}px`,
-              width: window.innerWidth < 640 ? 'min(340px, calc(100vw - 40px))' : '340px',
-              transform: 'translate(-50%, -50%)',
-              cursor: isDragged ? 'grabbing' : 'grab',
-              zIndex: isDragged ? 50 : isFocused ? 40 : isHovered ? 30 : 10,
-              touchAction: 'none'
-            }}
-            onMouseDown={(e) => handleMouseDown(entry._id, e)}
-            onTouchStart={(e) => handleTouchStart(entry._id, e)}
-            onMouseEnter={() => setHoveredEntry(entry._id)}
-            onMouseLeave={() => setHoveredEntry(null)}
-            onFocus={() => setFocusedEntry(entry._id)}
-            onBlur={(e) => {
-              // Only unfocus if we're not moving to a child element
-              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                setFocusedEntry(null);
-              }
-            }}
-          >
-            {/* Drag Handle Header */}
-            <div className={`flex items-center justify-between p-4 pb-3 border-b transition-colors duration-200 ${
-              isDragged ? 'border-blue-200 bg-blue-50/50' : 'border-gray-100'
-            }`}>
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <GripVertical 
-                  size={20} 
-                  className={`flex-shrink-0 transition-all duration-200 ${
-                    isDragged ? 'text-blue-500' : 'text-gray-400'
-                  }`}
-                />
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <div className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg">
-                    {formatTimestamp(entry.timestamp)}
-                  </div>
-                  {isSaving && (
-                    <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold animate-in fade-in zoom-in duration-200">
-                      <Save size={14} />
-                      <span>Saved</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={(e) => handleDelete(entry._id, e)}
-                onTouchStart={(e) => e.stopPropagation()}
-                className="group ml-2 p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95"
-                title="Delete entry"
+            return (
+              <div
+                key={entry._id}
+                className={`transition-all duration-300 ${
+                  isExpanded ? 'w-full sm:w-[400px]' : 'w-12'
+                }`}
+                style={{
+                  zIndex: isExpanded ? 50 : 10
+                }}
               >
-                <Trash2 size={20} className="transition-transform duration-200 group-hover:scale-110" />
-              </button>
-            </div>
+                {/* Dot View (collapsed) */}
+                {!isExpanded && (
+                  <button
+                    onClick={(e) => handleDotClick(entry._id, e)}
+                    className={`w-12 h-12 rounded-full bg-gradient-to-br transition-all duration-300 flex items-center justify-center cursor-pointer ${
+                      entry.title
+                        ? 'from-blue-500 to-indigo-600 shadow-lg hover:shadow-xl hover:scale-110'
+                        : 'from-gray-300 to-gray-400 shadow-md hover:shadow-lg hover:scale-110'
+                    }`}
+                  >
+                    <div className="w-2 h-2 bg-white rounded-full" />
+                  </button>
+                )}
 
-            {/* Content */}
-            <div className="p-4 space-y-3">
-              {/* Title */}
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1.5 tracking-tight">
-                  TITLE
-                </label>
-                <input
-                  type="text"
-                  value={entry.title}
-                  onChange={(e) => handleTitleChange(entry._id, e.target.value)}
-                  onBlur={() => handleTitleBlur(entry._id)}
-                  onFocus={() => setFocusedEntry(entry._id)}
-                  placeholder="Enter a title..."
-                  className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-semibold text-gray-800 placeholder:text-gray-400 placeholder:font-normal hover:border-gray-300"
-                  onClick={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  style={{ touchAction: 'auto' }}
-                />
+                {/* Expanded View (on click) */}
+                {isExpanded && (
+                  <div
+                    className="bg-white rounded-2xl shadow-xl border-2 border-blue-300 transition-all duration-200 animate-in fade-in zoom-in-95"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between p-4 pb-3 border-b border-gray-100">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <div className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg">
+                            {formatTimestamp(entry.timestamp)}
+                          </div>
+                          {isSaving && (
+                            <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold animate-in fade-in zoom-in duration-200">
+                              <Save size={14} />
+                              <span>Saved</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => handleDelete(entry._id, e)}
+                        className="group ml-2 p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95"
+                        title="Delete entry"
+                      >
+                        <Trash2 size={20} className="transition-transform duration-200 group-hover:scale-110" />
+                      </button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-4 space-y-3">
+                      {/* Title */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-600 mb-1.5 tracking-tight">
+                          TITLE
+                        </label>
+                        <input
+                          type="text"
+                          value={entry.title}
+                          onChange={(e) => handleTitleChange(entry._id, e.target.value)}
+                          onBlur={() => handleTitleBlur(entry._id)}
+                          placeholder="Enter a title..."
+                          className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-semibold text-gray-800 placeholder:text-gray-400 placeholder:font-normal hover:border-gray-300"
+                          onClick={(e) => e.stopPropagation()}
+                          autoFocus={index === entries.length - 1}
+                        />
+                      </div>
+
+                      {/* Body */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-600 mb-1.5 tracking-tight">
+                          CONTENT
+                        </label>
+                        <textarea
+                          value={entry.body}
+                          onChange={(e) => handleBodyChange(entry._id, e.target.value)}
+                          onBlur={() => handleBodyBlur(entry._id)}
+                          placeholder="Write your thoughts here..."
+                          rows={5}
+                          className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-gray-700 placeholder:text-gray-400 leading-relaxed hover:border-gray-300"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Subtle gradient overlay at bottom */}
+                    <div className="h-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-b-2xl" />
+                  </div>
+                )}
               </div>
-
-              {/* Body */}
-              <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1.5 tracking-tight">
-                  CONTENT
-                </label>
-                <textarea
-                  value={entry.body}
-                  onChange={(e) => handleBodyChange(entry._id, e.target.value)}
-                  onBlur={() => handleBodyBlur(entry._id)}
-                  onFocus={() => setFocusedEntry(entry._id)}
-                  placeholder="Write your thoughts here..."
-                  rows={5}
-                  className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-gray-700 placeholder:text-gray-400 leading-relaxed hover:border-gray-300"
-                  onClick={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  style={{ touchAction: 'auto' }}
-                />
-              </div>
-            </div>
-
-            {/* Subtle gradient overlay at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-b-2xl opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      </div>
 
       {/* Floating hint for first entry */}
       {!isLoading && entries.length === 1 && (
@@ -576,7 +390,7 @@ const Cache = () => {
             <div>
               <h4 className="text-sm font-bold text-gray-800 mb-1">💡 Pro Tip</h4>
               <p className="text-xs text-gray-600 leading-relaxed">
-                Drag entries around to organize them. Positions are saved automatically!
+                Click on dots to expand them. Click outside to close. Changes auto-save!
               </p>
             </div>
           </div>
