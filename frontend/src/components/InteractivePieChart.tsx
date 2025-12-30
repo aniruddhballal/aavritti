@@ -366,11 +366,27 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
 
   if (displayData.length === 0 && drillLevel === 'category') {
     return (
-      <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200/50 shadow-sm">
-        <div className="flex items-center justify-center h-[400px] text-gray-400">
-          <div className="text-center">
-            <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No activity data to display</p>
+      <div className="bg-gradient-to-br from-white to-gray-50/50 rounded-2xl pt-6 pb-6 px-6 relative border border-gray-200/50 shadow-lg">
+        {/* Header with reset button */}
+        <div className="mb-6 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-gray-800 tracking-tight">
+            Category Distribution
+          </h3>
+          <button
+            onClick={handleBackToCategories}
+            className="group p-2 text-gray-500 hover:text-gray-900 transition-all duration-300 hover:scale-105 active:scale-95"
+            title="Reset to Categories"
+          >
+            <RotateCcw size={20} className="transition-transform duration-500 group-hover:rotate-[-360deg]" />
+          </button>
+        </div>
+        
+        <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200/50 shadow-sm">
+          <div className="flex items-center justify-center h-[400px] text-gray-400">
+            <div className="text-center">
+              <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p className="text-sm">No activity data to display</p>
+            </div>
           </div>
         </div>
       </div>
