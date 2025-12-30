@@ -210,7 +210,7 @@ const EditActivityModal = ({
         }
       `}</style>
 
-      <div className="fixed inset-0 bg-slate-900 bg-opacity-40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-opacity-30 backdrop-blur-lg flex items-center justify-center p-4 z-50">
         <div className="modal-content bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
           <div className="sticky top-0 bg-gradient-to-b from-white to-gray-50 border-b border-gray-100 px-8 py-5 flex items-center justify-between">
             <h2 className="text-2xl font-semibold text-gray-800 tracking-tight">Edit Activity</h2>
