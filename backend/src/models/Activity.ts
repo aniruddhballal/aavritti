@@ -11,7 +11,8 @@ export enum ActivityCategory {
   RESEARCH = 'research',
   WRITING = 'writing',
   PROJECT = 'project',
-  RECREATION = 'recreation'
+  RECREATION = 'recreation',
+  CHORES = 'chores'
 }
 
 export enum MealSubcategory {

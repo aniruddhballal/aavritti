@@ -10,6 +10,7 @@ export const categoryColors: Record<string, string> = {
   writing: '#1ABC9C',     // Turquoise
   project: '#E74C3C',     // Bright Red
   recreation: '#F39C12',  // Amber
+  chores: '#FF2D95',      // Vivid Magenta
 };
 
 export const getCategoryColor = (category: string): string => {
