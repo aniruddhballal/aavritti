@@ -85,8 +85,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
         {/* Two-column layout on large screens, stacked on mobile */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Pie Chart */}
-          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8 overflow-y-auto lg:max-h-[calc(100vh+210px)]">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Time Distribution</h2>
+          <div>
             {data?.activities && data.activities.length > 0 ? (
               <InteractivePieChart 
                 activities={data.activities} 
