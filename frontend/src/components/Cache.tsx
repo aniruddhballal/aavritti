@@ -25,6 +25,8 @@ const Cache = () => {
   const [focusedEntry, setFocusedEntry] = useState<string | null>(null);
   const [savingEntries, setSavingEntries] = useState<Set<string>>(new Set());
   const containerRef = useRef<HTMLDivElement>(null);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [isTouchDragging, setIsTouchDragging] = useState(false);
 
   const createCacheEntry = async (data: { title: string; body: string }) => {
     const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || ''}/cache-entries`, {
@@ -200,28 +202,32 @@ const Cache = () => {
     }
   };
 
-  // Drag handlers
-  const handleMouseDown = (id: string, e: React.MouseEvent<HTMLDivElement>) => {
-    // Don't start drag if clicking on input elements
-    if ((e.target as HTMLElement).tagName === 'INPUT' || 
-        (e.target as HTMLElement).tagName === 'TEXTAREA' ||
-        (e.target as HTMLElement).tagName === 'BUTTON') {
-      return;
+  // Unified drag handlers for both mouse and touch
+  const startDrag = (id: string, clientX: number, clientY: number, target: EventTarget) => {
+    // Don't start drag if clicking/touching on input elements or buttons
+    if ((target as HTMLElement).tagName === 'INPUT' || 
+        (target as HTMLElement).tagName === 'TEXTAREA' ||
+        (target as HTMLElement).tagName === 'BUTTON' ||
+        (target as HTMLElement).closest('button')) {
+      return false;
     }
 
     const entry = entries.find(e => e._id === id);
-    if (!entry) return;
+    if (!entry) return false;
+
+    const scrollX = containerRef.current?.scrollLeft || 0;
+    const scrollY = containerRef.current?.scrollTop || 0;
 
     setDraggedEntry(id);
     setDragOffset({
-      x: e.clientX - entry.x,
-      y: e.clientY - entry.y
+      x: clientX - entry.x + scrollX,
+      y: clientY - entry.y + scrollY
     });
 
-    e.preventDefault();
+    return true;
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const moveDrag = (clientX: number, clientY: number) => {
     if (!draggedEntry) return;
 
     const scrollX = containerRef.current?.scrollLeft || 0;
@@ -231,21 +237,77 @@ const Cache = () => {
       entry._id === draggedEntry 
         ? { 
             ...entry, 
-            x: e.clientX - dragOffset.x + scrollX, 
-            y: e.clientY - dragOffset.y + scrollY 
+            x: clientX - dragOffset.x + scrollX, 
+            y: clientY - dragOffset.y + scrollY 
           } 
         : entry
     ));
   };
 
-  const handleMouseUp = () => {
+  const endDrag = () => {
     setDraggedEntry(null);
+    setIsTouchDragging(false);
+    setTouchStart(null);
+  };
+
+  // Mouse handlers
+  const handleMouseDown = (id: string, e: React.MouseEvent<HTMLDivElement>) => {
+    const started = startDrag(id, e.clientX, e.clientY, e.target);
+    if (started) {
+      e.preventDefault();
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    moveDrag(e.clientX, e.clientY);
+  };
+
+  const handleMouseUp = () => {
+    endDrag();
+  };
+
+  // Touch handlers
+  const handleTouchStart = (id: string, e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    setTouchStart({ x: touch.clientX, y: touch.clientY });
+    
+    // Wait a bit to distinguish between tap and drag
+    setTimeout(() => {
+      if (touchStart) {
+        const started = startDrag(id, touch.clientX, touch.clientY, e.target);
+        if (started) {
+          setIsTouchDragging(true);
+        }
+      }
+    }, 100);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isTouchDragging || !draggedEntry) return;
+    
+    const touch = e.touches[0];
+    moveDrag(touch.clientX, touch.clientY);
+    
+    // Prevent scrolling while dragging
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = () => {
+    endDrag();
   };
 
   useEffect(() => {
     if (draggedEntry) {
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => document.removeEventListener('mouseup', handleMouseUp);
+      const handleGlobalMouseUp = () => endDrag();
+      const handleGlobalTouchEnd = () => endDrag();
+      
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('touchend', handleGlobalTouchEnd);
+      
+      return () => {
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+        document.removeEventListener('touchend', handleGlobalTouchEnd);
+      };
     }
   }, [draggedEntry]);
 
@@ -277,7 +339,12 @@ const Cache = () => {
       className="w-full h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 relative overflow-auto"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      style={{ cursor: draggedEntry ? 'grabbing' : 'default' }}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ 
+        cursor: draggedEntry ? 'grabbing' : 'default',
+        touchAction: isTouchDragging ? 'none' : 'auto'
+      }}
     >
       {/* Animated background pattern */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
@@ -359,12 +426,14 @@ const Cache = () => {
             style={{
               left: `${entry.x}px`,
               top: `${entry.y}px`,
-              width: '340px',
+              width: window.innerWidth < 640 ? 'min(340px, calc(100vw - 40px))' : '340px',
               transform: 'translate(-50%, -50%)',
               cursor: isDragged ? 'grabbing' : 'grab',
-              zIndex: isDragged ? 50 : isFocused ? 40 : isHovered ? 30 : 10
+              zIndex: isDragged ? 50 : isFocused ? 40 : isHovered ? 30 : 10,
+              touchAction: 'none'
             }}
             onMouseDown={(e) => handleMouseDown(entry._id, e)}
+            onTouchStart={(e) => handleTouchStart(entry._id, e)}
             onMouseEnter={() => setHoveredEntry(entry._id)}
             onMouseLeave={() => setHoveredEntry(null)}
             onFocus={() => setFocusedEntry(entry._id)}
@@ -400,10 +469,11 @@ const Cache = () => {
               </div>
               <button
                 onClick={(e) => handleDelete(entry._id, e)}
-                className="group ml-2 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95"
+                onTouchStart={(e) => e.stopPropagation()}
+                className="group ml-2 p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95"
                 title="Delete entry"
               >
-                <Trash2 size={18} className="transition-transform duration-200 group-hover:scale-110" />
+                <Trash2 size={20} className="transition-transform duration-200 group-hover:scale-110" />
               </button>
             </div>
 
@@ -423,6 +493,8 @@ const Cache = () => {
                   placeholder="Enter a title..."
                   className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-semibold text-gray-800 placeholder:text-gray-400 placeholder:font-normal hover:border-gray-300"
                   onClick={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  style={{ touchAction: 'auto' }}
                 />
               </div>
 
@@ -440,6 +512,8 @@ const Cache = () => {
                   rows={5}
                   className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-gray-700 placeholder:text-gray-400 leading-relaxed hover:border-gray-300"
                   onClick={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  style={{ touchAction: 'auto' }}
                 />
               </div>
             </div>
