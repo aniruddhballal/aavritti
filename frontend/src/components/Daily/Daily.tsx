@@ -1,4 +1,5 @@
 import { ArrowLeft } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { useDailyData } from './hooks/useDailyData';
 import { useDateNavigation } from './hooks/useDateNavigation';
 import { useActivityEdit } from './hooks/useActivityEdit';
@@ -10,6 +11,8 @@ import EditActivityModal from './EditActivityModal';
 
 const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateString: string; onBack: () => void }) => {
   const CATEGORIES = Object.keys(categoryColors);
+  const leftColumnRef = useRef<HTMLDivElement>(null);
+  const [leftColumnHeight, setLeftColumnHeight] = useState(0);
 
   // Custom hooks
   const { data, loading, error, categories, fetchActivities, getTotalTime } = useDailyData(dateString);
@@ -39,6 +42,32 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     fetchActivities,
     (err) => console.error(err)
   );
+
+  // Measure left column height and update right column max-height
+  useEffect(() => {
+    const updateHeight = () => {
+      if (leftColumnRef.current) {
+        const height = leftColumnRef.current.offsetHeight;
+        setLeftColumnHeight(height);
+      }
+    };
+
+    updateHeight();
+    
+    // Add resize observer to handle dynamic content changes
+    const resizeObserver = new ResizeObserver(updateHeight);
+    if (leftColumnRef.current) {
+      resizeObserver.observe(leftColumnRef.current);
+    }
+
+    // Also listen for window resize
+    window.addEventListener('resize', updateHeight);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, [data?.activities]);
 
   if (loading) {
     return (
@@ -87,12 +116,14 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
           {/* Left Column - Pie Chart */}
           <div>
             {data?.activities && data.activities.length > 0 ? (
-              <InteractivePieChart 
-                activities={data.activities} 
-                categories={CATEGORIES}
-              />
+              <div ref={leftColumnRef}>
+                <InteractivePieChart 
+                  activities={data.activities} 
+                  categories={CATEGORIES}
+                />
+              </div>
             ) : (
-              <div className="bg-gray-50 rounded-lg p-6">
+              <div ref={leftColumnRef} className="bg-gray-50 rounded-lg p-6">
                 <div className="flex items-center justify-center h-[400px] text-gray-500">
                   No activity data to display
                 </div>
@@ -101,7 +132,12 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
           </div>
 
           {/* Right Column - Activity List */}
-          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8 flex flex-col overflow-hidden lg:max-h-[calc(100vh+210px)]">
+          <div 
+            className="bg-white rounded-lg shadow-lg p-6 lg:p-8 flex flex-col overflow-hidden"
+            style={{
+              maxHeight: leftColumnHeight > 0 ? `${leftColumnHeight}px` : 'calc(100vh + 100px)'
+            }}
+          >
             <ActivityList
               activities={data?.activities || []}
               isToday={isToday()}
