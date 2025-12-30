@@ -83,9 +83,9 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
         />
 
         {/* Two-column layout on large screens, stacked on mobile */}
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6 lg:h-[calc(100vh+370px)]">
           {/* Left Column - Pie Chart */}
-          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8">
+          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8 lg:overflow-y-auto">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Time Distribution</h2>
             {data?.activities && data.activities.length > 0 ? (
               <InteractivePieChart 
@@ -102,7 +102,7 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
           </div>
 
           {/* Right Column - Activity List */}
-          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8 h-[1100px] flex flex-col">
+          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8 flex flex-col lg:overflow-hidden">
             <ActivityList
               activities={data?.activities || []}
               isToday={isToday()}
