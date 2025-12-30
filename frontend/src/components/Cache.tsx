@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, ArrowLeft, Plus, GripVertical, Sparkles, Save, X, BookOpen } from 'lucide-react';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 interface CacheEntry {
   _id: string;
@@ -20,6 +21,7 @@ interface EntryPosition {
 
 const Cache = () => {
   const navigate = useNavigate();
+  const { isDarkMode } = useDarkMode();
   const [entries, setEntries] = useState<(CacheEntry & EntryPosition)[]>([]);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -465,7 +467,11 @@ const Cache = () => {
   return (
     <div 
       ref={containerRef}
-      className="w-full h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 relative overflow-auto"
+      className={`w-full h-screen relative overflow-auto transition-colors ${
+        isDarkMode
+          ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
+          : 'bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50'
+      }`}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onTouchMove={handleTouchMove}
@@ -476,10 +482,14 @@ const Cache = () => {
       }}
     >
       {/* Animated background pattern */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
-        backgroundImage: `radial-gradient(circle at 1px 1px, gray 1px, transparent 0)`,
-        backgroundSize: '40px 40px'
-      }} />
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, ${isDarkMode ? 'rgba(255,255,255,0.03)' : 'gray'} 1px, transparent 0)`,
+          backgroundSize: '40px 40px',
+          opacity: isDarkMode ? 1 : 0.03
+        }} 
+      />
 
       {/* Header */}
       <div className="absolute top-6 left-6 flex items-center gap-3 z-20">
@@ -488,7 +498,11 @@ const Cache = () => {
             e.stopPropagation();
             navigate('/');
           }}
-          className="group flex items-center gap-2 text-gray-700 hover:text-gray-900 transition-all duration-200 bg-white/90 backdrop-blur-sm px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl border border-gray-200/50 hover:scale-105 active:scale-95"
+          className={`group flex items-center gap-2 transition-all duration-200 px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 ${
+            isDarkMode
+              ? 'text-gray-300 hover:text-gray-100 bg-gray-800/90 backdrop-blur-sm border border-gray-700/50'
+              : 'text-gray-700 hover:text-gray-900 bg-white/90 backdrop-blur-sm border border-gray-200/50'
+          }`}
         >
           <ArrowLeft size={20} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
           <span className="font-semibold">Back to Calendar</span>
@@ -504,8 +518,14 @@ const Cache = () => {
         </button>
 
         {entries.length > 0 && (
-          <div className="ml-2 px-4 py-2.5 bg-white/90 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200/50">
-            <span className="text-sm font-semibold text-gray-600">
+          <div className={`ml-2 px-4 py-2.5 rounded-xl shadow-lg border ${
+            isDarkMode
+              ? 'bg-gray-800/90 backdrop-blur-sm border-gray-700/50'
+              : 'bg-white/90 backdrop-blur-sm border-gray-200/50'
+          }`}>
+            <span className={`text-sm font-semibold ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+            }`}>
               {entries.length} {entries.length === 1 ? 'Entry' : 'Entries'}
             </span>
           </div>
@@ -516,8 +536,14 @@ const Cache = () => {
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <div className="text-center animate-in fade-in zoom-in duration-500">
-            <Sparkles className="w-12 h-12 text-blue-500 mx-auto mb-3 animate-pulse" />
-            <p className="text-xl font-semibold text-gray-600">Loading entries...</p>
+            <Sparkles className={`w-12 h-12 mx-auto mb-3 animate-pulse ${
+              isDarkMode ? 'text-blue-400' : 'text-blue-500'
+            }`} />
+            <p className={`text-xl font-semibold ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-600'
+            }`}>
+              Loading entries...
+            </p>
           </div>
         </div>
       )}
@@ -526,11 +552,25 @@ const Cache = () => {
       {!isLoading && entries.length === 0 && !isCreating && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Plus className="w-12 h-12 text-blue-500" />
+            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg ${
+              isDarkMode
+                ? 'bg-gradient-to-br from-blue-900/40 to-indigo-900/40'
+                : 'bg-gradient-to-br from-blue-100 to-indigo-100'
+            }`}>
+              <Plus className={`w-12 h-12 ${
+                isDarkMode ? 'text-blue-400' : 'text-blue-500'
+              }`} />
             </div>
-            <p className="text-2xl font-bold text-gray-700 mb-2">No Cache Entries Yet</p>
-            <p className="text-lg text-gray-500">Click "New Cache Entry" to create your first one</p>
+            <p className={`text-2xl font-bold mb-2 ${
+              isDarkMode ? 'text-gray-200' : 'text-gray-700'
+            }`}>
+              No Cache Entries Yet
+            </p>
+            <p className={`text-lg ${
+              isDarkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+              Click "New Cache Entry" to create your first one
+            </p>
           </div>
         </div>
       )}
@@ -580,15 +620,23 @@ const Cache = () => {
 
               {/* Hover Tooltip */}
               {isHovered && !isDragged && (
-                <div className="absolute left-16 top-0 bg-gray-900 text-white text-sm px-3 py-2 rounded-lg shadow-xl whitespace-nowrap pointer-events-none animate-in fade-in slide-in-from-left-2 duration-200 z-50">
+                <div className={`absolute left-16 top-0 text-sm px-3 py-2 rounded-lg shadow-xl whitespace-nowrap pointer-events-none animate-in fade-in slide-in-from-left-2 duration-200 z-50 ${
+                  isDarkMode
+                    ? 'bg-gray-800 text-white border border-gray-700'
+                    : 'bg-gray-900 text-white'
+                }`}>
                   <div className="font-semibold max-w-[200px] truncate">
                     {entry.title || 'Untitled'}
                   </div>
-                  <div className="text-xs text-gray-300 mt-0.5">
+                  <div className={`text-xs mt-0.5 ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-300'
+                  }`}>
                     {formatTimestamp(entry.timestamp)}
                   </div>
                   {/* Tooltip arrow */}
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 bg-gray-900 rotate-45" />
+                  <div className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 rotate-45 ${
+                    isDarkMode ? 'bg-gray-800 border-l border-b border-gray-700' : 'bg-gray-900'
+                  }`} />
                 </div>
               )}
             </div>
@@ -600,10 +648,14 @@ const Cache = () => {
           <div
             key={entry._id}
             id={`expanded-${entry._id}`}
-            className={`absolute bg-white rounded-2xl shadow-2xl border-2 transition-all duration-200 ${
-              isDragged 
-                ? 'border-blue-400 shadow-2xl scale-105' 
-                : 'border-blue-300'
+            className={`absolute rounded-2xl shadow-2xl border-2 transition-all duration-200 ${
+              isDarkMode
+                ? isDragged 
+                  ? 'bg-gray-800 border-blue-500 shadow-2xl scale-105'
+                  : 'bg-gray-800 border-blue-400'
+                : isDragged 
+                  ? 'bg-white border-blue-400 shadow-2xl scale-105'
+                  : 'bg-white border-blue-300'
             }`}
             style={{
               left: `${entry.x}px`,
@@ -617,7 +669,13 @@ const Cache = () => {
             {/* Drag Handle Header */}
             <div 
               className={`flex items-center justify-between p-4 pb-3 border-b transition-colors duration-200 ${
-                isDragged ? 'border-blue-200 bg-blue-50/50' : 'border-gray-100'
+                isDarkMode
+                  ? isDragged 
+                    ? 'border-blue-900/50 bg-blue-900/20'
+                    : 'border-gray-700'
+                  : isDragged 
+                    ? 'border-blue-200 bg-blue-50/50'
+                    : 'border-gray-100'
               }`}
               onMouseDown={(e) => handleMouseDown(entry._id, e)}
               onTouchStart={(e) => handleTouchStart(entry._id, e)}
@@ -627,11 +685,17 @@ const Cache = () => {
                 <GripVertical 
                   size={20} 
                   className={`flex-shrink-0 transition-all duration-200 ${
-                    isDragged ? 'text-blue-500' : 'text-gray-400'
+                    isDragged 
+                      ? 'text-blue-500' 
+                      : isDarkMode ? 'text-gray-500' : 'text-gray-400'
                   }`}
                 />
                 <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <div className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg">
+                  <div className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                    isDarkMode
+                      ? 'text-gray-400 bg-gray-700'
+                      : 'text-gray-500 bg-gray-100'
+                  }`}>
                     {formatTimestamp(entry.timestamp)}
                   </div>
                   {isSaving && (
@@ -649,7 +713,11 @@ const Cache = () => {
                     handleCloseExpanded();
                   }}
                   onTouchStart={(e) => e.stopPropagation()}
-                  className="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg transition-all duration-200"
+                  className={`p-2.5 rounded-lg transition-all duration-200 ${
+                    isDarkMode
+                      ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700 active:bg-gray-600'
+                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200'
+                  }`}
                   title="Close"
                 >
                   <X size={20} />
@@ -657,7 +725,11 @@ const Cache = () => {
                 <button
                   onClick={(e) => handleDelete(entry._id, e)}
                   onTouchStart={(e) => e.stopPropagation()}
-                  className="group p-2.5 text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100 rounded-lg transition-all duration-200"
+                  className={`group p-2.5 rounded-lg transition-all duration-200 ${
+                    isDarkMode
+                      ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/30 active:bg-red-900/50'
+                      : 'text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100'
+                  }`}
                   title="Delete entry"
                 >
                   <Trash2 size={20} className="transition-transform duration-200 group-hover:scale-110" />
@@ -669,7 +741,9 @@ const Cache = () => {
             <div className="p-4 space-y-3">
               {/* Title */}
               <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1.5 tracking-tight">
+                <label className={`block text-xs font-bold mb-1.5 tracking-tight ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>
                   TITLE
                 </label>
                 <input
@@ -678,7 +752,11 @@ const Cache = () => {
                   onChange={(e) => handleTitleChange(entry._id, e.target.value)}
                   onBlur={() => handleTitleBlur(entry._id)}
                   placeholder="Enter a title..."
-                  className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-semibold text-gray-800 placeholder:text-gray-400 placeholder:font-normal hover:border-gray-300"
+                  className={`w-full px-3.5 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-semibold ${
+                    isDarkMode
+                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-500 hover:border-gray-500'
+                      : 'bg-white border-gray-200 text-gray-800 placeholder:text-gray-400 hover:border-gray-300'
+                  } placeholder:font-normal`}
                   onClick={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
                   style={{ touchAction: 'auto' }}
@@ -687,7 +765,9 @@ const Cache = () => {
 
               {/* Body */}
               <div>
-                <label className="block text-xs font-bold text-gray-600 mb-1.5 tracking-tight">
+                <label className={`block text-xs font-bold mb-1.5 tracking-tight ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                }`}>
                   CONTENT
                 </label>
                 <textarea
@@ -696,7 +776,11 @@ const Cache = () => {
                   onBlur={() => handleBodyBlur(entry._id)}
                   placeholder="Write your thoughts here..."
                   rows={5}
-                  className="w-full px-3.5 py-2.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none text-gray-700 placeholder:text-gray-400 leading-relaxed hover:border-gray-300"
+                  className={`w-full px-3.5 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none leading-relaxed ${
+                    isDarkMode
+                      ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder:text-gray-500 hover:border-gray-500'
+                      : 'bg-white border-gray-200 text-gray-700 placeholder:text-gray-400 hover:border-gray-300'
+                  }`}
                   onClick={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
                   style={{ touchAction: 'auto' }}
@@ -712,12 +796,24 @@ const Cache = () => {
 
       {/* Floating hint */}
       {!isLoading && entries.length > 0 && entries.length <= 3 && expandedEntryId === null && (
-        <div className="fixed bottom-6 right-6 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-200/50 p-4 max-w-xs animate-in slide-in-from-bottom-4 fade-in duration-500 z-20">
+        <div className={`fixed bottom-6 right-6 backdrop-blur-sm rounded-xl shadow-xl border p-4 max-w-xs animate-in slide-in-from-bottom-4 fade-in duration-500 z-20 ${
+          isDarkMode
+            ? 'bg-gray-800/95 border-gray-700/50'
+            : 'bg-white/95 border-gray-200/50'
+        }`}>
           <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+            <Sparkles className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+              isDarkMode ? 'text-blue-400' : 'text-blue-500'
+            }`} />
             <div>
-              <h4 className="text-sm font-bold text-gray-800 mb-1">💡 Pro Tips</h4>
-              <p className="text-xs text-gray-600 leading-relaxed">
+              <h4 className={`text-sm font-bold mb-1 ${
+                isDarkMode ? 'text-gray-100' : 'text-gray-800'
+              }`}>
+                💡 Pro Tips
+              </h4>
+              <p className={`text-xs leading-relaxed ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-600'
+              }`}>
                 • Drag icons to organize spatially<br />
                 • Click/double-click to open entries<br />
                 • Hover for quick preview
