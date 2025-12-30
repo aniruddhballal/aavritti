@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export enum ActivityCategory {
-  MEAL = 'meal',
+  MEALS = 'meals',
   SLEEP = 'sleep',
   JAPA = 'japa',
   EXERCISE = 'exercise',
@@ -12,10 +12,12 @@ export enum ActivityCategory {
   WRITING = 'writing',
   PROJECT = 'project',
   RECREATION = 'recreation',
-  CHORES = 'chores'
+  CHORES = 'chores',
+  ART = 'art',
+  WORK = 'work'
 }
 
-export enum MealSubcategory {
+export enum MealsSubcategory {
   BREAKFAST = 'breakfast',
   LUNCH = 'lunch',
   SNACKS = 'snacks',
@@ -45,7 +47,7 @@ export enum CinemaSubcategory {
 }
 
 export type ActivitySubcategory = 
-  | MealSubcategory 
+  | MealsSubcategory 
   | ExerciseSubcategory 
   | CommuteSubcategory 
   | CinemaSubcategory;
@@ -73,7 +75,7 @@ const ActivitySchema: Schema = new Schema({
     type: String, 
     required: false,
     enum: [
-      ...Object.values(MealSubcategory),
+      ...Object.values(MealsSubcategory),
       ...Object.values(ExerciseSubcategory),
       ...Object.values(CommuteSubcategory),
       ...Object.values(CinemaSubcategory)
@@ -83,7 +85,7 @@ const ActivitySchema: Schema = new Schema({
         // If no subcategory provided, check if it's required
         if (!value) {
           const requiresSubcategory = [
-            ActivityCategory.MEAL,
+            ActivityCategory.MEALS,
             ActivityCategory.EXERCISE,
             ActivityCategory.COMMUTE,
             ActivityCategory.CINEMA
@@ -93,7 +95,7 @@ const ActivitySchema: Schema = new Schema({
         
         // If subcategory provided, validate it matches the category
         const validSubcategories: Record<string, string[]> = {
-          [ActivityCategory.MEAL]: Object.values(MealSubcategory),
+          [ActivityCategory.MEALS]: Object.values(MealsSubcategory),
           [ActivityCategory.EXERCISE]: Object.values(ExerciseSubcategory),
           [ActivityCategory.COMMUTE]: Object.values(CommuteSubcategory),
           [ActivityCategory.CINEMA]: Object.values(CinemaSubcategory)

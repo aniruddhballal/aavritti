@@ -25,8 +25,8 @@ router.get('/:date', async (req, res) => {
 router.get('/meta/categories', (_req, res) => {
   const categoriesWithSubcategories = [
     { 
-      value: 'meal', 
-      label: 'Meal',
+      value: 'meals', 
+      label: 'Meals',
       subcategories: ['breakfast', 'lunch', 'snacks', 'dinner']
     },
     { 
@@ -75,6 +75,14 @@ router.get('/meta/categories', (_req, res) => {
     {
       value: 'chores',
       label: 'Chores'
+    },
+    { 
+      value: 'art',
+      label: 'Art'
+    },
+    {
+      value: 'work',
+      label: 'Work'
     }
   ];
 

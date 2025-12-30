@@ -1,5 +1,5 @@
 export const categoryColors: Record<string, string> = {
-  meal: '#FF6B6B',        // Red/Coral
+  meals: '#FF6B6B',        // Red/Coral
   sleep: '#4ECDC4',       // Teal/Cyan
   japa: '#FFD93D',        // Golden Yellow
   exercise: '#6BCF7F',    // Green
