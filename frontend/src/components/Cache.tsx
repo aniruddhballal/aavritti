@@ -308,7 +308,7 @@ const Cache = () => {
           setIsDraggingEntry(entry._id);
           cancelLongPress();
         }}
-        onDragEnd={(e, info) => handleDragEnd(entry._id, info)}
+        onDragEnd={(info) => handleDragEnd(entry._id, info)}
         onDoubleClick={() => handleDoubleClick(entry._id)}
         onTouchStart={() => handleLongPress(entry._id)}
         onTouchEnd={cancelLongPress}
