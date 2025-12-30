@@ -51,8 +51,8 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+        <div className="max-w-7xl mx-auto">
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
@@ -69,8 +69,9 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+      {/* Wider max-width container for desktop */}
+      <div className="max-w-7xl mx-auto">
         <DailyHeader
           selectedDate={selectedDate}
           formatDate={formatDate}
@@ -82,9 +83,11 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
           totalTime={getTotalTime()}
         />
 
-        <div className="bg-white rounded-lg shadow-lg p-8 mt-6">
-          {/* Interactive Pie Chart */}
-          <div className="mb-8">
+        {/* Two-column layout on large screens, stacked on mobile */}
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Pie Chart */}
+          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8">
+            <h2 className="text-xl font-semibold text-gray-800 mb-4">Time Distribution</h2>
             {data?.activities && data.activities.length > 0 ? (
               <InteractivePieChart 
                 activities={data.activities} 
@@ -99,16 +102,18 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
             )}
           </div>
 
-          {/* Activity List */}
-          <ActivityList
-            activities={data?.activities || []}
-            isToday={isToday()}
-            dateString={dateString}
-            todayIST={getTodayIST()}
-            defaultCategory={CATEGORIES[0]}
-            onActivityAdded={fetchActivities}
-            onEditActivity={handleEditClick}
-          />
+          {/* Right Column - Activity List */}
+          <div className="bg-white rounded-lg shadow-lg p-6 lg:p-8">
+            <ActivityList
+              activities={data?.activities || []}
+              isToday={isToday()}
+              dateString={dateString}
+              todayIST={getTodayIST()}
+              defaultCategory={CATEGORIES[0]}
+              onActivityAdded={fetchActivities}
+              onEditActivity={handleEditClick}
+            />
+          </div>
         </div>
       </div>
 
