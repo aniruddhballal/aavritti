@@ -20,7 +20,7 @@ const ActivityList = ({
   onActivityAdded,
   onEditActivity 
 }: ActivityListProps) => {
-  // Sort activities by start time (earliest first)
+  // Sort activities by start time (latest first)
   // If startTime is missing, fall back to timestamp
   const sortedActivities = [...activities].sort((a, b) => {
     const timeA = a.startTime 
@@ -29,7 +29,7 @@ const ActivityList = ({
     const timeB = b.startTime 
       ? new Date(`${b.date}T${b.startTime}`).getTime()
       : new Date(b.timestamp).getTime();
-    return timeA - timeB;
+    return timeB - timeA;
   });
 
   return (
