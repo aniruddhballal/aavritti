@@ -1,9 +1,18 @@
 // (List of activities)
 // a component that manages the list of activities, including the "Add Activity" form (for today), the past/future date banner, and the empty state. It maps through activities and renders ActivityItem components.
 
+import { Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import type { Activity } from '../../types/activity';
 import ActivityItem from './ActivityItem';
-import AddActivityForm from '../AddActivityForm';
+import AddActivityModal from '../AddActivityModal';
+import { activityService } from '../../services';
+
+interface Category {
+  value: string;
+  label: string;
+  subcategories?: string[];
+}
 
 interface ActivityListProps {
   activities: Activity[];
@@ -18,10 +27,25 @@ const ActivityList = ({
   isToday, 
   defaultCategory,
   onActivityAdded,
-  onEditActivity 
+  onEditActivity
 }: ActivityListProps) => {
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await activityService.getCategories();
+        setCategories(data.categories);
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   // Sort activities by start time (latest first)
-  // If startTime is missing, fall back to timestamp
   const sortedActivities = [...activities].sort((a, b) => {
     const timeA = a.startTime 
       ? new Date(`${a.date}T${a.startTime}`).getTime()
@@ -32,15 +56,40 @@ const ActivityList = ({
     return timeB - timeA;
   });
 
+  const handleAddClick = () => {
+    if (isToday) {
+      setIsAddModalOpen(true);
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsAddModalOpen(false);
+  };
+
+  const handleActivityAdded = () => {
+    setIsAddModalOpen(false);
+    onActivityAdded();
+  };
+
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      {isToday && (
-        <div className="mb-6 flex-shrink-0">
-          <AddActivityForm onActivityAdded={onActivityAdded} />
-        </div>
-      )}
-      
-      <h2 className="text-xl font-semibold text-gray-700 mb-4 flex-shrink-0">Activities</h2>
+      {/* Header with title and add button */}
+      <div className="mb-4 flex-shrink-0 flex items-center justify-between">
+        <h2 className="text-xl font-semibold text-gray-700">Activities</h2>
+        <button
+          onClick={handleAddClick}
+          disabled={!isToday}
+          className={`p-2 rounded-lg transition-all ${
+            isToday
+              ? 'text-green-600 hover:bg-green-50 hover:text-green-700 active:scale-95'
+              : 'text-gray-300 cursor-not-allowed'
+          }`}
+          title={isToday ? 'Add Activity' : 'Can only add activities for today'}
+          aria-label="Add Activity"
+        >
+          <Plus size={24} strokeWidth={2.5} />
+        </button>
+      </div>
       
       <div className="flex-1 min-h-0">
         {!activities || activities.length === 0 ? (
@@ -60,6 +109,14 @@ const ActivityList = ({
           </div>
         )}
       </div>
+
+      {/* Add Activity Modal */}
+      <AddActivityModal
+        isOpen={isAddModalOpen}
+        onClose={handleModalClose}
+        onActivityAdded={handleActivityAdded}
+        categories={categories}
+      />
     </div>
   );
 };
