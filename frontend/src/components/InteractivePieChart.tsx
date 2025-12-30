@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recha
 import { ArrowLeft, ZoomIn, EyeOff as HideIcon, RotateCcw, Sparkles } from 'lucide-react';
 import type { Activity } from '../types/activity';
 import { getCategoryColor } from '../utils/categoryColors';
+import { useDarkMode } from '../contexts/DarkModeContext';
 
 interface ChartData {
   name: string;
@@ -23,6 +24,7 @@ interface InteractivePieChartProps {
 }
 
 const InteractivePieChart = ({ activities, categories }: InteractivePieChartProps) => {
+  const { isDarkMode } = useDarkMode();
   const [drillLevel, setDrillLevel] = useState<DrillLevel>('category');
   const [drilldownCategory, setDrilldownCategory] = useState<string | null>(null);
   const [drilldownSubcategory, setDrilldownSubcategory] = useState<string | null>(null);
@@ -221,7 +223,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       if (drillLevel !== 'activity') {
         handleHideItem(entry);
       }
-    }, 500); // 500ms for long press
+    }, 500);
   };
 
   // Handle touch end
@@ -241,7 +243,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
 
   // Handle mouse click (desktop)
   const handlePieClick = (_entry: any, index: number, event: any) => {
-    // If it's a touch device, ignore mouse events (they fire after touch events)
     if (isTouchDevice.current) {
       return;
     }
@@ -250,17 +251,14 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
       return;
     }
 
-    // Get the click position for popover
     const svg = event.currentTarget.closest('svg');
     const rect = svg.getBoundingClientRect();
     
-    // If clicking the same slice, close popover
     if (selectedIndex === index) {
       closePopover();
       return;
     }
     
-    // Set selected and show popover
     setSelectedIndex(index);
     setPopoverPosition({
       x: event.clientX - rect.left,
@@ -302,7 +300,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     return `${hours}h ${minutes}m`;
   };
 
-  // Active shape for hover effect with enhanced styling
+  // Active shape for hover effect
   const renderActiveShape = (props: any) => {
     const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
     
@@ -339,23 +337,36 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
 
   if (displayData.length === 0 && drillLevel === 'category') {
     return (
-      <div className="bg-gradient-to-br from-white to-gray-50/50 rounded-2xl pt-6 pb-6 px-6 relative border border-gray-200/50 shadow-lg">
-        {/* Header with reset button */}
+      <div className={`rounded-2xl pt-6 pb-6 px-6 relative border shadow-lg transition-colors ${
+        isDarkMode
+          ? 'bg-gradient-to-br from-gray-800 to-gray-800/90 border-gray-700'
+          : 'bg-gradient-to-br from-white to-gray-50/50 border-gray-200/50'
+      }`}>
         <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-lg font-bold text-gray-800 tracking-tight">
+          <h3 className={`text-lg font-bold tracking-tight ${
+            isDarkMode ? 'text-gray-100' : 'text-gray-800'
+          }`}>
             Category Distribution
           </h3>
           <button
             onClick={handleBackToCategories}
-            className="group p-2 text-gray-500 hover:text-gray-900 transition-all duration-300 hover:scale-105 active:scale-95"
+            className={`group p-2 transition-all duration-300 hover:scale-105 active:scale-95 ${
+              isDarkMode ? 'text-gray-400 hover:text-gray-100' : 'text-gray-500 hover:text-gray-900'
+            }`}
             title="Reset to Categories"
           >
             <RotateCcw size={20} className="transition-transform duration-500 group-hover:rotate-[-360deg]" />
           </button>
         </div>
         
-        <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 border border-gray-200/50 shadow-sm">
-          <div className="flex items-center justify-center h-[400px] text-gray-400">
+        <div className={`rounded-2xl p-8 border shadow-sm ${
+          isDarkMode
+            ? 'bg-gradient-to-br from-gray-700 to-gray-800 border-gray-600/50'
+            : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200/50'
+        }`}>
+          <div className={`flex items-center justify-center h-[400px] ${
+            isDarkMode ? 'text-gray-500' : 'text-gray-400'
+          }`}>
             <div className="text-center">
               <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="text-sm">No activity data to display</p>
@@ -367,7 +378,11 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
   }
 
   return (
-    <div className="bg-gradient-to-br from-white to-gray-50/50 rounded-2xl pt-6 pb-6 px-6 relative border border-gray-200/50 shadow-lg transition-all duration-300 hover:shadow-xl">
+    <div className={`rounded-2xl pt-6 pb-6 px-6 relative border shadow-lg transition-all duration-300 hover:shadow-xl ${
+      isDarkMode
+        ? 'bg-gradient-to-br from-gray-800 to-gray-800/90 border-gray-700'
+        : 'bg-gradient-to-br from-white to-gray-50/50 border-gray-200/50'
+    }`}>
       {/* Header with navigation */}
       <div className="mb-6 space-y-3">
         <div className="flex items-center gap-3 w-full">
@@ -378,7 +393,11 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                   onClick={drillLevel === 'activity' && drilldownSubcategory 
                     ? handleBackToSubcategories 
                     : handleBackToCategories}
-                  className="group p-2.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95"
+                  className={`group p-2.5 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
+                    isDarkMode
+                      ? 'text-gray-400 hover:text-gray-100 hover:bg-gray-700'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
                   title={drillLevel === 'activity' && drilldownSubcategory ? 'Back to Subcategories' : 'Back to Categories'}
                 >
                   <ArrowLeft size={20} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
@@ -387,14 +406,18 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-bold text-gray-800 tracking-tight">
+            <h3 className={`text-lg font-bold tracking-tight ${
+              isDarkMode ? 'text-gray-100' : 'text-gray-800'
+            }`}>
               {drillLevel === 'category' && 'Category Distribution'}
               {drillLevel === 'subcategory' && 'Subcategory Breakdown'}
               {drillLevel === 'activity' && 'Activity Breakdown'}
             </h3>
             <div className="min-h-[24px] mt-1">
               {drillLevel !== 'category' ? (
-                <p className="text-sm text-gray-500 font-medium">
+                <p className={`text-sm font-medium ${
+                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                   {getBreadcrumb()}
                 </p>
               ) : (
@@ -410,7 +433,9 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                   const label = showHidden ? 'Hidden' : 'Active';
                   
                   return (
-                    <p className="text-sm text-gray-500 font-medium">
+                    <p className={`text-sm font-medium ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       {label}: {list.map(cat => cat.charAt(0).toUpperCase() + cat.slice(1)).join(', ')}
                     </p>
                   );
@@ -421,7 +446,9 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
           <div className="ml-auto self-start">
             <button
               onClick={handleBackToCategories}
-              className="group pt-0 pr-2 text-gray-500 hover:text-gray-900 transition-all duration-300 hover:scale-105 active:scale-95"
+              className={`group pt-0 pr-2 transition-all duration-300 hover:scale-105 active:scale-95 ${
+                isDarkMode ? 'text-gray-400 hover:text-gray-100' : 'text-gray-500 hover:text-gray-900'
+              }`}
               title="Reset to Categories"
             >
               <RotateCcw size={20} className="transition-transform duration-500 group-hover:rotate-[-360deg]" />
@@ -430,7 +457,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
         </div>
       </div>
 
-      {/* Main Content: Pie Chart + Legend Side by Side on Desktop */}
+      {/* Main Content */}
       {displayData.length > 0 ? (
         <div className={`flex flex-col gap-6 items-start transition-all duration-500 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
           {/* Pie Chart */}
@@ -486,13 +513,14 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                     return `${hours}h ${minutes}m`;
                   }}
                   contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                    border: '1px solid rgba(229, 231, 235, 0.8)',
+                    backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                    border: isDarkMode ? '1px solid rgba(75, 85, 99, 0.8)' : '1px solid rgba(229, 231, 235, 0.8)',
                     borderRadius: '12px',
                     padding: '8px 12px',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                     fontSize: '13px',
-                    fontWeight: '500'
+                    fontWeight: '500',
+                    color: isDarkMode ? '#e5e7eb' : '#374151'
                   }}
                 />
               </PieChart>
@@ -501,15 +529,17 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
             {/* Contextual Popover */}
             {selectedIndex !== null && popoverPosition && drillLevel !== 'activity' && (
               <>
-                {/* Backdrop to close popover */}
                 <div 
                   className="fixed inset-0 z-10"
                   onClick={closePopover}
                 />
                 
-                {/* Popover */}
                 <div 
-                  className="absolute z-20 bg-white/95 backdrop-blur-sm rounded-xl shadow-2xl border border-gray-200/80 py-1.5 min-w-[150px] animate-in fade-in zoom-in-95 duration-200"
+                  className={`absolute z-20 backdrop-blur-sm rounded-xl shadow-2xl border py-1.5 min-w-[150px] animate-in fade-in zoom-in-95 duration-200 ${
+                    isDarkMode
+                      ? 'bg-gray-800/95 border-gray-700'
+                      : 'bg-white/95 border-gray-200/80'
+                  }`}
                   style={{
                     left: `${popoverPosition.x}px`,
                     top: `${popoverPosition.y}px`,
@@ -518,17 +548,25 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                 >
                   <button
                     onClick={() => handleZoomIn(displayData[selectedIndex])}
-                    className="w-full px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-all duration-150 rounded-lg mx-1 hover:scale-[1.02]"
+                    className={`w-full px-4 py-2.5 text-left text-sm font-medium flex items-center gap-2.5 transition-all duration-150 rounded-lg mx-1 hover:scale-[1.02] ${
+                      isDarkMode
+                        ? 'text-gray-200 hover:bg-gray-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
                   >
-                    <ZoomIn size={16} className="text-gray-500" />
+                    <ZoomIn size={16} className={isDarkMode ? 'text-gray-400' : 'text-gray-500'} />
                     <span>Zoom in</span>
                   </button>
                   {displayData.length > 1 && (
                     <button
                       onClick={() => handleHideItem(displayData[selectedIndex])}
-                      className="w-full px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-100 flex items-center gap-2.5 transition-all duration-150 rounded-lg mx-1 hover:scale-[1.02]"
+                      className={`w-full px-4 py-2.5 text-left text-sm font-medium flex items-center gap-2.5 transition-all duration-150 rounded-lg mx-1 hover:scale-[1.02] ${
+                        isDarkMode
+                          ? 'text-gray-200 hover:bg-gray-700'
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
                     >
-                      <HideIcon size={16} className="text-gray-500" />
+                      <HideIcon size={16} className={isDarkMode ? 'text-gray-400' : 'text-gray-500'} />
                       <span>Hide</span>
                     </button>
                   )}
@@ -537,7 +575,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
             )}
           </div>
 
-          {/* Legend - Side by side on desktop, below on mobile */}
+          {/* Legend */}
           <div className="w-full">
             <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
               {displayData.map((entry, index) => {
@@ -553,7 +591,13 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                   <div 
                     key={index} 
                     className={`flex items-center gap-3 text-sm p-2.5 rounded-lg transition-all duration-200 cursor-default ${
-                      isActive ? 'bg-gray-100 scale-105 shadow-sm' : 'hover:bg-gray-50'
+                      isActive 
+                        ? isDarkMode
+                          ? 'bg-gray-700 scale-105 shadow-sm'
+                          : 'bg-gray-100 scale-105 shadow-sm'
+                        : isDarkMode
+                          ? 'hover:bg-gray-700/50'
+                          : 'hover:bg-gray-50'
                     }`}
                     onMouseEnter={() => setActiveIndex(index)}
                     onMouseLeave={() => selectedIndex === null && setActiveIndex(null)}
@@ -564,12 +608,16 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
                       }`}
                       style={{ backgroundColor: entry.color }}
                     />
-                    <span className={`text-gray-700 truncate font-medium transition-all duration-200 ${
-                      isActive ? 'font-semibold' : ''
+                    <span className={`truncate font-medium transition-all duration-200 ${
+                      isActive 
+                        ? isDarkMode ? 'font-semibold text-gray-100' : 'font-semibold text-gray-700'
+                        : isDarkMode ? 'text-gray-300' : 'text-gray-700'
                     }`}>
                       {displayName}
                     </span>
-                    <span className="ml-auto text-gray-500 text-xs font-semibold">
+                    <span className={`ml-auto text-xs font-semibold ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
                       {percentage}%
                     </span>
                   </div>
@@ -579,7 +627,9 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
           </div>
         </div>
       ) : (
-        <div className="flex items-center justify-center h-[400px] text-gray-400">
+        <div className={`flex items-center justify-center h-[400px] ${
+          isDarkMode ? 'text-gray-500' : 'text-gray-400'
+        }`}>
           <div className="text-center">
             <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">No data to display at this level</p>
@@ -589,12 +639,24 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
 
       {/* Instructions */}
       {drillLevel !== 'activity' && (
-        <div className="mt-6 pt-4 border-t border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50/30 rounded-xl p-4 relative animate-in slide-in-from-bottom duration-500 border border-blue-100">
+        <div className={`mt-6 pt-4 border-t rounded-xl p-4 relative animate-in slide-in-from-bottom duration-500 border ${
+          isDarkMode
+            ? 'border-gray-700 bg-gradient-to-br from-blue-900/20 to-indigo-900/10 border-blue-800/50'
+            : 'border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50/30 border-blue-100'
+        }`}>
           <div className="flex items-start gap-3">
-            <Sparkles className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+            <Sparkles className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+              isDarkMode ? 'text-blue-400' : 'text-blue-500'
+            }`} />
             <div>
-              <h4 className="text-sm font-bold text-blue-900 mb-2">Interactive Chart</h4>
-              <div className="text-sm text-blue-800/90 space-y-1.5 leading-relaxed">
+              <h4 className={`text-sm font-bold mb-2 ${
+                isDarkMode ? 'text-blue-300' : 'text-blue-900'
+              }`}>
+                Interactive Chart
+              </h4>
+              <div className={`text-sm space-y-1.5 leading-relaxed ${
+                isDarkMode ? 'text-blue-200/90' : 'text-blue-800/90'
+              }`}>
                 <p>
                   <strong className="font-semibold">Desktop:</strong> Click any slice to see options for zooming in or hiding
                 </p>
