@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
-import { Eye, EyeOff, ArrowLeft, ZoomIn, EyeOff as HideIcon, RotateCcw, Sparkles } from 'lucide-react';
+import { ArrowLeft, ZoomIn, EyeOff as HideIcon, RotateCcw, Sparkles } from 'lucide-react';
 import type { Activity } from '../types/activity';
 import { getCategoryColor } from '../utils/categoryColors';
 
@@ -265,32 +265,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     setPopoverPosition({
       x: event.clientX - rect.left,
       y: event.clientY - rect.top
-    });
-  };
-
-  // Toggle category visibility
-  const handleToggleCategory = (category: string) => {
-    setHiddenCategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(category)) {
-        newSet.delete(category);
-      } else {
-        newSet.add(category);
-      }
-      return newSet;
-    });
-  };
-
-  // Toggle subcategory visibility
-  const handleToggleSubcategory = (subcategory: string) => {
-    setHiddenSubcategories(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(subcategory)) {
-        newSet.delete(subcategory);
-      } else {
-        newSet.add(subcategory);
-      }
-      return newSet;
     });
   };
 
@@ -633,71 +607,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
         </div>
       )}
 
-      {/* Category visibility controls */}
-      {drillLevel === 'category' && getCategoryData().length > 0 && (
-        <div className="mt-6 pt-5 border-t border-gray-200">
-          <h4 className="text-sm font-bold text-gray-700 mb-3 tracking-tight">Category Visibility (click/tap to hide)</h4>
-          <div className="flex flex-wrap gap-2">
-            {getCategoryData().map((cat) => {
-              const isHidden = hiddenCategories.has(cat.category || '');
-              return (
-                <button
-                  key={cat.category}
-                  onClick={() => handleToggleCategory(cat.category || '')}
-                  className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95 ${
-                    isHidden
-                      ? 'bg-gray-200 text-gray-500 hover:bg-gray-300 shadow-sm'
-                      : 'text-white hover:brightness-110 shadow-md hover:shadow-lg'
-                  }`}
-                  style={{
-                    backgroundColor: isHidden ? undefined : cat.color
-                  }}
-                >
-                  {isHidden ? (
-                    <EyeOff size={14} className="transition-transform duration-200 group-hover:scale-110" />
-                  ) : (
-                    <Eye size={14} className="transition-transform duration-200 group-hover:scale-110" />
-                  )}
-                  <span>{cat.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Subcategory visibility controls */}
-      {drillLevel === 'subcategory' && drilldownCategory && (
-        <div className="mt-6 pt-5 border-t border-gray-200">
-          <h4 className="text-sm font-bold text-gray-700 mb-3 tracking-tight">Subcategory Visibility</h4>
-          <div className="flex flex-wrap gap-2">
-            {getSubcategoryData(drilldownCategory).map((sub) => {
-              const isHidden = hiddenSubcategories.has(sub.subcategory || '');
-              return (
-                <button
-                  key={sub.subcategory}
-                  onClick={() => handleToggleSubcategory(sub.subcategory || '')}
-                  className={`group flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-105 active:scale-95 ${
-                    isHidden
-                      ? 'bg-gray-200 text-gray-500 hover:bg-gray-300 shadow-sm'
-                      : 'text-white hover:brightness-110 shadow-md hover:shadow-lg'
-                  }`}
-                  style={{
-                    backgroundColor: isHidden ? undefined : sub.color
-                  }}
-                >
-                  {isHidden ? (
-                    <EyeOff size={14} className="transition-transform duration-200 group-hover:scale-110" />
-                  ) : (
-                    <Eye size={14} className="transition-transform duration-200 group-hover:scale-110" />
-                  )}
-                  <span>{sub.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
