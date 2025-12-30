@@ -20,7 +20,6 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     canNavigateNext, 
     isToday, 
     formatDate,
-    getTodayIST 
   } = useDateNavigation(selectedDate, dateString);
 
   const {
@@ -107,8 +106,6 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
             <ActivityList
               activities={data?.activities || []}
               isToday={isToday()}
-              dateString={dateString}
-              todayIST={getTodayIST()}
               defaultCategory={CATEGORIES[0]}
               onActivityAdded={fetchActivities}
               onEditActivity={handleEditClick}
