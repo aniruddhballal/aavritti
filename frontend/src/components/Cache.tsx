@@ -28,8 +28,12 @@ const Cache = () => {
   const [hoveredEntry, setHoveredEntry] = useState<string | null>(null);
   const [expandedEntryId, setExpandedEntryId] = useState<string | null>(null);
   const [savingEntries, setSavingEntries] = useState<Set<string>>(new Set());
+  const [wasDragged, setWasDragged] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Touch-specific state
   const [touchStart, setTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
+  const [touchEntryId, setTouchEntryId] = useState<string | null>(null);
   const [isTouchDragging, setIsTouchDragging] = useState(false);
   const [positionChanged, setPositionChanged] = useState<Set<string>>(new Set());
   
@@ -245,6 +249,8 @@ const Cache = () => {
       return false;
     }
 
+    setWasDragged(false); // Reset drag flag at start of interaction
+
     const entry = entries.find(e => e._id === id);
     if (!entry) return false;
 
@@ -263,17 +269,28 @@ const Cache = () => {
   const moveDrag = (clientX: number, clientY: number) => {
     if (!draggedEntry) return;
 
+    const DRAG_THRESHOLD = 5; // pixels
+    const entry = entries.find(e => e._id === draggedEntry);
+    if (!entry) return;
+
     const scrollX = containerRef.current?.scrollLeft || 0;
     const scrollY = containerRef.current?.scrollTop || 0;
 
-    setEntries(entries.map(entry => 
-      entry._id === draggedEntry 
-        ? { 
-            ...entry, 
-            x: clientX - dragOffset.x + scrollX, 
-            y: clientY - dragOffset.y + scrollY 
-          } 
-        : entry
+    const newX = clientX - dragOffset.x + scrollX;
+    const newY = clientY - dragOffset.y + scrollY;
+
+    // Check if movement exceeds threshold
+    const deltaX = Math.abs(newX - entry.x);
+    const deltaY = Math.abs(newY - entry.y);
+
+    if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+      setWasDragged(true);
+    }
+
+    setEntries(entries.map(e => 
+      e._id === draggedEntry 
+        ? { ...e, x: newX, y: newY } 
+        : e
     ));
 
     setPositionChanged(prev => new Set(prev).add(draggedEntry));
@@ -288,8 +305,6 @@ const Cache = () => {
     }
     
     setDraggedEntry(null);
-    setIsTouchDragging(false);
-    setTouchStart(null);
   };
 
   // Mouse handlers
@@ -311,25 +326,39 @@ const Cache = () => {
   // Touch handlers
   const handleTouchStart = (id: string, e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
-    setTouchStart({ x: touch.clientX, y: touch.clientY, time: Date.now() });
+    
+    // Record which entry this touch started on
+    setTouchEntryId(id);
+    setTouchStart({ 
+      x: touch.clientX, 
+      y: touch.clientY, 
+      time: Date.now() 
+    });
+    setIsTouchDragging(false);
+    setWasDragged(false);
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (!touchStart) return;
+    if (!touchStart || !touchEntryId) return;
     
     const touch = e.touches[0];
     const deltaX = Math.abs(touch.clientX - touchStart.x);
     const deltaY = Math.abs(touch.clientY - touchStart.y);
     const deltaTime = Date.now() - touchStart.time;
     
-    // Start dragging if moved more than 10px or held for 200ms
-    if ((deltaX > 10 || deltaY > 10 || deltaTime > 200) && !isTouchDragging) {
-      const started = startDrag(expandedEntryId || '', touch.clientX, touch.clientY, e.target);
+    const SPATIAL_THRESHOLD = 10; // pixels
+    const TEMPORAL_THRESHOLD = 200; // milliseconds
+    
+    // Classify gesture: start dragging if moved beyond threshold or held long enough
+    if (!isTouchDragging && (deltaX > SPATIAL_THRESHOLD || deltaY > SPATIAL_THRESHOLD || deltaTime > TEMPORAL_THRESHOLD)) {
+      const started = startDrag(touchEntryId, touch.clientX, touch.clientY, e.target);
       if (started) {
         setIsTouchDragging(true);
+        setWasDragged(true);
       }
     }
     
+    // Continue dragging if already started
     if (isTouchDragging) {
       moveDrag(touch.clientX, touch.clientY);
       e.preventDefault();
@@ -337,21 +366,32 @@ const Cache = () => {
   };
 
   const handleTouchEnd = () => {
-    if (!isTouchDragging && touchStart && expandedEntryId === null) {
-      // It was a tap on collapsed icon - find which entry
-      const touch = touchStart;
-      // This will be handled by onClick instead
+    // End any active drag
+    if (isTouchDragging) {
+      endDrag();
     }
-    endDrag();
+    
+    // If it was a tap (no drag initiated), open the entry
+    if (!wasDragged && touchEntryId && expandedEntryId !== touchEntryId) {
+      setExpandedEntryId(touchEntryId);
+    }
+    
+    // Reset all touch state
+    setTouchStart(null);
+    setTouchEntryId(null);
+    setIsTouchDragging(false);
+    setWasDragged(false);
   };
 
-  // Double-click to expand collapsed entry
+  // Double-click to expand collapsed entry (desktop)
   const handleIconDoubleClick = (id: string) => {
+    if (wasDragged) return;
     setExpandedEntryId(id);
   };
 
-  // Single click for mobile
+  // Single click for desktop
   const handleIconClick = (id: string) => {
+    if (wasDragged) return;
     if (expandedEntryId !== id) {
       setExpandedEntryId(id);
     }
@@ -376,10 +416,19 @@ const Cache = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [expandedEntryId, draggedEntry]);
 
+  // Global mouse/touch up handlers
   useEffect(() => {
     if (draggedEntry) {
       const handleGlobalMouseUp = () => endDrag();
-      const handleGlobalTouchEnd = () => endDrag();
+      const handleGlobalTouchEnd = () => {
+        if (isTouchDragging) {
+          endDrag();
+          setIsTouchDragging(false);
+          setTouchStart(null);
+          setTouchEntryId(null);
+          setWasDragged(false);
+        }
+      };
       
       document.addEventListener('mouseup', handleGlobalMouseUp);
       document.addEventListener('touchend', handleGlobalTouchEnd);
@@ -389,7 +438,7 @@ const Cache = () => {
         document.removeEventListener('touchend', handleGlobalTouchEnd);
       };
     }
-  }, [draggedEntry]);
+  }, [draggedEntry, isTouchDragging]);
 
   const formatTimestamp = (timestamp: Date) => {
     const date = new Date(timestamp);
