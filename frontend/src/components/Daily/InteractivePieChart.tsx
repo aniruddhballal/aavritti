@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
 import { ArrowLeft, ZoomIn, EyeOff as HideIcon, RotateCcw, Sparkles } from 'lucide-react';
-import type { Activity } from '../types/activity';
-import { getCategoryColor } from '../utils/categoryColors';
-import { useDarkMode } from '../contexts/DarkModeContext';
+import type { Activity } from '../../types/activity';
+import { getCategoryColor } from '../../utils/categoryColors';
+import { useDarkMode } from '../../contexts/DarkModeContext';
 
 interface ChartData {
   name: string;

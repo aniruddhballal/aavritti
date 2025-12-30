@@ -5,7 +5,7 @@ import { useDateNavigation } from './hooks/useDateNavigation';
 import { useActivityEdit } from './hooks/useActivityEdit';
 import { categoryColors } from '../../utils/categoryColors';
 import DailyHeader from './DailyHeader';
-import InteractivePieChart from '../InteractivePieChart';
+import InteractivePieChart from './InteractivePieChart';
 import ActivityList from './ActivityList';
 import EditActivityModal from './EditActivityModal';
 import { useDarkMode } from '../../contexts/DarkModeContext';
