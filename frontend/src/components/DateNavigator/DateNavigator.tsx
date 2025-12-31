@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Cpu, HardDrive } from 'lucide-react';
-import { useDarkMode } from '../contexts/DarkModeContext';
-import DarkModeToggle from './DarkModeToggle';
+import { useDarkMode } from '../../contexts/DarkModeContext';
+import DarkModeToggle from '../DarkModeToggle';
 
 const DateNavigator = () => {
   const navigate = useNavigate();
