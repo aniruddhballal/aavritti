@@ -1,7 +1,3 @@
-
-// ============================================================================
-// DailyActivitySection.tsx
-// ============================================================================
 import ActivityList from './ActivityList';
 
 interface DailyActivitySectionProps {

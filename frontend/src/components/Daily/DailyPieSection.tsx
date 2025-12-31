@@ -1,7 +1,3 @@
-
-// ============================================================================
-// DailyPieSection.tsx
-// ============================================================================
 import { useEffect, useRef } from 'react';
 import InteractivePieChart from './InteractivePieChart';
 

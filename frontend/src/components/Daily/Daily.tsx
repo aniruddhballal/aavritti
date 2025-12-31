@@ -1,6 +1,3 @@
-// ============================================================================
-// Daily.tsx (Refactored)
-// ============================================================================
 import { useState } from 'react';
 import { useDailyData } from './hooks/useDailyData';
 import { useDateNavigation } from './hooks/useDateNavigation';
