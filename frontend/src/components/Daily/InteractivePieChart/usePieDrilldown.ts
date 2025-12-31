@@ -3,7 +3,7 @@ import type { Activity } from '../../../types/activity';
 import type { DrillLevel, ChartData} from './interactivePieChart.utils';
 import { hasSubcategories } from './interactivePieChart.utils';
 
-export const usePieDrilldown = (activities: Activity[]) => {
+export const usePieDrillDown = (activities: Activity[]) => {
   const [drillLevel, setDrillLevel] = useState<DrillLevel>('category');
   const [drilldownCategory, setDrilldownCategory] = useState<string | null>(null);
   const [drilldownSubcategory, setDrilldownSubcategory] = useState<string | null>(null);

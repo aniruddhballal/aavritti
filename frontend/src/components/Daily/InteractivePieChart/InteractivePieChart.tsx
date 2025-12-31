@@ -1,7 +1,7 @@
 import { RotateCcw } from 'lucide-react';
 import type { Activity } from '../../../types/activity';
 import { useDarkMode } from '../../../contexts/DarkModeContext';
-import { usePieDrilldown } from './usePieDrillDown';
+import { usePieDrillDown } from './usePieDrillDown';
 import { getDisplayData, getBreadcrumb } from './interactivePieChart.utils';
 import { ChartHeader } from './ChartHeader';
 import { PieRenderer } from './PieRenderer';
@@ -37,7 +37,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
     handleBackToCategories,
     handleBackToSubcategories,
     closePopover,
-  } = usePieDrilldown(activities);
+  } = usePieDrillDown(activities);
 
   const displayData = getDisplayData(
     activities,
