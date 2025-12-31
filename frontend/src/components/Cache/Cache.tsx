@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, ArrowLeft, Plus, GripVertical, Sparkles, Save, X, BookOpen } from 'lucide-react';
-import { useDarkMode } from '../contexts/DarkModeContext';
-import DarkModeToggle from './DarkModeToggle';
+import { useDarkMode } from '../../contexts/DarkModeContext';
+import DarkModeToggle from '../DarkModeToggle';
 
 interface CacheEntry {
   _id: string;
