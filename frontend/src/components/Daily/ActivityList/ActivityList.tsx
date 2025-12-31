@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Activity } from '../../../types/activity';
 import ActivityItem from '../ActivityItem';
-import AddActivityModal from '../AddActivityModal';
+import AddActivityModal from './AddActivityModal/AddActivityModal';
 import ActivityListHeader from './ActivityListHeader';
 import ActivityFilters from './ActivityFilters/ActivityFilters';
 import NoActivities from './EmptyStates/NoActivities';
