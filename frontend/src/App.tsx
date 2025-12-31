@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import DateNavigator from './components/DateNavigator/DateNavigator.tsx'
-import RAM from './components/RAM.tsx'
+import RAM from './components/RAM/RAM.tsx'
 import Cache from './components/Cache/Cache.tsx'
 import DailyWrapper from './components/Daily/DailyWrapper.tsx'
 import { DarkModeProvider } from './contexts/DarkModeContext';
