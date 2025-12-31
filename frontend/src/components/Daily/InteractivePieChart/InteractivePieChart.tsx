@@ -1,22 +1,14 @@
-import { useState, useRef } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Sector } from 'recharts';
-import { ArrowLeft, ZoomIn, EyeOff as HideIcon, RotateCcw, Sparkles } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import type { Activity } from '../../../types/activity';
-import { getCategoryColor } from '../../../utils/categoryColors';
 import { useDarkMode } from '../../../contexts/DarkModeContext';
-
-interface ChartData {
-  name: string;
-  value: number;
-  hours: string;
-  color: string;
-  category?: string;
-  subcategory?: string;
-  activityId?: string;
-  [key: string]: any;
-}
-
-type DrillLevel = 'category' | 'subcategory' | 'activity';
+import { usePieDrilldown } from './usePieDrillDown';
+import { getDisplayData, getBreadcrumb } from './interactivePieChart.utils';
+import { ChartHeader } from './ChartHeader';
+import { PieRenderer } from './PieRenderer';
+import { ChartPopover } from './ChartPopover';
+import { ChartLegend } from './ChartLegend';
+import { EmptyState } from './EmptyState';
+import { ChartInstructions } from './ChartInstructions';
 
 interface InteractivePieChartProps {
   activities: Activity[];
@@ -25,316 +17,41 @@ interface InteractivePieChartProps {
 
 const InteractivePieChart = ({ activities, categories }: InteractivePieChartProps) => {
   const { isDarkMode } = useDarkMode();
-  const [drillLevel, setDrillLevel] = useState<DrillLevel>('category');
-  const [drilldownCategory, setDrilldownCategory] = useState<string | null>(null);
-  const [drilldownSubcategory, setDrilldownSubcategory] = useState<string | null>(null);
   
-  const [hiddenCategories, setHiddenCategories] = useState<Set<string>>(new Set());
-  const [hiddenSubcategories, setHiddenSubcategories] = useState<Set<string>>(new Set());
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  
-  // Selection and popover state
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [popoverPosition, setPopoverPosition] = useState<{ x: number; y: number } | null>(null);
-  
-  // Touch tracking
-  const touchStartTime = useRef<number>(0);
-  const longPressTimeout = useRef<number | null>(null);
-  const isTouchDevice = useRef<boolean>(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const {
+    drillLevel,
+    drilldownCategory,
+    drilldownSubcategory,
+    hiddenCategories,
+    hiddenSubcategories,
+    activeIndex,
+    selectedIndex,
+    popoverPosition,
+    isAnimating,
+    setActiveIndex,
+    handleZoomIn,
+    handleHideItem,
+    handleTouchStart,
+    handleTouchEnd,
+    handlePieClick,
+    handleBackToCategories,
+    handleBackToSubcategories,
+    closePopover,
+  } = usePieDrilldown(activities);
 
-  // Check if a category has any activities with subcategories
-  const hasSubcategories = (category: string): boolean => {
-    return activities.some(
-      activity => activity.category === category && activity.subcategory
-    );
-  };
+  const displayData = getDisplayData(
+    activities,
+    categories,
+    drillLevel,
+    drilldownCategory,
+    drilldownSubcategory,
+    hiddenCategories,
+    hiddenSubcategories
+  );
 
-  // Get category-level data
-  const getCategoryData = (): ChartData[] => {
-    if (!activities || activities.length === 0) return [];
+  const breadcrumb = getBreadcrumb(drillLevel, drilldownCategory, drilldownSubcategory);
 
-    const categoryTotals: Record<string, number> = {};
-    
-    activities.forEach(activity => {
-      const category = activity.category || categories[0];
-      if (!hiddenCategories.has(category)) {
-        const duration = activity.duration || 0;
-        categoryTotals[category] = (categoryTotals[category] || 0) + duration;
-      }
-    });
-
-    return Object.entries(categoryTotals).map(([category, minutes]) => {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      return {
-        name: category.charAt(0).toUpperCase() + category.slice(1),
-        value: minutes,
-        hours: `${hours}h ${mins}m`,
-        color: getCategoryColor(category),
-        category: category
-      };
-    });
-  };
-
-  // Get subcategory-level data for a specific category
-  const getSubcategoryData = (category: string): ChartData[] => {
-    if (!activities || activities.length === 0) return [];
-
-    const subcategoryTotals: Record<string, number> = {};
-    
-    activities
-      .filter(activity => activity.category === category && activity.subcategory)
-      .forEach(activity => {
-        const subcategory = activity.subcategory!;
-        if (!hiddenSubcategories.has(subcategory)) {
-          const duration = activity.duration || 0;
-          subcategoryTotals[subcategory] = (subcategoryTotals[subcategory] || 0) + duration;
-        }
-      });
-
-    const baseColor = getCategoryColor(category);
-    const entries = Object.entries(subcategoryTotals);
-    
-    return entries.map(([subcategory, minutes], index) => {
-      const hue = parseInt(baseColor.slice(1, 3), 16);
-      const sat = parseInt(baseColor.slice(3, 5), 16);
-      const light = parseInt(baseColor.slice(5, 7), 16);
-      
-      const variation = Math.floor((index * 40) % 80) - 40;
-      const newLight = Math.max(50, Math.min(200, light + variation));
-      const variedColor = `#${hue.toString(16).padStart(2, '0')}${sat.toString(16).padStart(2, '0')}${newLight.toString(16).padStart(2, '0')}`;
-
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-
-      return {
-        name: subcategory.charAt(0).toUpperCase() + subcategory.slice(1),
-        value: minutes,
-        hours: `${hours}h ${mins}m`,
-        color: variedColor,
-        subcategory: subcategory
-      };
-    });
-  };
-
-  // Get activity-level data (individual activities)
-  const getActivityData = (category: string, subcategory?: string): ChartData[] => {
-    if (!activities || activities.length === 0) return [];
-
-    const filteredActivities = activities.filter(activity => {
-      if (activity.category !== category) return false;
-      if (subcategory && activity.subcategory !== subcategory) return false;
-      return true;
-    });
-
-    const baseColor = getCategoryColor(category);
-    
-    return filteredActivities.map((activity, index) => {
-      const hue = parseInt(baseColor.slice(1, 3), 16);
-      const sat = parseInt(baseColor.slice(3, 5), 16);
-      const light = parseInt(baseColor.slice(5, 7), 16);
-      
-      const variation = Math.floor((index * 30) % 100) - 30;
-      const newLight = Math.max(50, Math.min(200, light + variation));
-      const variedColor = `#${hue.toString(16).padStart(2, '0')}${sat.toString(16).padStart(2, '0')}${newLight.toString(16).padStart(2, '0')}`;
-
-      const minutes = activity.duration || 0;
-      const hours = Math.floor(minutes / 60);
-
-      return {
-        name: activity.title,
-        value: minutes,
-        hours: `${hours}h ${minutes}m`,
-        color: variedColor,
-        activityId: activity._id
-      };
-    });
-  };
-
-  // Determine what data to display based on drill level
-  const getDisplayData = (): ChartData[] => {
-    if (drillLevel === 'category') {
-      const categoryData = getCategoryData();
-      return categoryData.filter(cat => !hiddenCategories.has(cat.category || ''));
-    } else if (drillLevel === 'subcategory' && drilldownCategory) {
-      return getSubcategoryData(drilldownCategory);
-    } else if (drillLevel === 'activity' && drilldownCategory) {
-      return getActivityData(drilldownCategory, drilldownSubcategory || undefined);
-    }
-    return [];
-  };
-
-  const displayData = getDisplayData();
-
-  // Explicit zoom in action
-  const handleZoomIn = (entry: ChartData) => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 500);
-    
-    if (drillLevel === 'category') {
-      const category = entry.category!;
-      setDrilldownCategory(category);
-      
-      if (hasSubcategories(category)) {
-        setDrillLevel('subcategory');
-      } else {
-        setDrillLevel('activity');
-      }
-    } else if (drillLevel === 'subcategory') {
-      setDrilldownSubcategory(entry.subcategory!);
-      setDrillLevel('activity');
-    }
-    
-    closePopover();
-  };
-
-  // Explicit hide action
-  const handleHideItem = (entry: ChartData) => {
-    // Prevent hiding if it's the only visible slice
-    if (displayData.length === 1) {
-      closePopover();
-      return;
-    }
-    
-    if (drillLevel === 'category') {
-      setHiddenCategories(prev => new Set([...prev, entry.category!]));
-    } else if (drillLevel === 'subcategory') {
-      setHiddenSubcategories(prev => new Set([...prev, entry.subcategory!]));
-    }
-    
-    closePopover();
-  };
-
-  // Close popover
-  const closePopover = () => {
-    setSelectedIndex(null);
-    setPopoverPosition(null);
-  };
-
-  // Handle touch start
-  const handleTouchStart = (entry: ChartData) => {
-    isTouchDevice.current = true;
-    touchStartTime.current = Date.now();
-    
-    // Set up long press detection
-    longPressTimeout.current = setTimeout(() => {
-      // Long press detected - hide item
-      if (drillLevel !== 'activity') {
-        handleHideItem(entry);
-      }
-    }, 500);
-  };
-
-  // Handle touch end
-  const handleTouchEnd = (entry: ChartData) => {
-    if (longPressTimeout.current) {
-      clearTimeout(longPressTimeout.current);
-      longPressTimeout.current = null;
-    }
-    
-    const touchDuration = Date.now() - touchStartTime.current;
-    
-    // Short tap - zoom in
-    if (touchDuration < 500 && drillLevel !== 'activity') {
-      handleZoomIn(entry);
-    }
-  };
-
-  // Handle mouse click (desktop)
-  const handlePieClick = (_entry: any, index: number, event: any) => {
-    if (isTouchDevice.current) {
-      return;
-    }
-    
-    if (drillLevel === 'activity') {
-      return;
-    }
-
-    const svg = event.currentTarget.closest('svg');
-    const rect = svg.getBoundingClientRect();
-    
-    if (selectedIndex === index) {
-      closePopover();
-      return;
-    }
-    
-    setSelectedIndex(index);
-    setPopoverPosition({
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top
-    });
-  };
-
-  // Navigation handlers
-  const handleBackToCategories = () => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 500);
-    
-    setDrillLevel('category');
-    setDrilldownCategory(null);
-    setDrilldownSubcategory(null);
-    setHiddenCategories(new Set());
-    setHiddenSubcategories(new Set());
-    setActiveIndex(null);
-    closePopover();
-  };
-
-  const handleBackToSubcategories = () => {
-    setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 500);
-    
-    setDrillLevel('subcategory');
-    setDrilldownSubcategory(null);
-    setHiddenSubcategories(new Set());
-    closePopover();
-  };
-
-  // Custom label for pie slices
-  const renderLabel = (props: any) => {
-    const { percent, value } = props;
-    if (percent < 0.05) return null;
-    const totalMinutes = value;
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return `${hours}h ${minutes}m`;
-  };
-
-  // Active shape for hover effect
-  const renderActiveShape = (props: any) => {
-    const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
-    
-    return (
-      <g>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius + 12}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-          style={{ 
-            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.15))',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}
-        />
-      </g>
-    );
-  };
-
-  // Get breadcrumb path
-  const getBreadcrumb = () => {
-    const parts = [];
-    if (drillLevel !== 'category' && drilldownCategory) {
-      parts.push(drilldownCategory.charAt(0).toUpperCase() + drilldownCategory.slice(1));
-    }
-    if (drillLevel === 'activity' && drilldownSubcategory) {
-      parts.push(drilldownSubcategory.charAt(0).toUpperCase() + drilldownSubcategory.slice(1));
-    }
-    return parts.join(' → ');
-  };
-
+  // Empty state for no activities
   if (displayData.length === 0 && drillLevel === 'category') {
     return (
       <div className={`rounded-2xl pt-6 pb-6 px-6 relative border shadow-lg transition-colors ${
@@ -364,14 +81,7 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
             ? 'bg-gradient-to-br from-gray-700 to-gray-800 border-gray-600/50'
             : 'bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200/50'
         }`}>
-          <div className={`flex items-center justify-center h-[400px] ${
-            isDarkMode ? 'text-gray-500' : 'text-gray-400'
-          }`}>
-            <div className="text-center">
-              <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No activity data to display</p>
-            </div>
-          </div>
+          <EmptyState isDarkMode={isDarkMode} message="No activity data to display" />
         </div>
       </div>
     );
@@ -383,292 +93,65 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
         ? 'bg-gradient-to-br from-gray-800 to-gray-800/90 border-gray-700'
         : 'bg-gradient-to-br from-white to-gray-50/50 border-gray-200/50'
     }`}>
-      {/* Header with navigation */}
-      <div className="mb-6 space-y-3">
-        <div className="flex items-center gap-3 w-full">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3">
-              {drillLevel !== 'category' && (
-                <button
-                  onClick={drillLevel === 'activity' && drilldownSubcategory 
-                    ? handleBackToSubcategories 
-                    : handleBackToCategories}
-                  className={`group p-2.5 rounded-xl transition-all duration-200 hover:scale-105 active:scale-95 ${
-                    isDarkMode
-                      ? 'text-gray-400 hover:text-gray-100 hover:bg-gray-700'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-                  }`}
-                  title={drillLevel === 'activity' && drilldownSubcategory ? 'Back to Subcategories' : 'Back to Categories'}
-                >
-                  <ArrowLeft size={20} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
-                </button>
-              )}
-            </div>
-          </div>
-          <div className="flex-1">
-            <h3 className={`text-lg font-bold tracking-tight ${
-              isDarkMode ? 'text-gray-100' : 'text-gray-800'
-            }`}>
-              {drillLevel === 'category' && 'Category Distribution'}
-              {drillLevel === 'subcategory' && 'Subcategory Breakdown'}
-              {drillLevel === 'activity' && 'Activity Breakdown'}
-            </h3>
-            <div className="min-h-[24px] mt-1">
-              {drillLevel !== 'category' ? (
-                <p className={`text-sm font-medium ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                }`}>
-                  {getBreadcrumb()}
-                </p>
-              ) : (
-                (() => {
-                  if (hiddenCategories.size === 0) return null;
-                  
-                  const allCategories = Array.from(new Set(activities.map(a => a.category || categories[0])));
-                  const visibleCategories = allCategories.filter(cat => !hiddenCategories.has(cat));
-                  const hiddenCategoryList = Array.from(hiddenCategories);
-                  
-                  const showHidden = hiddenCategoryList.length <= visibleCategories.length;
-                  const list = showHidden ? hiddenCategoryList : visibleCategories;
-                  const label = showHidden ? 'Hidden' : 'Active';
-                  
-                  return (
-                    <p className={`text-sm font-medium ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
-                      {label}: {list.map(cat => cat.charAt(0).toUpperCase() + cat.slice(1)).join(', ')}
-                    </p>
-                  );
-                })()
-              )}
-            </div>
-          </div>
-          <div className="ml-auto self-start">
-            <button
-              onClick={handleBackToCategories}
-              className={`group pt-0 pr-2 transition-all duration-300 hover:scale-105 active:scale-95 ${
-                isDarkMode ? 'text-gray-400 hover:text-gray-100' : 'text-gray-500 hover:text-gray-900'
-              }`}
-              title="Reset to Categories"
-            >
-              <RotateCcw size={20} className="transition-transform duration-500 group-hover:rotate-[-360deg]" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <ChartHeader
+        drillLevel={drillLevel}
+        drilldownCategory={drilldownCategory}
+        drilldownSubcategory={drilldownSubcategory}
+        breadcrumb={breadcrumb}
+        hiddenCategories={hiddenCategories}
+        activities={activities}
+        categories={categories}
+        isDarkMode={isDarkMode}
+        onBackToCategories={handleBackToCategories}
+        onBackToSubcategories={handleBackToSubcategories}
+      />
 
-      {/* Main Content */}
       {displayData.length > 0 ? (
         <div className={`flex flex-col gap-6 items-start transition-all duration-500 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
-          {/* Pie Chart */}
-          <div className="relative w-full h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={displayData}
-                  cx="50%"
-                  cy="50%"
-                  label={renderLabel}
-                  labelLine={false}
-                  outerRadius={115}
-                  fill="#8884d8"
-                  dataKey="value"
-                  onClick={(entry, index, event) => handlePieClick(entry, index, event)}
-                  onTouchStart={handleTouchStart}
-                  onTouchEnd={handleTouchEnd}
-                  onMouseEnter={(_, index) => {
-                    if (selectedIndex !== index) {
-                      setActiveIndex(index);
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    if (selectedIndex === null) {
-                      setActiveIndex(null);
-                    }
-                  }}
-                  {...(selectedIndex !== null ? { activeIndex: selectedIndex, activeShape: renderActiveShape } : activeIndex !== null ? { activeIndex: activeIndex, activeShape: renderActiveShape } : {})}
-                  style={{ cursor: drillLevel === 'activity' ? 'default' : 'pointer', fontSize: '13.5px' }}
-                  animationBegin={0}
-                  animationDuration={500}
-                  animationEasing="ease-out"
-                >
-                  {displayData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.color}
-                      style={{ 
-                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                        filter: selectedIndex === index || activeIndex === index 
-                          ? 'brightness(1.1)' 
-                          : 'brightness(1)'
-                      }}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value: any) => {
-                    const totalMinutes = value;
-                    const hours = Math.floor(totalMinutes / 60);
-                    const minutes = totalMinutes % 60;
-                    return `${hours}h ${minutes}m`;
-                  }}
-                  contentStyle={{
-                    backgroundColor: isDarkMode ? 'rgba(31, 41, 55, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-                    border: isDarkMode ? '1px solid rgba(75, 85, 99, 0.8)' : '1px solid rgba(229, 231, 235, 0.8)',
-                    borderRadius: '12px',
-                    padding: '8px 12px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    fontSize: '13px',
-                    fontWeight: '500',
-                    color: isDarkMode ? '#e5e7eb' : '#374151'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+          <PieRenderer
+            data={displayData}
+            drillLevel={drillLevel}
+            selectedIndex={selectedIndex}
+            activeIndex={activeIndex}
+            isDarkMode={isDarkMode}
+            onPieClick={handlePieClick}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onMouseEnter={(index) => setActiveIndex(index)}
+            onMouseLeave={() => {
+              if (selectedIndex === null) {
+                setActiveIndex(null);
+              }
+            }}
+          />
 
-            {/* Contextual Popover */}
-            {selectedIndex !== null && popoverPosition && drillLevel !== 'activity' && (
-              <>
-                <div 
-                  className="fixed inset-0 z-10"
-                  onClick={closePopover}
-                />
-                
-                <div 
-                  className={`absolute z-20 backdrop-blur-sm rounded-xl shadow-2xl border py-1.5 min-w-[150px] animate-in fade-in zoom-in-95 duration-200 ${
-                    isDarkMode
-                      ? 'bg-gray-800/95 border-gray-700'
-                      : 'bg-white/95 border-gray-200/80'
-                  }`}
-                  style={{
-                    left: `${popoverPosition.x}px`,
-                    top: `${popoverPosition.y}px`,
-                    transform: 'translate(-50%, -100%) translateY(-12px)'
-                  }}
-                >
-                  <button
-                    onClick={() => handleZoomIn(displayData[selectedIndex])}
-                    className={`w-full px-4 py-2.5 text-left text-sm font-medium flex items-center gap-2.5 transition-all duration-150 rounded-lg mx-1 hover:scale-[1.02] ${
-                      isDarkMode
-                        ? 'text-gray-200 hover:bg-gray-700'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    <ZoomIn size={16} className={isDarkMode ? 'text-gray-400' : 'text-gray-500'} />
-                    <span>Zoom in</span>
-                  </button>
-                  {displayData.length > 1 && (
-                    <button
-                      onClick={() => handleHideItem(displayData[selectedIndex])}
-                      className={`w-full px-4 py-2.5 text-left text-sm font-medium flex items-center gap-2.5 transition-all duration-150 rounded-lg mx-1 hover:scale-[1.02] ${
-                        isDarkMode
-                          ? 'text-gray-200 hover:bg-gray-700'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      <HideIcon size={16} className={isDarkMode ? 'text-gray-400' : 'text-gray-500'} />
-                      <span>Hide</span>
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
-          </div>
+          {selectedIndex !== null && popoverPosition && drillLevel !== 'activity' && (
+            <ChartPopover
+              position={popoverPosition}
+              entry={displayData[selectedIndex]}
+              canHide={displayData.length > 1}
+              isDarkMode={isDarkMode}
+              onZoomIn={() => handleZoomIn(displayData[selectedIndex])}
+              onHide={() => handleHideItem(displayData[selectedIndex], displayData.length)}
+              onClose={closePopover}
+            />
+          )}
 
-          {/* Legend */}
-          <div className="w-full">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-2.5">
-              {displayData.map((entry, index) => {
-                const displayName = drillLevel === 'activity' 
-                  ? entry.name.split(' ').slice(0, 3).join(' ')
-                  : entry.name;
-                
-                const totalValue = displayData.reduce((sum, item) => sum + item.value, 0);
-                const percentage = ((entry.value / totalValue) * 100).toFixed(1);
-                const isActive = selectedIndex === index || activeIndex === index;
-                
-                return (
-                  <div 
-                    key={index} 
-                    className={`flex items-center gap-3 text-sm p-2.5 rounded-lg transition-all duration-200 cursor-default ${
-                      isActive 
-                        ? isDarkMode
-                          ? 'bg-gray-700 scale-105 shadow-sm'
-                          : 'bg-gray-100 scale-105 shadow-sm'
-                        : isDarkMode
-                          ? 'hover:bg-gray-700/50'
-                          : 'hover:bg-gray-50'
-                    }`}
-                    onMouseEnter={() => setActiveIndex(index)}
-                    onMouseLeave={() => selectedIndex === null && setActiveIndex(null)}
-                  >
-                    <div 
-                      className={`w-3.5 h-3.5 rounded flex-shrink-0 transition-all duration-200 ${
-                        isActive ? 'scale-125 shadow-md' : ''
-                      }`}
-                      style={{ backgroundColor: entry.color }}
-                    />
-                    <span className={`truncate font-medium transition-all duration-200 ${
-                      isActive 
-                        ? isDarkMode ? 'font-semibold text-gray-100' : 'font-semibold text-gray-700'
-                        : isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      {displayName}
-                    </span>
-                    <span className={`ml-auto text-xs font-semibold ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
-                      {percentage}%
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <ChartLegend
+            data={displayData}
+            drillLevel={drillLevel}
+            selectedIndex={selectedIndex}
+            activeIndex={activeIndex}
+            isDarkMode={isDarkMode}
+            onMouseEnter={(index) => setActiveIndex(index)}
+            onMouseLeave={() => selectedIndex === null && setActiveIndex(null)}
+          />
         </div>
       ) : (
-        <div className={`flex items-center justify-center h-[400px] ${
-          isDarkMode ? 'text-gray-500' : 'text-gray-400'
-        }`}>
-          <div className="text-center">
-            <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
-            <p className="text-sm">No data to display at this level</p>
-          </div>
-        </div>
+        <EmptyState isDarkMode={isDarkMode} message="No data to display at this level" />
       )}
 
-      {/* Instructions */}
-      {drillLevel !== 'activity' && (
-        <div className={`mt-6 pt-4 border-t rounded-xl p-4 relative animate-in slide-in-from-bottom duration-500 border ${
-          isDarkMode
-            ? 'border-gray-700 bg-gradient-to-br from-blue-900/20 to-indigo-900/10 border-blue-800/50'
-            : 'border-gray-200 bg-gradient-to-br from-blue-50 to-indigo-50/30 border-blue-100'
-        }`}>
-          <div className="flex items-start gap-3">
-            <Sparkles className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-              isDarkMode ? 'text-blue-400' : 'text-blue-500'
-            }`} />
-            <div>
-              <h4 className={`text-sm font-bold mb-2 ${
-                isDarkMode ? 'text-blue-300' : 'text-blue-900'
-              }`}>
-                Interactive Chart
-              </h4>
-              <div className={`text-sm space-y-1.5 leading-relaxed ${
-                isDarkMode ? 'text-blue-200/90' : 'text-blue-800/90'
-              }`}>
-                <p>
-                  <strong className="font-semibold">Desktop:</strong> Click any slice to see options for zooming in or hiding
-                </p>
-                <p>
-                  <strong className="font-semibold">Touch devices:</strong> Tap to zoom in, long-press to hide
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {drillLevel !== 'activity' && <ChartInstructions isDarkMode={isDarkMode} />}
     </div>
   );
 };
