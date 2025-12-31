@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Trash2, ArrowLeft, Plus, GripVertical, Sparkles, Save, X, BookOpen } from 'lucide-react';
 import { useDarkMode } from '../contexts/DarkModeContext';
+import DarkModeToggle from './DarkModeToggle';
 
 interface CacheEntry {
   _id: string;
@@ -465,364 +466,367 @@ const Cache = () => {
   };
 
   return (
-    <div 
-      ref={containerRef}
-      className={`w-full h-screen relative overflow-auto transition-colors ${
-        isDarkMode
-          ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
-          : 'bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50'
-      }`}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      style={{ 
-        cursor: draggedEntry ? 'grabbing' : 'default',
-        touchAction: isTouchDragging ? 'none' : 'auto'
-      }}
-    >
-      {/* Animated background pattern */}
+    <>
+      <DarkModeToggle/>
       <div 
-        className="absolute inset-0 pointer-events-none" 
-        style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, ${isDarkMode ? 'rgba(255,255,255,0.03)' : 'gray'} 1px, transparent 0)`,
-          backgroundSize: '40px 40px',
-          opacity: isDarkMode ? 1 : 0.03
-        }} 
-      />
-
-      {/* Header */}
-      <div className="absolute top-6 left-6 flex items-center gap-3 z-20">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate('/');
-          }}
-          className={`group flex items-center gap-2 transition-all duration-200 px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 ${
-            isDarkMode
-              ? 'text-gray-300 hover:text-gray-100 bg-gray-800/90 backdrop-blur-sm border border-gray-700/50'
-              : 'text-gray-700 hover:text-gray-900 bg-white/90 backdrop-blur-sm border border-gray-200/50'
-          }`}
-        >
-          <ArrowLeft size={20} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
-          <span className="font-semibold">Back to Calendar</span>
-        </button>
-
-        <button
-          onClick={handleCreateEntry}
-          disabled={isCreating}
-          className="group flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 text-white px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-semibold hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:hover:scale-100"
-        >
-          <Plus size={20} className={`transition-transform duration-300 ${isCreating ? 'rotate-90' : 'group-hover:rotate-90'}`} />
-          <span>{isCreating ? 'Creating...' : 'New Cache Entry'}</span>
-        </button>
-
-        {entries.length > 0 && (
-          <div className={`ml-2 px-4 py-2.5 rounded-xl shadow-lg border ${
-            isDarkMode
-              ? 'bg-gray-800/90 backdrop-blur-sm border-gray-700/50'
-              : 'bg-white/90 backdrop-blur-sm border-gray-200/50'
-          }`}>
-            <span className={`text-sm font-semibold ${
-              isDarkMode ? 'text-gray-300' : 'text-gray-600'
-            }`}>
-              {entries.length} {entries.length === 1 ? 'Entry' : 'Entries'}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <div className="text-center animate-in fade-in zoom-in duration-500">
-            <Sparkles className={`w-12 h-12 mx-auto mb-3 animate-pulse ${
-              isDarkMode ? 'text-blue-400' : 'text-blue-500'
-            }`} />
-            <p className={`text-xl font-semibold ${
-              isDarkMode ? 'text-gray-300' : 'text-gray-600'
-            }`}>
-              Loading entries...
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && entries.length === 0 && !isCreating && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg ${
-              isDarkMode
-                ? 'bg-gradient-to-br from-blue-900/40 to-indigo-900/40'
-                : 'bg-gradient-to-br from-blue-100 to-indigo-100'
-            }`}>
-              <Plus className={`w-12 h-12 ${
-                isDarkMode ? 'text-blue-400' : 'text-blue-500'
-              }`} />
-            </div>
-            <p className={`text-2xl font-bold mb-2 ${
-              isDarkMode ? 'text-gray-200' : 'text-gray-700'
-            }`}>
-              No Cache Entries Yet
-            </p>
-            <p className={`text-lg ${
-              isDarkMode ? 'text-gray-400' : 'text-gray-500'
-            }`}>
-              Click "New Cache Entry" to create your first one
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Cache Entries */}
-      {entries.map((entry) => {
-        const isDragged = draggedEntry === entry._id;
-        const isHovered = hoveredEntry === entry._id;
-        const isExpanded = expandedEntryId === entry._id;
-        const isSaving = savingEntries.has(entry._id);
-
-        // Render collapsed icon
-        if (!isExpanded) {
-          return (
-            <div
-              key={entry._id}
-              className="absolute group"
-              style={{
-                left: `${entry.x}px`,
-                top: `${entry.y}px`,
-                transform: 'translate(-50%, -50%)',
-                zIndex: isDragged ? 50 : isHovered ? 30 : 10,
-              }}
-              onMouseDown={(e) => handleMouseDown(entry._id, e)}
-              onTouchStart={(e) => handleTouchStart(entry._id, e)}
-              onMouseEnter={() => setHoveredEntry(entry._id)}
-              onMouseLeave={() => setHoveredEntry(null)}
-              onClick={() => handleIconClick(entry._id)}
-              onDoubleClick={() => handleIconDoubleClick(entry._id)}
-            >
-              {/* Collapsed Icon */}
-              <div
-                className={`w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg flex items-center justify-center transition-all duration-200 ${
-                  isDragged 
-                    ? 'scale-110 shadow-2xl rotate-6' 
-                    : isHovered
-                    ? 'scale-105 shadow-xl'
-                    : 'hover:scale-105'
-                }`}
-                style={{
-                  cursor: isDragged ? 'grabbing' : 'grab',
-                  touchAction: 'none'
-                }}
-              >
-                <BookOpen className="w-6 h-6 text-white" />
-              </div>
-
-              {/* Hover Tooltip */}
-              {isHovered && !isDragged && (
-                <div className={`absolute left-16 top-0 text-sm px-3 py-2 rounded-lg shadow-xl whitespace-nowrap pointer-events-none animate-in fade-in slide-in-from-left-2 duration-200 z-50 ${
-                  isDarkMode
-                    ? 'bg-gray-800 text-white border border-gray-700'
-                    : 'bg-gray-900 text-white'
-                }`}>
-                  <div className="font-semibold max-w-[200px] truncate">
-                    {entry.title || 'Untitled'}
-                  </div>
-                  <div className={`text-xs mt-0.5 ${
-                    isDarkMode ? 'text-gray-400' : 'text-gray-300'
-                  }`}>
-                    {formatTimestamp(entry.timestamp)}
-                  </div>
-                  {/* Tooltip arrow */}
-                  <div className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 rotate-45 ${
-                    isDarkMode ? 'bg-gray-800 border-l border-b border-gray-700' : 'bg-gray-900'
-                  }`} />
-                </div>
-              )}
-            </div>
-          );
-        }
-
-        // Render expanded card
-        return (
-          <div
-            key={entry._id}
-            id={`expanded-${entry._id}`}
-            className={`absolute rounded-2xl shadow-2xl border-2 transition-all duration-200 ${
-              isDarkMode
-                ? isDragged 
-                  ? 'bg-gray-800 border-blue-500 shadow-2xl scale-105'
-                  : 'bg-gray-800 border-blue-400'
-                : isDragged 
-                  ? 'bg-white border-blue-400 shadow-2xl scale-105'
-                  : 'bg-white border-blue-300'
-            }`}
-            style={{
-              left: `${entry.x}px`,
-              top: `${entry.y}px`,
-              width: window.innerWidth < 640 ? 'min(340px, calc(100vw - 40px))' : '340px',
-              transform: 'translate(-50%, -50%)',
-              zIndex: 100,
-              touchAction: 'none'
-            }}
-          >
-            {/* Drag Handle Header */}
-            <div 
-              className={`flex items-center justify-between p-4 pb-3 border-b transition-colors duration-200 ${
-                isDarkMode
-                  ? isDragged 
-                    ? 'border-blue-900/50 bg-blue-900/20'
-                    : 'border-gray-700'
-                  : isDragged 
-                    ? 'border-blue-200 bg-blue-50/50'
-                    : 'border-gray-100'
-              }`}
-              onMouseDown={(e) => handleMouseDown(entry._id, e)}
-              onTouchStart={(e) => handleTouchStart(entry._id, e)}
-              style={{ cursor: isDragged ? 'grabbing' : 'grab' }}
-            >
-              <div className="flex items-center gap-2 flex-1 min-w-0">
-                <GripVertical 
-                  size={20} 
-                  className={`flex-shrink-0 transition-all duration-200 ${
-                    isDragged 
-                      ? 'text-blue-500' 
-                      : isDarkMode ? 'text-gray-500' : 'text-gray-400'
-                  }`}
-                />
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <div className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
-                    isDarkMode
-                      ? 'text-gray-400 bg-gray-700'
-                      : 'text-gray-500 bg-gray-100'
-                  }`}>
-                    {formatTimestamp(entry.timestamp)}
-                  </div>
-                  {isSaving && (
-                    <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold animate-in fade-in zoom-in duration-200">
-                      <Save size={14} />
-                      <span>Saved</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCloseExpanded();
-                  }}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  className={`p-2.5 rounded-lg transition-all duration-200 ${
-                    isDarkMode
-                      ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700 active:bg-gray-600'
-                      : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200'
-                  }`}
-                  title="Close"
-                >
-                  <X size={20} />
-                </button>
-                <button
-                  onClick={(e) => handleDelete(entry._id, e)}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  className={`group p-2.5 rounded-lg transition-all duration-200 ${
-                    isDarkMode
-                      ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/30 active:bg-red-900/50'
-                      : 'text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100'
-                  }`}
-                  title="Delete entry"
-                >
-                  <Trash2 size={20} className="transition-transform duration-200 group-hover:scale-110" />
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="p-4 space-y-3">
-              {/* Title */}
-              <div>
-                <label className={`block text-xs font-bold mb-1.5 tracking-tight ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`}>
-                  TITLE
-                </label>
-                <input
-                  type="text"
-                  value={entry.title}
-                  onChange={(e) => handleTitleChange(entry._id, e.target.value)}
-                  onBlur={() => handleTitleBlur(entry._id)}
-                  placeholder="Enter a title..."
-                  className={`w-full px-3.5 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-semibold ${
-                    isDarkMode
-                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-500 hover:border-gray-500'
-                      : 'bg-white border-gray-200 text-gray-800 placeholder:text-gray-400 hover:border-gray-300'
-                  } placeholder:font-normal`}
-                  onClick={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  style={{ touchAction: 'auto' }}
-                />
-              </div>
-
-              {/* Body */}
-              <div>
-                <label className={`block text-xs font-bold mb-1.5 tracking-tight ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                }`}>
-                  CONTENT
-                </label>
-                <textarea
-                  value={entry.body}
-                  onChange={(e) => handleBodyChange(entry._id, e.target.value)}
-                  onBlur={() => handleBodyBlur(entry._id)}
-                  placeholder="Write your thoughts here..."
-                  rows={5}
-                  className={`w-full px-3.5 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none leading-relaxed ${
-                    isDarkMode
-                      ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder:text-gray-500 hover:border-gray-500'
-                      : 'bg-white border-gray-200 text-gray-700 placeholder:text-gray-400 hover:border-gray-300'
-                  }`}
-                  onClick={(e) => e.stopPropagation()}
-                  onTouchStart={(e) => e.stopPropagation()}
-                  style={{ touchAction: 'auto' }}
-                />
-              </div>
-            </div>
-
-            {/* Gradient overlay at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-b-2xl" />
-          </div>
-        );
-      })}
-
-      {/* Floating hint */}
-      {!isLoading && entries.length > 0 && entries.length <= 3 && expandedEntryId === null && (
-        <div className={`fixed bottom-6 right-6 backdrop-blur-sm rounded-xl shadow-xl border p-4 max-w-xs animate-in slide-in-from-bottom-4 fade-in duration-500 z-20 ${
+        ref={containerRef}
+        className={`w-full h-screen relative overflow-auto transition-colors ${
           isDarkMode
-            ? 'bg-gray-800/95 border-gray-700/50'
-            : 'bg-white/95 border-gray-200/50'
-        }`}>
-          <div className="flex items-start gap-3">
-            <Sparkles className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-              isDarkMode ? 'text-blue-400' : 'text-blue-500'
-            }`} />
-            <div>
-              <h4 className={`text-sm font-bold mb-1 ${
-                isDarkMode ? 'text-gray-100' : 'text-gray-800'
-              }`}>
-                💡 Pro Tips
-              </h4>
-              <p className={`text-xs leading-relaxed ${
+            ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
+            : 'bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50'
+        }`}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        style={{ 
+          cursor: draggedEntry ? 'grabbing' : 'default',
+          touchAction: isTouchDragging ? 'none' : 'auto'
+        }}
+      >
+        {/* Animated background pattern */}
+        <div 
+          className="absolute inset-0 pointer-events-none" 
+          style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, ${isDarkMode ? 'rgba(255,255,255,0.03)' : 'gray'} 1px, transparent 0)`,
+            backgroundSize: '40px 40px',
+            opacity: isDarkMode ? 1 : 0.03
+          }} 
+        />
+
+        {/* Header */}
+        <div className="absolute top-6 left-6 flex items-center gap-3 z-20">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate('/');
+            }}
+            className={`group flex items-center gap-2 transition-all duration-200 px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 ${
+              isDarkMode
+                ? 'text-gray-300 hover:text-gray-100 bg-gray-800/90 backdrop-blur-sm border border-gray-700/50'
+                : 'text-gray-700 hover:text-gray-900 bg-white/90 backdrop-blur-sm border border-gray-200/50'
+            }`}
+          >
+            <ArrowLeft size={20} className="transition-transform duration-200 group-hover:-translate-x-0.5" />
+            <span className="font-semibold">Back to Calendar</span>
+          </button>
+
+          <button
+            onClick={handleCreateEntry}
+            disabled={isCreating}
+            className="group flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-blue-300 disabled:to-blue-400 text-white px-4 py-2.5 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-semibold hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            <Plus size={20} className={`transition-transform duration-300 ${isCreating ? 'rotate-90' : 'group-hover:rotate-90'}`} />
+            <span>{isCreating ? 'Creating...' : 'New Cache Entry'}</span>
+          </button>
+
+          {entries.length > 0 && (
+            <div className={`ml-2 px-4 py-2.5 rounded-xl shadow-lg border ${
+              isDarkMode
+                ? 'bg-gray-800/90 backdrop-blur-sm border-gray-700/50'
+                : 'bg-white/90 backdrop-blur-sm border-gray-200/50'
+            }`}>
+              <span className={`text-sm font-semibold ${
                 isDarkMode ? 'text-gray-300' : 'text-gray-600'
               }`}>
-                • Drag icons to organize spatially<br />
-                • Click/double-click to open entries<br />
-                • Hover for quick preview
+                {entries.length} {entries.length === 1 ? 'Entry' : 'Entries'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div className="text-center animate-in fade-in zoom-in duration-500">
+              <Sparkles className={`w-12 h-12 mx-auto mb-3 animate-pulse ${
+                isDarkMode ? 'text-blue-400' : 'text-blue-500'
+              }`} />
+              <p className={`text-xl font-semibold ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-600'
+              }`}>
+                Loading entries...
               </p>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && entries.length === 0 && !isCreating && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div className="text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg ${
+                isDarkMode
+                  ? 'bg-gradient-to-br from-blue-900/40 to-indigo-900/40'
+                  : 'bg-gradient-to-br from-blue-100 to-indigo-100'
+              }`}>
+                <Plus className={`w-12 h-12 ${
+                  isDarkMode ? 'text-blue-400' : 'text-blue-500'
+                }`} />
+              </div>
+              <p className={`text-2xl font-bold mb-2 ${
+                isDarkMode ? 'text-gray-200' : 'text-gray-700'
+              }`}>
+                No Cache Entries Yet
+              </p>
+              <p className={`text-lg ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                Click "New Cache Entry" to create your first one
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Cache Entries */}
+        {entries.map((entry) => {
+          const isDragged = draggedEntry === entry._id;
+          const isHovered = hoveredEntry === entry._id;
+          const isExpanded = expandedEntryId === entry._id;
+          const isSaving = savingEntries.has(entry._id);
+
+          // Render collapsed icon
+          if (!isExpanded) {
+            return (
+              <div
+                key={entry._id}
+                className="absolute group"
+                style={{
+                  left: `${entry.x}px`,
+                  top: `${entry.y}px`,
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: isDragged ? 50 : isHovered ? 30 : 10,
+                }}
+                onMouseDown={(e) => handleMouseDown(entry._id, e)}
+                onTouchStart={(e) => handleTouchStart(entry._id, e)}
+                onMouseEnter={() => setHoveredEntry(entry._id)}
+                onMouseLeave={() => setHoveredEntry(null)}
+                onClick={() => handleIconClick(entry._id)}
+                onDoubleClick={() => handleIconDoubleClick(entry._id)}
+              >
+                {/* Collapsed Icon */}
+                <div
+                  className={`w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg flex items-center justify-center transition-all duration-200 ${
+                    isDragged 
+                      ? 'scale-110 shadow-2xl rotate-6' 
+                      : isHovered
+                      ? 'scale-105 shadow-xl'
+                      : 'hover:scale-105'
+                  }`}
+                  style={{
+                    cursor: isDragged ? 'grabbing' : 'grab',
+                    touchAction: 'none'
+                  }}
+                >
+                  <BookOpen className="w-6 h-6 text-white" />
+                </div>
+
+                {/* Hover Tooltip */}
+                {isHovered && !isDragged && (
+                  <div className={`absolute left-16 top-0 text-sm px-3 py-2 rounded-lg shadow-xl whitespace-nowrap pointer-events-none animate-in fade-in slide-in-from-left-2 duration-200 z-50 ${
+                    isDarkMode
+                      ? 'bg-gray-800 text-white border border-gray-700'
+                      : 'bg-gray-900 text-white'
+                  }`}>
+                    <div className="font-semibold max-w-[200px] truncate">
+                      {entry.title || 'Untitled'}
+                    </div>
+                    <div className={`text-xs mt-0.5 ${
+                      isDarkMode ? 'text-gray-400' : 'text-gray-300'
+                    }`}>
+                      {formatTimestamp(entry.timestamp)}
+                    </div>
+                    {/* Tooltip arrow */}
+                    <div className={`absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1 w-2 h-2 rotate-45 ${
+                      isDarkMode ? 'bg-gray-800 border-l border-b border-gray-700' : 'bg-gray-900'
+                    }`} />
+                  </div>
+                )}
+              </div>
+            );
+          }
+
+          // Render expanded card
+          return (
+            <div
+              key={entry._id}
+              id={`expanded-${entry._id}`}
+              className={`absolute rounded-2xl shadow-2xl border-2 transition-all duration-200 ${
+                isDarkMode
+                  ? isDragged 
+                    ? 'bg-gray-800 border-blue-500 shadow-2xl scale-105'
+                    : 'bg-gray-800 border-blue-400'
+                  : isDragged 
+                    ? 'bg-white border-blue-400 shadow-2xl scale-105'
+                    : 'bg-white border-blue-300'
+              }`}
+              style={{
+                left: `${entry.x}px`,
+                top: `${entry.y}px`,
+                width: window.innerWidth < 640 ? 'min(340px, calc(100vw - 40px))' : '340px',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 100,
+                touchAction: 'none'
+              }}
+            >
+              {/* Drag Handle Header */}
+              <div 
+                className={`flex items-center justify-between p-4 pb-3 border-b transition-colors duration-200 ${
+                  isDarkMode
+                    ? isDragged 
+                      ? 'border-blue-900/50 bg-blue-900/20'
+                      : 'border-gray-700'
+                    : isDragged 
+                      ? 'border-blue-200 bg-blue-50/50'
+                      : 'border-gray-100'
+                }`}
+                onMouseDown={(e) => handleMouseDown(entry._id, e)}
+                onTouchStart={(e) => handleTouchStart(entry._id, e)}
+                style={{ cursor: isDragged ? 'grabbing' : 'grab' }}
+              >
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <GripVertical 
+                    size={20} 
+                    className={`flex-shrink-0 transition-all duration-200 ${
+                      isDragged 
+                        ? 'text-blue-500' 
+                        : isDarkMode ? 'text-gray-500' : 'text-gray-400'
+                    }`}
+                  />
+                  <div className="flex items-center gap-2 min-w-0 flex-1">
+                    <div className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                      isDarkMode
+                        ? 'text-gray-400 bg-gray-700'
+                        : 'text-gray-500 bg-gray-100'
+                    }`}>
+                      {formatTimestamp(entry.timestamp)}
+                    </div>
+                    {isSaving && (
+                      <div className="flex items-center gap-1.5 text-xs text-green-600 font-semibold animate-in fade-in zoom-in duration-200">
+                        <Save size={14} />
+                        <span>Saved</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCloseExpanded();
+                    }}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    className={`p-2.5 rounded-lg transition-all duration-200 ${
+                      isDarkMode
+                        ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700 active:bg-gray-600'
+                        : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200'
+                    }`}
+                    title="Close"
+                  >
+                    <X size={20} />
+                  </button>
+                  <button
+                    onClick={(e) => handleDelete(entry._id, e)}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    className={`group p-2.5 rounded-lg transition-all duration-200 ${
+                      isDarkMode
+                        ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/30 active:bg-red-900/50'
+                        : 'text-gray-400 hover:text-red-500 hover:bg-red-50 active:bg-red-100'
+                    }`}
+                    title="Delete entry"
+                  >
+                    <Trash2 size={20} className="transition-transform duration-200 group-hover:scale-110" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-4 space-y-3">
+                {/* Title */}
+                <div>
+                  <label className={`block text-xs font-bold mb-1.5 tracking-tight ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
+                    TITLE
+                  </label>
+                  <input
+                    type="text"
+                    value={entry.title}
+                    onChange={(e) => handleTitleChange(entry._id, e.target.value)}
+                    onBlur={() => handleTitleBlur(entry._id)}
+                    placeholder="Enter a title..."
+                    className={`w-full px-3.5 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 font-semibold ${
+                      isDarkMode
+                        ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-500 hover:border-gray-500'
+                        : 'bg-white border-gray-200 text-gray-800 placeholder:text-gray-400 hover:border-gray-300'
+                    } placeholder:font-normal`}
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    style={{ touchAction: 'auto' }}
+                  />
+                </div>
+
+                {/* Body */}
+                <div>
+                  <label className={`block text-xs font-bold mb-1.5 tracking-tight ${
+                    isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
+                    CONTENT
+                  </label>
+                  <textarea
+                    value={entry.body}
+                    onChange={(e) => handleBodyChange(entry._id, e.target.value)}
+                    onBlur={() => handleBodyBlur(entry._id)}
+                    placeholder="Write your thoughts here..."
+                    rows={5}
+                    className={`w-full px-3.5 py-2.5 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none leading-relaxed ${
+                      isDarkMode
+                        ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder:text-gray-500 hover:border-gray-500'
+                        : 'bg-white border-gray-200 text-gray-700 placeholder:text-gray-400 hover:border-gray-300'
+                    }`}
+                    onClick={(e) => e.stopPropagation()}
+                    onTouchStart={(e) => e.stopPropagation()}
+                    style={{ touchAction: 'auto' }}
+                  />
+                </div>
+              </div>
+
+              {/* Gradient overlay at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 rounded-b-2xl" />
+            </div>
+          );
+        })}
+
+        {/* Floating hint */}
+        {!isLoading && entries.length > 0 && entries.length <= 3 && expandedEntryId === null && (
+          <div className={`fixed bottom-6 right-6 backdrop-blur-sm rounded-xl shadow-xl border p-4 max-w-xs animate-in slide-in-from-bottom-4 fade-in duration-500 z-20 ${
+            isDarkMode
+              ? 'bg-gray-800/95 border-gray-700/50'
+              : 'bg-white/95 border-gray-200/50'
+          }`}>
+            <div className="flex items-start gap-3">
+              <Sparkles className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                isDarkMode ? 'text-blue-400' : 'text-blue-500'
+              }`} />
+              <div>
+                <h4 className={`text-sm font-bold mb-1 ${
+                  isDarkMode ? 'text-gray-100' : 'text-gray-800'
+                }`}>
+                  💡 Pro Tips
+                </h4>
+                <p className={`text-xs leading-relaxed ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-600'
+                }`}>
+                  • Drag icons to organize spatially<br />
+                  • Click/double-click to open entries<br />
+                  • Hover for quick preview
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

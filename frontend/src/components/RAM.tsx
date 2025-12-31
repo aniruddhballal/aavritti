@@ -1,10 +1,15 @@
+import DarkModeToggle from "./DarkModeToggle";
+
 const RAM = () => {
   return (
-    <div className="w-full h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center">
-        <p className="text-2xl text-gray-400">Click/tap to jot</p>
-      </div>
-    </div>
+    <>
+    <DarkModeToggle/>
+      <div className="w-full h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <p className="text-2xl text-gray-400">Click/tap to jot</p>
+        </div>
+      </div>    
+    </>
   );
 };
 
