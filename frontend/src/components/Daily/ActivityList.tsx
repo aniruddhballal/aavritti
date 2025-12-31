@@ -43,8 +43,8 @@ const ActivityList = ({
   const [filterStartTime, setFilterStartTime] = useState('');
   const [filterEndTime, setFilterEndTime] = useState('');
   
-  // UI state for expanded filter
-  const [expandedFilter, setExpandedFilter] = useState<ExpandedFilter>(null);
+  // UI state for expanded filter - search is expanded by default
+  const [expandedFilter, setExpandedFilter] = useState<ExpandedFilter>('search');
   const filterRef = useRef<HTMLDivElement>(null);
 
   // Fetch categories on mount
@@ -60,11 +60,11 @@ const ActivityList = ({
     fetchCategories();
   }, []);
 
-  // Click outside to collapse
+  // Click outside to collapse - but return to search as default
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setExpandedFilter(null);
+        setExpandedFilter('search');
       }
     };
 
@@ -125,21 +125,21 @@ const ActivityList = ({
     setSelectedSubcategory('');
     setFilterStartTime('');
     setFilterEndTime('');
-    setExpandedFilter(null);
+    setExpandedFilter('search'); // Return to search expanded
   };
 
   const handleCategoryChange = (value: string) => {
     setSelectedCategory(value);
     setSelectedSubcategory('');
     if (value) {
-      setExpandedFilter(null);
+      setExpandedFilter('search'); // Return to search after selection
     }
   };
 
   const handleSubcategoryChange = (value: string) => {
     setSelectedSubcategory(value);
     if (value) {
-      setExpandedFilter(null);
+      setExpandedFilter('search'); // Return to search after selection
     }
   };
 
@@ -173,7 +173,12 @@ const ActivityList = ({
   };
 
   const toggleFilter = (filter: ExpandedFilter) => {
-    setExpandedFilter(expandedFilter === filter ? null : filter);
+    // If clicking on search when it's already expanded, do nothing
+    if (filter === 'search' && expandedFilter === 'search') {
+      return;
+    }
+    // Toggle other filters, or switch to them
+    setExpandedFilter(expandedFilter === filter ? 'search' : filter);
   };
 
   return (
