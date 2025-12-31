@@ -341,7 +341,7 @@ const ActivityList = ({
       <div className="flex flex-col h-full overflow-y-auto">
         {/* Header with title and add button */}
         <div className="mb-4 flex-shrink-0">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-1">
             <h2 className={`text-xl font-semibold tracking-tight ${
               isDarkMode ? 'text-gray-200' : 'text-gray-700'
             }`}>
@@ -350,7 +350,7 @@ const ActivityList = ({
             <button
               onClick={handleAddClick}
               disabled={!isToday}
-              className={`add-button p-2 mr-4 rounded-lg ${
+              className={`add-button p-2 mr-4 mt-4 rounded-lg ${
                 isToday
                   ? isDarkMode
                     ? 'text-green-400 hover:bg-green-900/30 hover:text-green-300'
