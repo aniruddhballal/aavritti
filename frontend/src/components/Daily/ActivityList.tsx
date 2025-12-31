@@ -36,7 +36,8 @@ const ActivityList = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedSubcategory, setSelectedSubcategory] = useState('');
-
+  const [filterStartTime, setFilterStartTime] = useState('');
+  const [filterEndTime, setFilterEndTime] = useState('');
   // Fetch categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
@@ -65,6 +66,29 @@ const ActivityList = ({
       if (selectedSubcategory && activity.subcategory !== selectedSubcategory) {
         return false;
       }
+      // Time range filter
+      if (filterStartTime || filterEndTime) {
+        const activityStart = activity.startTime;
+        const activityEnd = activity.endTime;
+        
+        // Skip activities without time data if time filters are active
+        if (!activityStart) {
+          return false;
+        }
+        
+        // Check if activity starts after filter start time
+        if (filterStartTime && activityStart < filterStartTime) {
+          return false;
+        }
+        
+        // Check if activity ends before filter end time (or starts before if no end time)
+        if (filterEndTime) {
+          const timeToCheck = activityEnd || activityStart;
+          if (timeToCheck > filterEndTime) {
+            return false;
+          }
+        }
+      }
       return true;
     })
     .sort((a, b) => {
@@ -87,6 +111,8 @@ const ActivityList = ({
     setSearchTerm('');
     setSelectedCategory('');
     setSelectedSubcategory('');
+    setFilterStartTime('');
+    setFilterEndTime('');
   };
 
   // When category changes, clear subcategory
@@ -95,7 +121,7 @@ const ActivityList = ({
     setSelectedSubcategory('');
   };
 
-  const hasActiveFilters = searchTerm || selectedCategory || selectedSubcategory;
+  const hasActiveFilters = searchTerm || selectedCategory || selectedSubcategory || filterStartTime || filterEndTime;
 
   const handleAddClick = () => {
     if (isToday) {
@@ -203,6 +229,35 @@ return (
               ))}
             </select>
           )}
+
+          {/* Time Range Filters */}
+          <div className="flex gap-2 items-center">
+            <input
+              type="time"
+              value={filterStartTime}
+              onChange={(e) => setFilterStartTime(e.target.value)}
+              placeholder="Start time"
+              className={`px-3 py-2 rounded-lg border transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-green-500 focus:outline-none'
+                  : 'bg-white border-gray-300 text-gray-900 focus:border-green-500 focus:outline-none'
+              }`}
+              title="Filter from time"
+            />
+            <span className={isDarkMode ? 'text-gray-400' : 'text-gray-500'}>—</span>
+            <input
+              type="time"
+              value={filterEndTime}
+              onChange={(e) => setFilterEndTime(e.target.value)}
+              placeholder="End time"
+              className={`px-3 py-2 rounded-lg border transition-colors ${
+                isDarkMode
+                  ? 'bg-gray-800 border-gray-700 text-gray-200 focus:border-green-500 focus:outline-none'
+                  : 'bg-white border-gray-300 text-gray-900 focus:border-green-500 focus:outline-none'
+              }`}
+              title="Filter to time"
+            />
+          </div>
 
           {/* Clear Filters Button */}
           {hasActiveFilters && (
