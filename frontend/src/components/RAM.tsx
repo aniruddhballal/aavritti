@@ -1,4 +1,4 @@
-import DarkModeToggle from "./DarkModeToggle";
+import DarkModeToggle from "./DarkModeToggle/DarkModeToggle";
 
 const RAM = () => {
   return (

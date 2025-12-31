@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../../contexts/DarkModeContext';
-import DarkModeToggle from '../DarkModeToggle';
+import DarkModeToggle from '../DarkModeToggle/DarkModeToggle';
 import { useCacheEntries } from './hooks/useCacheEntries';
 import { useDraggableEntries } from './hooks/useDraggableEntries';
 import { CacheHeader } from './components/CacheHeader';

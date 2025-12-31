@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import { useCalendarNavigator } from './useCalendarNavigator';
 import { formatDateLong, formatDateForRoute, MONTHS } from './dateUtils';
-import DarkModeToggle from '../DarkModeToggle';
+import DarkModeToggle from '../DarkModeToggle/DarkModeToggle';
 import CalendarHeader from './CalendarHeader';
 import CalendarMonthNav from './CalendarMonthNav';
 import CalendarGrid from './CalendarGrid';

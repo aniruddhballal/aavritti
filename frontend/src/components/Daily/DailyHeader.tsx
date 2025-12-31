@@ -3,7 +3,7 @@
 
 import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useDarkMode } from '../../contexts/DarkModeContext';
-import DarkModeToggle from '../DarkModeToggle';
+import DarkModeToggle from '../DarkModeToggle/DarkModeToggle';
 
 interface DailyHeaderProps {
   selectedDate: Date;
