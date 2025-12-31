@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import InteractivePieChart from './InteractivePieChart';
+import InteractivePieChart from './InteractivePieChart/InteractivePieChart';
 
 interface DailyPieSectionProps {
   activities: any[] | undefined;

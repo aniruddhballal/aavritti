@@ -1,5 +1,5 @@
 import { X, Save, Trash2 } from 'lucide-react';
-import { useDarkMode } from '../../contexts/DarkModeContext';
+import { useDarkMode } from '../../../contexts/DarkModeContext';
 
 interface EditActivityModalProps {
   editForm: {

@@ -4,7 +4,7 @@ import { useDateNavigation } from './hooks/useDateNavigation';
 import { useActivityEdit } from './hooks/useActivityEdit';
 import { categoryColors } from '../../utils/categoryColors';
 import DailyHeader from './DailyHeader';
-import EditActivityModal from './EditActivityModal';
+import EditActivityModal from './EditActivityModal/EditActivityModal';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import DailyLoadingState from './DailyLoadingState';
 import DailyErrorState from './DailyErrorState';
