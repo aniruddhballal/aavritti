@@ -3,6 +3,7 @@ import { TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
 import { api } from '../../services/api';
 import { formatDateForRoute } from './dateUtils';
+import { getCategoryColor } from '../../utils/categoryColors';
 
 interface ActivityTrendsProps {
   isDarkMode: boolean;
@@ -28,20 +29,20 @@ interface ActivityResponse {
 }
 
 const CATEGORIES = [
-  { value: 'meals', label: 'Meals', color: '#10b981' },
-  { value: 'sleep', label: 'Sleep', color: '#6366f1' },
-  { value: 'japa', label: 'Japa', color: '#f59e0b' },
-  { value: 'exercise', label: 'Exercise', color: '#ef4444' },
-  { value: 'commute', label: 'Commute', color: '#8b5cf6' },
-  { value: 'cinema', label: 'Cinema', color: '#ec4899' },
-  { value: 'reading', label: 'Reading', color: '#14b8a6' },
-  { value: 'research', label: 'Research', color: '#3b82f6' },
-  { value: 'writing', label: 'Writing', color: '#a855f7' },
-  { value: 'project', label: 'Project', color: '#f97316' },
-  { value: 'recreation', label: 'Recreation', color: '#84cc16' },
-  { value: 'chores', label: 'Chores', color: '#64748b' },
-  { value: 'art', label: 'Art', color: '#d946ef' },
-  { value: 'work', label: 'Work', color: '#0ea5e9' }
+  { value: 'meals', label: 'Meals' },
+  { value: 'sleep', label: 'Sleep' },
+  { value: 'japa', label: 'Japa' },
+  { value: 'exercise', label: 'Exercise' },
+  { value: 'commute', label: 'Commute' },
+  { value: 'cinema', label: 'Cinema' },
+  { value: 'reading', label: 'Reading' },
+  { value: 'research', label: 'Research' },
+  { value: 'writing', label: 'Writing' },
+  { value: 'project', label: 'Project' },
+  { value: 'recreation', label: 'Recreation' },
+  { value: 'chores', label: 'Chores' },
+  { value: 'art', label: 'Art' },
+  { value: 'work', label: 'Work' }
 ];
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -107,7 +108,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
     fetchActivityData();
   }, [selectedCategory]);
 
-  const categoryColor = CATEGORIES.find(c => c.value === selectedCategory)?.color || '#3b82f6';
+  const categoryColor = getCategoryColor(selectedCategory);
   const totalHours = chartData.reduce((sum, d) => sum + d.hours, 0);
   const avgHours = chartData.length > 0 ? totalHours / chartData.length : 0;
 
@@ -135,7 +136,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
-            style={selectedCategory === cat.value ? { backgroundColor: cat.color } : {}}
+            style={selectedCategory === cat.value ? { backgroundColor: getCategoryColor(cat.value) } : {}}
           >
             {cat.label}
           </button>
