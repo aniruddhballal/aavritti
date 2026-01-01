@@ -183,6 +183,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           symbol: 'circle',
           symbolSize: 8,
           emphasis: {
+            focus: 'series',
             itemStyle: {
               color: categoryColor,
               borderColor: categoryColor,
@@ -204,7 +205,11 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           },
           z: -1 // This ensures the axis pointer is behind the dots
         },
-        formatter: () => {
+        formatter: (params: any) => {
+          // Update selected day index based on tooltip
+          if (params && params.length > 0 && params[0].dataIndex !== undefined) {
+            setSelectedDayIndex(params[0].dataIndex);
+          }
           return ''; // Empty tooltip content
         },
         backgroundColor: 'transparent',
@@ -215,12 +220,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   };
 
   const onChartEvents = {
-    mouseover: (params: any) => {
-      if (params.dataIndex !== undefined) {
-        setSelectedDayIndex(params.dataIndex);
-      }
-    },
-    mouseout: () => {
+    globalout: () => {
       setSelectedDayIndex(null);
     }
   };
