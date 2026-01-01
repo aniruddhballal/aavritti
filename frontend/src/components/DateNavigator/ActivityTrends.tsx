@@ -1,0 +1,246 @@
+import { useState, useEffect } from 'react';
+import { TrendingUp } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
+import { api } from '../../services/api';
+import { formatDateForRoute } from './dateUtils';
+
+interface ActivityTrendsProps {
+  isDarkMode: boolean;
+}
+
+interface DayData {
+  date: string;
+  day: string;
+  hours: number;
+  fullDate: string;
+}
+
+interface Activity {
+  category: string;
+  duration: number;
+}
+
+interface ActivityResponse {
+  date: string;
+  activities: Activity[];
+  totalActivities: number;
+  totalDuration: number;
+}
+
+const CATEGORIES = [
+  { value: 'meals', label: 'Meals', color: '#10b981' },
+  { value: 'sleep', label: 'Sleep', color: '#6366f1' },
+  { value: 'japa', label: 'Japa', color: '#f59e0b' },
+  { value: 'exercise', label: 'Exercise', color: '#ef4444' },
+  { value: 'commute', label: 'Commute', color: '#8b5cf6' },
+  { value: 'cinema', label: 'Cinema', color: '#ec4899' },
+  { value: 'reading', label: 'Reading', color: '#14b8a6' },
+  { value: 'research', label: 'Research', color: '#3b82f6' },
+  { value: 'writing', label: 'Writing', color: '#a855f7' },
+  { value: 'project', label: 'Project', color: '#f97316' },
+  { value: 'recreation', label: 'Recreation', color: '#84cc16' },
+  { value: 'chores', label: 'Chores', color: '#64748b' },
+  { value: 'art', label: 'Art', color: '#d946ef' },
+  { value: 'work', label: 'Work', color: '#0ea5e9' }
+];
+
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
+  const [selectedCategory, setSelectedCategory] = useState('exercise');
+  const [chartData, setChartData] = useState<DayData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchActivityData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        const data: DayData[] = [];
+        const today = new Date();
+        
+        console.log('Fetching activity data for category:', selectedCategory);
+        
+        // Fetch data for last 7 days
+        for (let i = 6; i >= 0; i--) {
+          const date = new Date(today);
+          date.setDate(date.getDate() - i);
+          const dateString = formatDateForRoute(date);
+          const dayName = DAYS[date.getDay()].substring(0, 2);
+          
+          try {
+            const response = await api.get<ActivityResponse>(`/activities/${dateString}`);
+            
+            console.log(`Data for ${dateString}:`, response.data);
+            
+            // Calculate total hours for selected category
+            const categoryMinutes = response.data.activities
+              .filter(activity => activity.category === selectedCategory)
+              .reduce((sum, activity) => sum + activity.duration, 0);
+            
+            const hours = categoryMinutes / 60;
+            
+            data.push({
+              date: `${date.getMonth() + 1}/${date.getDate()}`,
+              day: dayName,
+              hours: Math.round(hours * 100) / 100, // Round to 2 decimals
+              fullDate: dateString
+            });
+          } catch (error: any) {
+            console.log(`No data for ${dateString}, using 0 hours`);
+            // If date has no activities or API error, add 0 hours
+            data.push({
+              date: `${date.getMonth() + 1}/${date.getDate()}`,
+              day: dayName,
+              hours: 0,
+              fullDate: dateString
+            });
+          }
+        }
+        
+        console.log('Final chart data:', data);
+        setChartData(data);
+      } catch (error: any) {
+        console.error('Error fetching activity trends:', error);
+        setError(error?.message || 'Failed to load activity data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivityData();
+  }, [selectedCategory]);
+
+  const categoryColor = CATEGORIES.find(c => c.value === selectedCategory)?.color || '#3b82f6';
+  const totalHours = chartData.reduce((sum, d) => sum + d.hours, 0);
+  const avgHours = chartData.length > 0 ? totalHours / chartData.length : 0;
+
+  return (
+    <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+      <div className="flex items-center gap-2 mb-3">
+        <TrendingUp className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} size={20} />
+        <h3 className={`text-sm font-semibold ${
+          isDarkMode ? 'text-white' : 'text-gray-900'
+        }`}>
+          Activity Trends (Last 7 Days)
+        </h3>
+      </div>
+
+      {/* Category Selector */}
+      <div className="mb-4 flex gap-2 flex-wrap">
+        {CATEGORIES.map(cat => (
+          <button
+            key={cat.value}
+            onClick={() => setSelectedCategory(cat.value)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              selectedCategory === cat.value
+                ? 'text-white shadow-md'
+                : isDarkMode
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            style={selectedCategory === cat.value ? { backgroundColor: cat.color } : {}}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Stats */}
+      <div className="flex gap-4 mb-4">
+        <div className={`flex-1 p-3 rounded-lg ${
+          isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
+        }`}>
+          <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Total Hours
+          </div>
+          <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            {loading ? '...' : `${totalHours.toFixed(1)}h`}
+          </div>
+        </div>
+        <div className={`flex-1 p-3 rounded-lg ${
+          isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
+        }`}>
+          <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Daily Average
+          </div>
+          <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            {loading ? '...' : `${avgHours.toFixed(1)}h`}
+          </div>
+        </div>
+      </div>
+
+      {/* Chart */}
+      <div className="h-48">
+        {loading ? (
+          <div className={`h-full flex items-center justify-center ${
+            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+          }`}>
+            Loading chart data...
+          </div>
+        ) : error ? (
+          <div className={`h-full flex items-center justify-center ${
+            isDarkMode ? 'text-red-400' : 'text-red-600'
+          }`}>
+            {error}
+          </div>
+        ) : chartData.length === 0 ? (
+          <div className={`h-full flex items-center justify-center ${
+            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+          }`}>
+            No data available
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+              <XAxis 
+                dataKey="day" 
+                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 11 }}
+                axisLine={{ stroke: isDarkMode ? '#374151' : '#e5e7eb' }}
+              />
+              <YAxis 
+                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 11 }}
+                axisLine={{ stroke: isDarkMode ? '#374151' : '#e5e7eb' }}
+                label={{ 
+                  value: 'Hours', 
+                  angle: -90, 
+                  position: 'insideLeft',
+                  style: { fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 11 }
+                }}
+              />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
+                  border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
+                  borderRadius: '8px',
+                  fontSize: '12px'
+                }}
+                labelStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                formatter={(value: number | undefined) => {
+                  if (value === undefined) return ['0.00h', 'Duration'];
+                  return [`${value.toFixed(2)}h`, 'Duration'];
+                }}
+              />
+              <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
+                {chartData.map((index) => (
+                  <Cell key={`cell-${index}`} fill={categoryColor} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+      
+      {/* Debug info - remove after fixing */}
+      {!loading && chartData.length > 0 && (
+        <div className={`mt-2 text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+          Data points: {chartData.length} | Category: {selectedCategory}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ActivityTrends;
