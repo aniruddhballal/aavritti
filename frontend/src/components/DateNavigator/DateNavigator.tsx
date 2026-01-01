@@ -35,12 +35,12 @@ const DateNavigator = () => {
   };
 
   return (
-    <div className={`min-h-screen p-4 transition-colors ${
+    <div className={`min-h-screen p-4 transition-colors flex items-center justify-center ${
       isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
     }`}>
-      <div className="w-full max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
         {/* Calendar Card */}
-        <div className={`rounded-lg shadow-lg transition-colors ${
+        <div className={`rounded-lg shadow-lg transition-colors max-w-md mx-auto w-full ${
           isDarkMode ? 'bg-gray-800' : 'bg-white'
         }`}>
           {/* Header with integrated Dark Mode toggle */}
