@@ -38,7 +38,7 @@ const DateNavigator = () => {
     <div className={`min-h-screen p-4 transition-colors ${
       isDarkMode ? 'bg-gray-900' : 'bg-gray-50'
     }`}>
-      <div className="w-full max-w-md mx-auto space-y-4">
+      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Calendar Card */}
         <div className={`rounded-lg shadow-lg transition-colors ${
           isDarkMode ? 'bg-gray-800' : 'bg-white'
