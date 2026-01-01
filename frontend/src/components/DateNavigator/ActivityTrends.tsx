@@ -61,8 +61,6 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
         const data: DayData[] = [];
         const today = new Date();
         
-        console.log('Fetching activity data for category:', selectedCategory);
-        
         // Fetch data for last 7 days
         for (let i = 6; i >= 0; i--) {
           const date = new Date(today);
@@ -72,8 +70,6 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           
           try {
             const response = await api.get<ActivityResponse>(`/activities/${dateString}`);
-            
-            console.log(`Data for ${dateString}:`, response.data);
             
             // Calculate total hours for selected category
             const categoryMinutes = response.data.activities
@@ -89,7 +85,6 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
               fullDate: dateString
             });
           } catch (error: any) {
-            console.log(`No data for ${dateString}, using 0 hours`);
             // If date has no activities or API error, add 0 hours
             data.push({
               date: `${date.getMonth() + 1}/${date.getDate()}`,
@@ -100,7 +95,6 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           }
         }
         
-        console.log('Final chart data:', data);
         setChartData(data);
       } catch (error: any) {
         console.error('Error fetching activity trends:', error);
@@ -173,7 +167,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
       </div>
 
       {/* Chart */}
-      <div className="h-48">
+      <div className="h-48 w-full">
         {loading ? (
           <div className={`h-full flex items-center justify-center ${
             isDarkMode ? 'text-gray-400' : 'text-gray-600'
@@ -194,51 +188,60 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 5 }}>
+            <BarChart 
+              data={chartData} 
+              margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
+            >
               <XAxis 
                 dataKey="day" 
-                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 11 }}
-                axisLine={{ stroke: isDarkMode ? '#374151' : '#e5e7eb' }}
+                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                stroke={isDarkMode ? '#374151' : '#e5e7eb'}
               />
               <YAxis 
-                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 11 }}
-                axisLine={{ stroke: isDarkMode ? '#374151' : '#e5e7eb' }}
-                label={{ 
-                  value: 'Hours', 
-                  angle: -90, 
-                  position: 'insideLeft',
-                  style: { fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 11 }
-                }}
+                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 12 }}
+                stroke={isDarkMode ? '#374151' : '#e5e7eb'}
+                width={40}
               />
               <Tooltip
                 contentStyle={{
                   backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
                   border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
                   borderRadius: '8px',
-                  fontSize: '12px'
+                  fontSize: '12px',
+                  padding: '8px'
                 }}
-                labelStyle={{ color: isDarkMode ? '#f3f4f6' : '#111827' }}
+                labelStyle={{ 
+                  color: isDarkMode ? '#f3f4f6' : '#111827',
+                  fontWeight: 'bold',
+                  marginBottom: '4px'
+                }}
                 formatter={(value: number | undefined) => {
-                  if (value === undefined) return ['0.00h', 'Duration'];
+                  if (value === undefined || value === null) return ['0.00h', 'Duration'];
                   return [`${value.toFixed(2)}h`, 'Duration'];
                 }}
+                labelFormatter={(label: string) => {
+                  const dataPoint = chartData.find(d => d.day === label);
+                  return dataPoint ? dataPoint.date : label;
+                }}
               />
-              <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
-                {chartData.map((index) => (
-                  <Cell key={`cell-${index}`} fill={categoryColor} />
+              <Bar 
+                dataKey="hours" 
+                fill={categoryColor}
+                radius={[6, 6, 0, 0]}
+                maxBarSize={50}
+              >
+                {chartData.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={categoryColor}
+                    opacity={entry.hours === 0 ? 0.3 : 1}
+                  />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         )}
       </div>
-      
-      {/* Debug info - remove after fixing */}
-      {!loading && chartData.length > 0 && (
-        <div className={`mt-2 text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
-          Data points: {chartData.length} | Category: {selectedCategory}
-        </div>
-      )}
     </div>
   );
 };
