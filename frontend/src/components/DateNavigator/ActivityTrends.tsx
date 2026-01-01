@@ -200,7 +200,8 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           type: 'line',
           lineStyle: {
             color: isDarkMode ? '#4b5563' : '#d1d5db',
-            width: 1
+            width: 1,
+            type: 'solid'
           },
           z: -1 // This ensures the axis pointer is behind the dots
         },
