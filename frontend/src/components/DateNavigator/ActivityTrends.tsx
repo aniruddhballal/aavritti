@@ -122,7 +122,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   };
 
   return (
-    <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+    <div className={`p-4 ${isDarkMode ? '' : ''}`}>
       <div className="flex items-center gap-2 mb-3">
         <TrendingUp className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} size={20} />
         <h3 className={`text-sm font-semibold ${
