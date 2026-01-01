@@ -124,16 +124,15 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
 
   // Custom dot component
   const CustomDot = (props: any) => {
-    const { cx, cy, payload, index } = props;
+    const { cx, cy, index } = props;
     const isHovered = hoveredIndex === index;
-    const isFilled = isHovered || payload.hours > 0;
     
     return (
       <circle
         cx={cx}
         cy={cy}
-        r={isHovered ? 6 : 4}
-        fill={isFilled ? categoryColor : isDarkMode ? '#1f2937' : '#ffffff'}
+        r={4}
+        fill={isHovered ? categoryColor : (isDarkMode ? '#1f2937' : '#ffffff')}
         stroke={categoryColor}
         strokeWidth={2}
         style={{ cursor: 'pointer' }}
@@ -269,7 +268,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
                 }}
               />
               <Line 
-                type="monotone"
+                type="linear"
                 dataKey="hours" 
                 stroke={categoryColor}
                 strokeWidth={2}
