@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
 import { api } from '../../services/api';
 import { formatDateForRoute } from './dateUtils';
 import { getCategoryColor } from '../../utils/categoryColors';
@@ -52,6 +52,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   const [chartData, setChartData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchActivityData = async () => {
@@ -119,6 +120,25 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
     if (h === 0) return `${m}m`;
     if (m === 0) return `${h}h`;
     return `${h}h ${m}m`;
+  };
+
+  // Custom dot component
+  const CustomDot = (props: any) => {
+    const { cx, cy, payload, index } = props;
+    const isHovered = hoveredIndex === index;
+    const isFilled = isHovered || payload.hours > 0;
+    
+    return (
+      <circle
+        cx={cx}
+        cy={cy}
+        r={isHovered ? 6 : 4}
+        fill={isFilled ? categoryColor : isDarkMode ? '#1f2937' : '#ffffff'}
+        stroke={categoryColor}
+        strokeWidth={2}
+        style={{ cursor: 'pointer' }}
+      />
+    );
   };
 
   return (
@@ -198,19 +218,33 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart 
+            <LineChart 
               data={chartData} 
               margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
+              onMouseMove={(e: any) => {
+                if (e && e.activeTooltipIndex !== undefined) {
+                  setHoveredIndex(e.activeTooltipIndex);
+                }
+              }}
+              onMouseLeave={() => setHoveredIndex(null)}
             >
+              <CartesianGrid 
+                strokeDasharray="0" 
+                stroke={isDarkMode ? '#374151' : '#e5e7eb'}
+                horizontal={true}
+                vertical={false}
+              />
               <XAxis 
                 dataKey="day" 
                 tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 12 }}
                 stroke={isDarkMode ? '#374151' : '#e5e7eb'}
+                axisLine={{ strokeWidth: 2 }}
               />
               <YAxis 
                 tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 12 }}
                 stroke={isDarkMode ? '#374151' : '#e5e7eb'}
                 width={40}
+                axisLine={{ strokeWidth: 2 }}
               />
               <Tooltip
                 contentStyle={{
@@ -234,21 +268,15 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
                   return dataPoint ? dataPoint.date : label;
                 }}
               />
-              <Bar 
+              <Line 
+                type="monotone"
                 dataKey="hours" 
-                fill={categoryColor}
-                radius={[6, 6, 0, 0]}
-                maxBarSize={50}
-              >
-                {chartData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={categoryColor}
-                    opacity={entry.hours === 0 ? 0.3 : 1}
-                  />
-                ))}
-              </Bar>
-            </BarChart>
+                stroke={categoryColor}
+                strokeWidth={2}
+                dot={<CustomDot />}
+                activeDot={false}
+              />
+            </LineChart>
           </ResponsiveContainer>
         )}
       </div>
