@@ -124,8 +124,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
 
   // Custom dot component
   const CustomDot = (props: any) => {
-    const { cx, cy, index, payload } = props;
-    // const isHovered = hoveredIndex === index;
+    const { cx, cy, payload } = props;
     const isHovered = hoveredIndex !== null && chartData[hoveredIndex]?.fullDate === payload?.fullDate;
     
     return (
