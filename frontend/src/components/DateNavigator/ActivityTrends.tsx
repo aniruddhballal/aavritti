@@ -48,7 +48,7 @@ const CATEGORIES = [
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
-  const [selectedCategory, setSelectedCategory] = useState('exercise');
+  const [selectedCategory, setSelectedCategory] = useState('project');
   const [chartData, setChartData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
