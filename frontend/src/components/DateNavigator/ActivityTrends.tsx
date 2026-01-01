@@ -176,7 +176,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             width: 2
           },
           itemStyle: {
-            color: categoryColor,
+            color: isDarkMode ? '#1f2937' : '#ffffff', // Hollow/empty dot background
             borderColor: categoryColor,
             borderWidth: 2
           },
@@ -185,11 +185,9 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           emphasis: {
             focus: 'series',
             itemStyle: {
-              color: categoryColor,
+              color: categoryColor, // Fill with color on hover
               borderColor: categoryColor,
-              borderWidth: 2,
-              shadowBlur: 10,
-              shadowColor: categoryColor
+              borderWidth: 2
             },
             scale: 1.5
           }
