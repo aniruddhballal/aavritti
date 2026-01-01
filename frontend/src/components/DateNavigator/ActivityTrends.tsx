@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
+import ReactECharts from 'echarts-for-react';
 import { api } from '../../services/api';
 import { formatDateForRoute } from './dateUtils';
 import { getCategoryColor } from '../../utils/categoryColors';
@@ -52,7 +52,6 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   const [chartData, setChartData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -123,22 +122,107 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
     return `${h}h ${m}m`;
   };
 
-  // Custom dot component
-  const CustomDot = (props: any) => {
-    const { cx, cy, payload } = props;
-    const isHovered = hoveredIndex !== null && chartData[hoveredIndex]?.fullDate === payload?.fullDate;
-    
-    return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={4}
-        fill={isHovered ? categoryColor : (isDarkMode ? '#1f2937' : '#ffffff')}
-        stroke={categoryColor}
-        strokeWidth={2}
-        style={{ cursor: 'pointer' }}
-      />
-    );
+  // ECharts configuration
+  const getOption = () => {
+    return {
+      grid: {
+        top: 20,
+        right: 20,
+        bottom: 30,
+        left: 50
+      },
+      xAxis: {
+        type: 'category',
+        data: chartData.map(d => d.day),
+        axisLine: {
+          lineStyle: {
+            color: isDarkMode ? '#374151' : '#e5e7eb',
+            width: 2
+          }
+        },
+        axisLabel: {
+          color: isDarkMode ? '#9ca3af' : '#6b7280',
+          fontSize: 12
+        },
+        axisTick: {
+          show: false
+        }
+      },
+      yAxis: {
+        type: 'value',
+        splitLine: {
+          lineStyle: {
+            color: isDarkMode ? '#374151' : '#e5e7eb'
+          }
+        },
+        axisLine: {
+          lineStyle: {
+            color: isDarkMode ? '#374151' : '#e5e7eb',
+            width: 2
+          }
+        },
+        axisLabel: {
+          color: isDarkMode ? '#9ca3af' : '#6b7280',
+          fontSize: 12
+        }
+      },
+      series: [
+        {
+          data: chartData.map(d => d.hours),
+          type: 'line',
+          smooth: false,
+          lineStyle: {
+            color: categoryColor,
+            width: 2
+          },
+          itemStyle: {
+            color: categoryColor,
+            borderColor: categoryColor,
+            borderWidth: 2
+          },
+          symbol: 'circle',
+          symbolSize: 8,
+          emphasis: {
+            itemStyle: {
+              color: categoryColor,
+              borderColor: categoryColor,
+              borderWidth: 2,
+              shadowBlur: 10,
+              shadowColor: categoryColor
+            },
+            scale: 1.5
+          }
+        }
+      ],
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'line',
+          lineStyle: {
+            color: isDarkMode ? '#4b5563' : '#d1d5db',
+            width: 1
+          },
+          z: -1 // This ensures the axis pointer is behind the dots
+        },
+        formatter: () => {
+          return ''; // Empty tooltip content
+        },
+        backgroundColor: 'transparent',
+        borderWidth: 0,
+        extraCssText: 'box-shadow: none;'
+      }
+    };
+  };
+
+  const onChartEvents = {
+    mouseover: (params: any) => {
+      if (params.dataIndex !== undefined) {
+        setSelectedDayIndex(params.dataIndex);
+      }
+    },
+    mouseout: () => {
+      setSelectedDayIndex(null);
+    }
   };
 
   return (
@@ -231,56 +315,11 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             No data available
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart 
-              data={chartData} 
-              margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
-              onMouseMove={(e: any) => {
-                if (e && e.activeTooltipIndex !== undefined) {
-                  setHoveredIndex(e.activeTooltipIndex);
-                  setSelectedDayIndex(e.activeTooltipIndex);
-                }
-              }}
-              onMouseLeave={() => {
-                setHoveredIndex(null);
-                setSelectedDayIndex(null);
-              }}
-            >
-              <CartesianGrid 
-                strokeDasharray="0" 
-                stroke={isDarkMode ? '#374151' : '#e5e7eb'}
-                horizontal={true}
-                vertical={false}
-              />
-              <XAxis 
-                dataKey="day" 
-                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 12 }}
-                stroke={isDarkMode ? '#374151' : '#e5e7eb'}
-                axisLine={{ strokeWidth: 2 }}
-              />
-              <YAxis 
-                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 12 }}
-                stroke={isDarkMode ? '#374151' : '#e5e7eb'}
-                width={40}
-                axisLine={{ strokeWidth: 2 }}
-              />
-              <Tooltip
-                content={() => null}
-                cursor={{
-                  stroke: isDarkMode ? '#4b5563' : '#d1d5db',
-                  strokeWidth: 1
-                }}
-              />
-              <Line 
-                type="linear"
-                dataKey="hours" 
-                stroke={categoryColor}
-                strokeWidth={2}
-                dot={<CustomDot />}
-                activeDot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+          <ReactECharts
+            option={getOption()}
+            style={{ height: '100%', width: '100%' }}
+            onEvents={onChartEvents}
+          />
         )}
       </div>
     </div>
