@@ -53,6 +53,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchActivityData = async () => {
@@ -193,6 +194,20 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             {loading ? '...' : formatDuration(avgHours)}
           </div>
         </div>
+        <div className={`flex-1 p-3 rounded-lg ${
+          isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
+        }`}>
+          <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            {selectedDayIndex !== null && selectedDayIndex !== chartData.length - 1
+              ? chartData[selectedDayIndex]?.date
+              : 'Today'}
+          </div>
+          <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            {loading ? '...' : formatDuration(
+              selectedDayIndex !== null ? chartData[selectedDayIndex]?.hours || 0 : chartData[chartData.length - 1]?.hours || 0
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Chart */}
@@ -223,9 +238,13 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
               onMouseMove={(e: any) => {
                 if (e && e.activeTooltipIndex !== undefined) {
                   setHoveredIndex(e.activeTooltipIndex);
+                  setSelectedDayIndex(e.activeTooltipIndex);
                 }
               }}
-              onMouseLeave={() => setHoveredIndex(null)}
+              onMouseLeave={() => {
+                setHoveredIndex(null);
+                setSelectedDayIndex(null);
+              }}
             >
               <CartesianGrid 
                 strokeDasharray="0" 
@@ -246,25 +265,10 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
                 axisLine={{ strokeWidth: 2 }}
               />
               <Tooltip
-                contentStyle={{
-                  backgroundColor: isDarkMode ? '#1f2937' : '#ffffff',
-                  border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`,
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  padding: '8px'
-                }}
-                labelStyle={{ 
-                  color: isDarkMode ? '#f3f4f6' : '#111827',
-                  fontWeight: 'bold',
-                  marginBottom: '4px'
-                }}
-                formatter={(value: number | undefined) => {
-                  if (value === undefined || value === null) return ['0m', 'Duration'];
-                  return [formatDuration(value), 'Duration'];
-                }}
-                labelFormatter={(label: string) => {
-                  const dataPoint = chartData.find(d => d.day === label);
-                  return dataPoint ? dataPoint.date : label;
+                content={() => null}
+                cursor={{
+                  stroke: isDarkMode ? '#4b5563' : '#d1d5db',
+                  strokeWidth: 1
                 }}
               />
               <Line 
