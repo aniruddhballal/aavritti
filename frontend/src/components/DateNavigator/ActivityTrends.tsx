@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { TrendingUp } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
+import ReactECharts from 'echarts-for-react';
 import { api } from '../../services/api';
 import { formatDateForRoute } from './dateUtils';
 import { getCategoryColor } from '../../utils/categoryColors';
@@ -54,6 +54,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   const [error, setError] = useState<string | null>(null);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  const chartRef = useRef<any>(null);
 
   useEffect(() => {
     const fetchActivityData = async () => {
@@ -110,6 +111,28 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
     fetchActivityData();
   }, [selectedCategory]);
 
+  useEffect(() => {
+    if (chartRef.current && chartData.length > 0) {
+      const chart = chartRef.current.getEchartsInstance();
+      
+      // Update symbol appearance based on hover state
+      const seriesData = chartData.map((d, index) => ({
+        value: d.hours,
+        itemStyle: {
+          color: hoveredIndex === index ? categoryColor : (isDarkMode ? '#1f2937' : '#ffffff'),
+          borderColor: categoryColor,
+          borderWidth: 2
+        }
+      }));
+      
+      chart.setOption({
+        series: [{
+          data: seriesData
+        }]
+      });
+    }
+  }, [hoveredIndex, chartData, isDarkMode]);
+
   const categoryColor = getCategoryColor(selectedCategory);
   const totalHours = chartData.reduce((sum, d) => sum + d.hours, 0);
   const avgHours = chartData.length > 0 ? totalHours / chartData.length : 0;
@@ -121,24 +144,6 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
     if (h === 0) return `${m}m`;
     if (m === 0) return `${h}h`;
     return `${h}h ${m}m`;
-  };
-
-  // Custom dot component
-  const CustomDot = (props: any) => {
-    const { cx, cy, payload } = props;
-    const isHovered = hoveredIndex !== null && chartData[hoveredIndex]?.fullDate === payload?.fullDate;
-    
-    return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={4}
-        fill={isHovered ? categoryColor : (isDarkMode ? '#1f2937' : '#ffffff')}
-        stroke={categoryColor}
-        strokeWidth={2}
-        style={{ cursor: 'pointer' }}
-      />
-    );
   };
 
   return (
@@ -231,56 +236,106 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             No data available
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart 
-              data={chartData} 
-              margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
-              onMouseMove={(e: any) => {
-                if (e && e.activeTooltipIndex !== undefined) {
-                  setHoveredIndex(e.activeTooltipIndex);
-                  setSelectedDayIndex(e.activeTooltipIndex);
+          <ReactECharts
+            ref={chartRef}
+            option={{
+              grid: {
+                top: 20,
+                right: 20,
+                bottom: 30,
+                left: 50
+              },
+              xAxis: {
+                type: 'category',
+                data: chartData.map(d => d.day),
+                axisLine: {
+                  lineStyle: {
+                    color: isDarkMode ? '#374151' : '#e5e7eb',
+                    width: 2
+                  }
+                },
+                axisTick: {
+                  show: false
+                },
+                axisLabel: {
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  fontSize: 12
                 }
-              }}
-              onMouseLeave={() => {
+              },
+              yAxis: {
+                type: 'value',
+                axisLine: {
+                  lineStyle: {
+                    color: isDarkMode ? '#374151' : '#e5e7eb',
+                    width: 2
+                  }
+                },
+                axisTick: {
+                  show: false
+                },
+                axisLabel: {
+                  color: isDarkMode ? '#9ca3af' : '#6b7280',
+                  fontSize: 12
+                },
+                splitLine: {
+                  lineStyle: {
+                    color: isDarkMode ? '#374151' : '#e5e7eb',
+                    width: 1
+                  }
+                }
+              },
+              series: [
+                {
+                  type: 'line',
+                  data: chartData.map((d, index) => ({
+                    value: d.hours,
+                    itemStyle: {
+                      color: hoveredIndex === index ? categoryColor : (isDarkMode ? '#1f2937' : '#ffffff'),
+                      borderColor: categoryColor,
+                      borderWidth: 2
+                    }
+                  })),
+                  smooth: false,
+                  lineStyle: {
+                    color: categoryColor,
+                    width: 2
+                  },
+                  symbol: 'circle',
+                  symbolSize: 8,
+                  emphasis: {
+                    scale: false
+                  }
+                }
+              ],
+              tooltip: {
+                trigger: 'axis',
+                show: false,
+                axisPointer: {
+                  type: 'line',
+                  lineStyle: {
+                    color: isDarkMode ? '#4b5563' : '#d1d5db',
+                    width: 1,
+                    type: 'solid'
+                  },
+                  z: 1
+                }
+              }
+            }}
+            style={{ height: '100%', width: '100%' }}
+            onEvents={{
+              mousemove: (params: any) => {
+                if (params.componentType === 'series') {
+                  setHoveredIndex(params.dataIndex);
+                  setSelectedDayIndex(params.dataIndex);
+                }
+              },
+              mouseout: () => {
                 setHoveredIndex(null);
                 setSelectedDayIndex(null);
-              }}
-            >
-              <CartesianGrid 
-                strokeDasharray="0" 
-                stroke={isDarkMode ? '#374151' : '#e5e7eb'}
-                horizontal={true}
-                vertical={false}
-              />
-              <XAxis 
-                dataKey="day" 
-                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 12 }}
-                stroke={isDarkMode ? '#374151' : '#e5e7eb'}
-                axisLine={{ strokeWidth: 2 }}
-              />
-              <YAxis 
-                tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280', fontSize: 12 }}
-                stroke={isDarkMode ? '#374151' : '#e5e7eb'}
-                width={40}
-                axisLine={{ strokeWidth: 2 }}
-              />
-              <Tooltip
-                content={() => null}
-                cursor={{
-                  stroke: isDarkMode ? '#4b5563' : '#d1d5db',
-                  strokeWidth: 1
-                }}
-              />
-              <Line 
-                type="linear"
-                dataKey="hours" 
-                stroke={categoryColor}
-                strokeWidth={2}
-                dot={<CustomDot />}
-                activeDot={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+              }
+            }}
+            opts={{ renderer: 'canvas' }}
+          />
         )}
       </div>
     </div>
