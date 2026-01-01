@@ -112,6 +112,15 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   const totalHours = chartData.reduce((sum, d) => sum + d.hours, 0);
   const avgHours = chartData.length > 0 ? totalHours / chartData.length : 0;
 
+  // Helper function to format hours to Xh Ym format
+  const formatDuration = (hours: number): string => {
+    const h = Math.floor(hours);
+    const m = Math.round((hours - h) * 60);
+    if (h === 0) return `${m}m`;
+    if (m === 0) return `${h}h`;
+    return `${h}h ${m}m`;
+  };
+
   return (
     <div className={`p-4 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-200'}`}>
       <div className="flex items-center gap-2 mb-3">
@@ -152,7 +161,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             Total Hours
           </div>
           <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            {loading ? '...' : `${totalHours.toFixed(1)}h`}
+            {loading ? '...' : formatDuration(totalHours)}
           </div>
         </div>
         <div className={`flex-1 p-3 rounded-lg ${
@@ -162,7 +171,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             Daily Average
           </div>
           <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            {loading ? '...' : `${avgHours.toFixed(1)}h`}
+            {loading ? '...' : formatDuration(avgHours)}
           </div>
         </div>
       </div>
@@ -217,8 +226,8 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
                   marginBottom: '4px'
                 }}
                 formatter={(value: number | undefined) => {
-                  if (value === undefined || value === null) return ['0.00h', 'Duration'];
-                  return [`${value.toFixed(2)}h`, 'Duration'];
+                  if (value === undefined || value === null) return ['0m', 'Duration'];
+                  return [formatDuration(value), 'Duration'];
                 }}
                 labelFormatter={(label: string) => {
                   const dataPoint = chartData.find(d => d.day === label);
