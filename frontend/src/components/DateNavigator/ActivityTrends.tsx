@@ -187,9 +187,10 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             itemStyle: {
               color: categoryColor, // Fill with color on hover
               borderColor: categoryColor,
-              borderWidth: 2
-            },
-            scale: 1.5
+              borderWidth: 2,
+              shadowBlur: 0,
+              shadowColor: 'transparent'
+            }
           }
         }
       ],
