@@ -17,11 +17,9 @@ const AddActivity = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Step tracking
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
   
-  // Form data
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -32,7 +30,6 @@ const AddActivity = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Get today's date in IST timezone (YYYY-MM-DD)
   const getTodayIST = () => {
     const now = new Date();
     return now.toLocaleDateString('en-CA', {
@@ -62,7 +59,6 @@ const AddActivity = () => {
     fetchCategories();
   }, []);
 
-  // Calculate duration from start/end times
   useEffect(() => {
     if (formData.startTime && formData.endTime) {
       const start = new Date(`${today}T${formData.startTime}`);
@@ -160,8 +156,6 @@ const AddActivity = () => {
       };
 
       await activityService.createActivity(activityData);
-
-      // Redirect to daily page
       navigate(`/daily/${today}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add activity');
@@ -189,233 +183,247 @@ const AddActivity = () => {
   }
 
   return (
-    <div className={`p-6 min-h-screen ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      {/* Header with back button */}
-      <div className="mb-6">
-        {(selectedCategory || selectedSubcategory || showActivityForm) && (
-          <button
-            onClick={handleBack}
-            className={`mb-4 px-4 py-2 rounded-lg font-medium transition-colors ${
-              isDarkMode
-                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            ← Back
-          </button>
-        )}
-        <h2 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-          {!selectedCategory && 'Select Category'}
-          {selectedCategory && !selectedSubcategory && selectedCategory.subcategories && 'Select Subcategory'}
-          {showActivityForm && 'Activity Details'}
-        </h2>
-      </div>
-
-      {/* Step 1: Category Selection */}
-      {!selectedCategory && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {categories.map((category) => (
+    <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          {(selectedCategory || selectedSubcategory || showActivityForm) && (
             <button
-              key={category.value}
-              onClick={() => handleCategorySelect(category)}
-              className={`p-6 rounded-xl font-semibold text-lg transition-all transform hover:scale-105 shadow-md hover:shadow-lg ${
-                isDarkMode ? 'text-white' : 'text-white'
-              }`}
-              style={{ backgroundColor: getCategoryColor(category.value) }}
-            >
-              {category.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Step 2: Subcategory Selection */}
-      {selectedCategory && !selectedSubcategory && selectedCategory.subcategories && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {selectedCategory.subcategories.map((subcategory) => (
-            <button
-              key={subcategory}
-              onClick={() => handleSubcategorySelect(subcategory)}
-              className={`p-6 rounded-xl font-semibold capitalize transition-all transform hover:scale-105 shadow-md hover:shadow-lg ${
+              onClick={handleBack}
+              className={`mb-4 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                 isDarkMode
-                  ? 'bg-gray-700 text-gray-100 hover:bg-gray-600'
-                  : 'bg-white text-gray-800 hover:bg-gray-100'
+                  ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-sm'
               }`}
             >
-              {subcategory}
+              ← Back
             </button>
-          ))}
+          )}
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className={`text-3xl font-light tracking-wide ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              {!selectedCategory && 'Select Category'}
+              {selectedCategory && !selectedSubcategory && selectedCategory.subcategories && 'Select Subcategory'}
+              {showActivityForm && 'Activity Details'}
+            </h1>
+          </div>
+          <div className={`w-16 h-0.5 ${isDarkMode ? 'bg-gradient-to-r from-gray-600 to-gray-800' : 'bg-gradient-to-r from-gray-900 to-gray-600'}`}></div>
         </div>
-      )}
 
-      {/* Step 3: Activity Form */}
-      {showActivityForm && (
-        <div className="max-w-2xl">
-          <div className={`p-6 rounded-xl shadow-lg ${
-            isDarkMode ? 'bg-gray-800' : 'bg-white'
-          }`}>
-            {/* Category/Subcategory Display */}
-            <div className="mb-6">
-              <div className={`text-sm font-medium ${
-                isDarkMode ? 'text-gray-400' : 'text-gray-600'
-              }`}>
-                Category: <span className="font-semibold" style={{ color: getCategoryColor(selectedCategory.value) }}>
-                  {selectedCategory.label}
-                </span>
-                {selectedSubcategory && (
-                  <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
-                    {' → '}{selectedSubcategory}
-                  </span>
-                )}
-              </div>
-            </div>
+        {/* Category Selection */}
+        {!selectedCategory && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            {categories.map((category) => (
+              <button
+                key={category.value}
+                onClick={() => handleCategorySelect(category)}
+                className={`group p-8 rounded-xl font-semibold text-white transition-all duration-300 hover:shadow-lg ${
+                  isDarkMode ? 'hover:shadow-gray-900/50' : 'hover:shadow-gray-400/30'
+                }`}
+                style={{ backgroundColor: getCategoryColor(category.value) }}
+              >
+                <span className="block text-lg">{category.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
-            <div className="space-y-5">
-              {/* Activity Title */}
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  Activity Title <span className="text-red-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  placeholder="e.g., Morning Run"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-                    isDarkMode
-                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-500 focus:ring-blue-500'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-blue-500'
-                  }`}
-                  autoFocus
-                />
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className={`block text-sm font-medium mb-2 ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  Description <span className="text-gray-400">(optional)</span>
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Add details, links, or proof of activity..."
-                  rows={4}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 resize-y transition-colors ${
-                    isDarkMode
-                      ? 'bg-gray-700 border-gray-600 text-gray-100 placeholder:text-gray-500 focus:ring-blue-500'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-blue-500'
-                  }`}
-                />
-              </div>
-
-              {/* Start and End Time */}
-              <div className="space-y-4">
-                <label className={`block text-sm font-medium ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  Duration <span className="text-red-400">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-5">
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Start Time
-                    </label>
-                    <input
-                      type="time"
-                      name="startTime"
-                      value={formData.startTime}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-                        isDarkMode
-                          ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500'
-                          : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
-                      }`}
-                    />
-                  </div>
-                  <div>
-                    <label className={`block text-sm font-medium mb-2 ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      End Time
-                    </label>
-                    <input
-                      type="time"
-                      name="endTime"
-                      value={formData.endTime}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-                        isDarkMode
-                          ? 'bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500'
-                          : 'bg-white border-gray-300 text-gray-900 focus:ring-blue-500'
-                      }`}
-                    />
-                  </div>
-                </div>
-                {formData.startTime && formData.endTime && formData.duration && (
-                  <div className={`rounded-lg p-3 ${
-                    isDarkMode ? 'bg-blue-900/30' : 'bg-blue-50'
-                  }`}>
-                    <div className={`text-sm font-medium ${
-                      isDarkMode ? 'text-blue-300' : 'text-blue-700'
-                    }`}>
-                      Calculated Duration: {formData.duration} minutes ({Math.floor(parseInt(formData.duration) / 60)}h {parseInt(formData.duration) % 60}m)
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Error Alert */}
-              {error && (
-                <div className={`border rounded-lg p-4 text-sm flex items-start gap-2 ${
+        {/* Subcategory Selection */}
+        {selectedCategory && !selectedSubcategory && selectedCategory.subcategories && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+            {selectedCategory.subcategories.map((subcategory) => (
+              <button
+                key={subcategory}
+                onClick={() => handleSubcategorySelect(subcategory)}
+                className={`group p-8 rounded-xl font-semibold capitalize transition-all duration-300 ${
                   isDarkMode
-                    ? 'bg-red-900/30 border-red-800 text-red-300'
-                    : 'bg-red-50 border-red-200 text-red-700'
-                }`}>
-                  <span className="text-base">⚠️</span>
-                  <span>{error}</span>
-                </div>
-              )}
+                    ? 'bg-gray-800 text-gray-100 hover:bg-gray-700 border border-gray-700 shadow-sm'
+                    : 'bg-white text-gray-800 hover:bg-gray-50 border border-gray-200 shadow-sm hover:shadow-md'
+                }`}
+              >
+                {subcategory}
+              </button>
+            ))}
+          </div>
+        )}
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className={`flex-1 px-6 py-3 border rounded-lg font-medium transition-colors ${
-                    isDarkMode
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || !formData.title.trim() || !formData.duration}
-                  className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-all ${
-                    isSubmitting || !formData.title.trim() || !formData.duration
-                      ? isDarkMode
-                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : 'bg-green-500 text-white hover:bg-green-600 transform hover:scale-105'
-                  }`}
-                >
-                  {isSubmitting ? 'Adding...' : 'Add Activity'}
-                </button>
+        {/* Activity Form */}
+        {showActivityForm && (
+          <div className="max-w-3xl">
+            <div className={`rounded-xl overflow-hidden ${
+              isDarkMode 
+                ? 'bg-gray-800 border border-gray-700 shadow-sm' 
+                : 'bg-white border border-gray-200 shadow-sm'
+            }`}>
+              {/* Form Header */}
+              <div className={`px-8 py-6 border-b ${
+                isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-gray-50/50 border-gray-100'
+              }`}>
+                <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Category: <span className="font-semibold" style={{ color: getCategoryColor(selectedCategory.value) }}>
+                    {selectedCategory.label}
+                  </span>
+                  {selectedSubcategory && (
+                    <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                      {' → '}{selectedSubcategory}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Form Content */}
+              <div className="px-8 py-8">
+                <div className="space-y-6">
+                  {/* Activity Title */}
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 tracking-wide ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      ACTIVITY TITLE <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="title"
+                      value={formData.title}
+                      onChange={handleChange}
+                      placeholder="e.g., Morning Run"
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
+                        isDarkMode
+                          ? 'bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 focus:ring-gray-600 focus:border-gray-600'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-gray-400 focus:border-gray-400'
+                      }`}
+                      autoFocus
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 tracking-wide ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      DESCRIPTION <span className={`text-xs font-light ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>(optional)</span>
+                    </label>
+                    <textarea
+                      name="description"
+                      value={formData.description}
+                      onChange={handleChange}
+                      placeholder="Add details, links, or proof of activity..."
+                      rows={4}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 resize-y transition-all ${
+                        isDarkMode
+                          ? 'bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 focus:ring-gray-600 focus:border-gray-600'
+                          : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-gray-400 focus:border-gray-400'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Duration */}
+                  <div className="space-y-4">
+                    <label className={`block text-sm font-medium tracking-wide ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      DURATION <span className="text-red-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-5">
+                      <div>
+                        <label className={`block text-xs font-medium mb-2 tracking-wider ${
+                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          START TIME
+                        </label>
+                        <input
+                          type="time"
+                          name="startTime"
+                          value={formData.startTime}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
+                            isDarkMode
+                              ? 'bg-gray-900 border-gray-700 text-gray-100 focus:ring-gray-600 focus:border-gray-600'
+                              : 'bg-white border-gray-300 text-gray-900 focus:ring-gray-400 focus:border-gray-400'
+                          }`}
+                        />
+                      </div>
+                      <div>
+                        <label className={`block text-xs font-medium mb-2 tracking-wider ${
+                          isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                        }`}>
+                          END TIME
+                        </label>
+                        <input
+                          type="time"
+                          name="endTime"
+                          value={formData.endTime}
+                          onChange={handleChange}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
+                            isDarkMode
+                              ? 'bg-gray-900 border-gray-700 text-gray-100 focus:ring-gray-600 focus:border-gray-600'
+                              : 'bg-white border-gray-300 text-gray-900 focus:ring-gray-400 focus:border-gray-400'
+                          }`}
+                        />
+                      </div>
+                    </div>
+                    {formData.startTime && formData.endTime && formData.duration && (
+                      <div className={`rounded-lg p-4 border ${
+                        isDarkMode 
+                          ? 'bg-blue-900/20 border-blue-800' 
+                          : 'bg-blue-50 border-blue-200'
+                      }`}>
+                        <div className={`text-sm font-medium ${
+                          isDarkMode ? 'text-blue-300' : 'text-blue-700'
+                        }`}>
+                          Calculated Duration: {formData.duration} minutes ({Math.floor(parseInt(formData.duration) / 60)}h {parseInt(formData.duration) % 60}m)
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Error Alert */}
+                  {error && (
+                    <div className={`border rounded-lg p-4 text-sm flex items-start gap-3 ${
+                      isDarkMode
+                        ? 'bg-red-900/30 border-red-800 text-red-300'
+                        : 'bg-red-50 border-red-200 text-red-700'
+                    }`}>
+                      <span className="text-base">⚠️</span>
+                      <span className="font-medium">{error}</span>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      className={`flex-1 px-6 py-3 border rounded-lg font-medium transition-all duration-200 ${
+                        isDarkMode
+                          ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleSubmit}
+                      disabled={isSubmitting || !formData.title.trim() || !formData.duration}
+                      className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                        isSubmitting || !formData.title.trim() || !formData.duration
+                          ? isDarkMode
+                            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : isDarkMode
+                            ? 'bg-gray-100 text-gray-900 hover:bg-white'
+                            : 'bg-gray-900 text-white hover:bg-black shadow-sm'
+                      }`}
+                    >
+                      {isSubmitting ? 'Adding...' : 'Add Activity'}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
