@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Activity } from '../../../types/activity';
 import ActivityItem from '../ActivityItem';
-import AddActivityModal from './AddActivityModal/AddActivityModal';
 import ActivityListHeader from './ActivityListHeader';
 import ActivityFilters from './ActivityFilters/ActivityFilters';
 import NoActivities from './EmptyStates/NoActivities';
@@ -22,10 +21,8 @@ const ActivityList = ({
   activities, 
   isToday, 
   defaultCategory,
-  onActivityAdded,
   onEditActivity
 }: ActivityListProps) => {
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
 
   // Fetch categories on mount
@@ -58,30 +55,13 @@ const ActivityList = ({
     handleClearFilters,
   } = useActivityFilters({ activities, categories });
 
-  const handleAddClick = () => {
-    if (isToday) {
-      setIsAddModalOpen(true);
-    }
-  };
-
-  const handleModalClose = () => {
-    setIsAddModalOpen(false);
-  };
-
-  const handleActivityAdded = () => {
-    setIsAddModalOpen(false);
-    onActivityAdded();
-  };
-
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       {/* Header */}
       <div className="mb-4 flex-shrink-0">
         <ActivityListHeader 
           isToday={isToday}
-          onAddClick={handleAddClick}
         />
-
         {/* Filters */}
         <div ref={filterRef} className="mr-4">
           <ActivityFilters
@@ -121,14 +101,6 @@ const ActivityList = ({
           </div>
         )}
       </div>
-
-      {/* Add Activity Modal */}
-      <AddActivityModal
-        isOpen={isAddModalOpen}
-        onClose={handleModalClose}
-        onActivityAdded={handleActivityAdded}
-        categories={categories}
-      />
     </div>
   );
 };

@@ -1,13 +1,20 @@
 import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useDarkMode } from '../../../contexts/DarkModeContext';
 
 interface ActivityListHeaderProps {
   isToday: boolean;
-  onAddClick: () => void;
 }
 
-const ActivityListHeader = ({ isToday, onAddClick }: ActivityListHeaderProps) => {
+const ActivityListHeader = ({ isToday }: ActivityListHeaderProps) => {
   const { isDarkMode } = useDarkMode();
+  const navigate = useNavigate();
+
+  const handleAddClick = () => {
+    if (isToday) {
+      navigate('/add');
+    }
+  };
 
   return (
     <>
@@ -15,20 +22,16 @@ const ActivityListHeader = ({ isToday, onAddClick }: ActivityListHeaderProps) =>
         .add-button {
           transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .add-button:not(:disabled):hover {
           transform: translateY(-1px) rotate(90deg);
           box-shadow: 0 4px 12px rgba(16, 185, 129, ${isDarkMode ? '0.35' : '0.25'});
         }
-
         .add-button:not(:disabled):active {
           transform: translateY(0) rotate(90deg);
         }
-
         .icon-hover {
           transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         .add-button:hover .icon-hover {
           transform: scale(1.1);
         }
@@ -41,7 +44,7 @@ const ActivityListHeader = ({ isToday, onAddClick }: ActivityListHeaderProps) =>
           Activities
         </h2>
         <button
-          onClick={onAddClick}
+          onClick={handleAddClick}
           disabled={!isToday}
           className={`add-button p-2 mr-4 mt-4 rounded-lg ${
             isToday
