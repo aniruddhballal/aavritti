@@ -9,8 +9,7 @@ interface UseActivityFiltersProps {
 }
 
 export const useActivityFilters = ({ 
-  activities, 
-  categorySuggestions 
+  activities,  
 }: UseActivityFiltersProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
