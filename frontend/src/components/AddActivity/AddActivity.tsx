@@ -256,16 +256,26 @@ const AddActivity = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className={`mb-4 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:-translate-y-0.5 ${
+              isDarkMode
+                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
+                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-sm'
+            }`}
+          >
+            ← Back to Daily
+          </button>
           {(selectedCategory || selectedSubcategory || showActivityForm) && (
             <button
               onClick={handleBack}
-              className={`mb-4 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+              className={`mb-4 ml-3 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                 isDarkMode
                   ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
                   : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-sm'
               }`}
             >
-              ← Back
+              ← Back Step
             </button>
           )}
           <div className="flex items-center gap-3 mb-2">
