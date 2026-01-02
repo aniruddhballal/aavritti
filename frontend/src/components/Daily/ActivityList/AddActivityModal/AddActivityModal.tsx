@@ -21,12 +21,10 @@ const AddActivityModal = ({
 }: AddActivityModalProps) => {
   const {
     formData,
-    durationMode,
     isSubmitting,
     error,
     subcategories,
     handleChange,
-    handleDurationModeChange,
     handleSubmit,
   } = useAddActivityForm({
     isOpen,
@@ -57,11 +55,9 @@ const AddActivityModal = ({
       />
 
       <DurationSection
-        durationMode={durationMode}
         duration={formData.duration}
         startTime={formData.startTime}
         endTime={formData.endTime}
-        onModeChange={handleDurationModeChange}
         onChange={handleChange}
       />
 
