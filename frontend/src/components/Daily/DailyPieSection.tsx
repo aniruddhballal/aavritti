@@ -3,14 +3,12 @@ import InteractivePieChart from './InteractivePieChart/InteractivePieChart';
 
 interface DailyPieSectionProps {
   activities: any[] | undefined;
-  categories: string[];
   isDarkMode: boolean;
   onHeightChange: (height: number) => void;
 }
 
 const DailyPieSection = ({ 
   activities, 
-  categories, 
   isDarkMode, 
   onHeightChange 
 }: DailyPieSectionProps) => {
@@ -45,7 +43,6 @@ const DailyPieSection = ({
         <div ref={leftColumnRef}>
           <InteractivePieChart 
             activities={activities} 
-            categories={categories}
           />
         </div>
       ) : (

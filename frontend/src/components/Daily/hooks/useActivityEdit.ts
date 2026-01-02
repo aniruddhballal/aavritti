@@ -1,7 +1,4 @@
-// (Edit form logic & validation)
-// a custom hook that manages all the activity editing logic including form state, validation, save/delete/cancel handlers, and subcategory management.
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { activityService } from '../../../services';
 import type { Activity } from '../../../types/activity';
 
@@ -17,8 +14,6 @@ interface EditForm {
 
 export const useActivityEdit = (
   dateString: string,
-  categories: Array<{value: string; label: string; subcategories?: string[]}>,
-  CATEGORIES: string[],
   onEditComplete: () => void,
   onError: (error: string) => void
 ) => {
@@ -63,32 +58,58 @@ export const useActivityEdit = (
     return '';
   };
 
-  const handleEditClick = (activity: Activity) => {
+  // ✅ Fetch subcategories when category changes
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      if (!editForm.category) {
+        setEditSubcategories([]);
+        return;
+      }
+
+      try {
+        const subs = await activityService.getSubcategorySuggestions(editForm.category, '');
+        setEditSubcategories(subs);
+      } catch (err) {
+        console.error('Failed to fetch subcategories:', err);
+        setEditSubcategories([]);
+      }
+    };
+
+    fetchSubcategories();
+  }, [editForm.category]);
+
+  const handleEditClick = async (activity: Activity) => {
     setEditingActivity(activity);
-    const category = activity.category || CATEGORIES[0];
-    const selectedCategory = categories.find(cat => cat.value === category);
     
     setEditForm({
       title: activity.title || '',
       description: activity.description || '',
-      category: category,
+      category: activity.category,
       subcategory: activity.subcategory || '',
       duration: activity.duration || 0,
       startTime: activity.startTime || '',
       endTime: activity.endTime || ''
     });
-    setEditSubcategories(selectedCategory?.subcategories || []);
     setValidationError('');
+
+    // ✅ Fetch subcategories for the activity's category
+    if (activity.category) {
+      try {
+        const subs = await activityService.getSubcategorySuggestions(activity.category, '');
+        setEditSubcategories(subs);
+      } catch (err) {
+        console.error('Failed to fetch subcategories:', err);
+        setEditSubcategories([]);
+      }
+    }
   };
 
   const handleEditChange = (field: string, value: any) => {
     const updatedForm = { ...editForm, [field]: value };
     
-    // Update subcategories when category changes
+    // Clear subcategory when category changes
     if (field === 'category') {
-      const selectedCategory = categories.find(cat => cat.value === value);
-      setEditSubcategories(selectedCategory?.subcategories || []);
-      updatedForm.subcategory = ''; // Clear subcategory when category changes
+      updatedForm.subcategory = '';
     }
     
     setEditForm(updatedForm);
@@ -104,7 +125,7 @@ export const useActivityEdit = (
       await activityService.updateActivity(editingActivity._id, {
         ...editForm,
         date: dateString,
-        subcategory: editForm.subcategory || undefined // Convert empty string to undefined
+        subcategory: editForm.subcategory || undefined
       });
 
       setEditingActivity(null);

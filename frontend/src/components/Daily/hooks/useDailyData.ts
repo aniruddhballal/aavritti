@@ -1,6 +1,3 @@
-// (Data fetching & state management)
-// a custom hook that manages all data fetching (activities and categories), loading states, error handling, and includes a utility function to calculate total time.
-
 import { useState, useEffect } from 'react';
 import { activityService } from '../../../services';
 import type { DailyData } from '../../../types/activity';
@@ -9,7 +6,6 @@ export const useDailyData = (dateString: string) => {
   const [data, setData] = useState<DailyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Array<{value: string; label: string; subcategories?: string[]}>>([]);
 
   const fetchActivities = async () => {
     setLoading(true);
@@ -25,15 +21,6 @@ export const useDailyData = (dateString: string) => {
     }
   };
 
-  const fetchCategories = async () => {
-    try {
-      const data = await activityService.getCategories();
-      setCategories(data.categories);
-    } catch (err) {
-      console.error('Failed to fetch categories:', err);
-    }
-  };
-
   const getTotalTime = () => {
     if (!data?.activities) return '0h 0m';
     const totalMinutes = data.activities.reduce((sum, activity) => sum + (activity.duration || 0), 0);
@@ -46,15 +33,10 @@ export const useDailyData = (dateString: string) => {
     fetchActivities();
   }, [dateString]);
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
-
   return {
     data,
     loading,
     error,
-    categories,
     fetchActivities,
     getTotalTime
   };

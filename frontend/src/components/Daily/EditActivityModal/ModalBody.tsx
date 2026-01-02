@@ -2,6 +2,8 @@ import SelectField from './SelectField';
 import TextInputField from './TextInputField';
 import TextAreaField from './TextAreaField';
 import TimeRangeField from './TimeRangeField';
+import { useState, useEffect } from 'react';
+import { activityService } from '../../../services';
 
 interface ModalBodyProps {
   editForm: {
@@ -14,7 +16,6 @@ interface ModalBodyProps {
     endTime: string;
   };
   validationError: string;
-  categories: Array<{value: string; label: string; subcategories?: string[]}>;
   editSubcategories: string[];
   onEditChange: (field: string, value: any) => void;
   isDarkMode: boolean;
@@ -23,14 +24,28 @@ interface ModalBodyProps {
 const ModalBody = ({
   editForm,
   validationError,
-  categories,
   editSubcategories,
   onEditChange,
   isDarkMode
 }: ModalBodyProps) => {
-  const categoryOptions = categories.map(cat => ({
-    value: cat.value,
-    label: cat.label
+  const [categorySuggestions, setCategorySuggestions] = useState<string[]>([]);
+
+  // Fetch category suggestions
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const suggestions = await activityService.getCategorySuggestions('');
+        setCategorySuggestions(suggestions);
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const categoryOptions = categorySuggestions.map(cat => ({
+    value: cat,
+    label: cat.charAt(0).toUpperCase() + cat.slice(1)
   }));
 
   const subcategoryOptions = [

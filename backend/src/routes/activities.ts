@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import Activity, { ActivityCategory } from '../models/Activity';
+import Activity from '../models/Activity';
+import Category from '../models/Category';
 
 const router = Router();
 
@@ -7,9 +8,11 @@ const router = Router();
 router.get('/:date', async (req, res) => {
   try {
     const { date } = req.params;
-    
-    const dateActivities = await Activity.find({ date }).sort({ timestamp: -1 });
-    
+
+    const dateActivities = await Activity
+      .find({ date })
+      .sort({ createdAt: -1 });
+
     res.json({
       date,
       activities: dateActivities,
@@ -17,170 +20,153 @@ router.get('/:date', async (req, res) => {
       totalDuration: dateActivities.reduce((sum, a) => sum + a.duration, 0)
     });
   } catch (error) {
+    console.error('Error fetching activities:', error);
     res.status(500).json({ error: 'Failed to fetch activities' });
   }
 });
 
-// Get all categories with subcategories
-router.get('/meta/categories', (_req, res) => {
-  const categoriesWithSubcategories = [
-    { 
-      value: 'meals', 
-      label: 'Meals',
-      subcategories: ['breakfast', 'lunch', 'snacks', 'dinner']
-    },
-    { 
-      value: 'sleep', 
-      label: 'Sleep'
-    },
-    { 
-      value: 'japa', 
-      label: 'Japa'
-    },
-    { 
-      value: 'exercise', 
-      label: 'Exercise',
-      subcategories: ['calisthenics', 'walk', 'cycle', 'run', 'swim']
-    },
-    { 
-      value: 'commute', 
-      label: 'Commute',
-      subcategories: ['metro', 'bus', 'auto', 'bike', 'car']
-    },
-    { 
-      value: 'cinema', 
-      label: 'Cinema',
-      subcategories: ['watching', 'reviewing', 'analysing']
-    },
-    { 
-      value: 'reading', 
-      label: 'Reading'
-    },
-    { 
-      value: 'research', 
-      label: 'Research'
-    },
-    { 
-      value: 'writing', 
-      label: 'Writing'
-    },
-    { 
-      value: 'project', 
-      label: 'Project'
-    },
-    { 
-      value: 'recreation', 
-      label: 'Recreation'
-    },
-    {
-      value: 'chores',
-      label: 'Chores'
-    },
-    { 
-      value: 'art',
-      label: 'Art'
-    },
-    {
-      value: 'work',
-      label: 'Work'
-    }
-  ];
+// Get suggested categories and subcategories (replaces /meta/categories)
+router.get('/meta/suggestions', async (_req, res) => {
+  try {
+    const categories = await Category.find()
+      .sort({ usageCount: -1 })
+      .lean();
 
-  res.json({ categories: categoriesWithSubcategories });
+    const suggestions = categories.map(cat => ({
+      value: cat.name,
+      label: cat.displayName,
+      usageCount: cat.usageCount,
+      subcategories: cat.subcategories
+        .sort((a, b) => b.usageCount - a.usageCount)
+        .map(sub => ({
+          value: sub.name,
+          label: sub.displayName,
+          usageCount: sub.usageCount
+        }))
+    }));
+
+    res.json({ categories: suggestions });
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    res.status(500).json({ error: 'Failed to fetch suggestions' });
+  }
 });
 
-// Add a new activity (only for today's date in IST)
+// Add a new activity (only today, IST)
 router.post('/', async (req, res) => {
   try {
     const { date, category, subcategory, title, description, duration, startTime, endTime } = req.body;
-    
-    // Validate that the date is today IN IST TIMEZONE
-    const today = new Date().toLocaleDateString('en-CA', { 
+
+    // Validate today's date in IST
+    const today = new Date().toLocaleDateString('en-CA', {
       timeZone: 'Asia/Kolkata',
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
     });
-    
+
     if (date !== today) {
-      return res.status(400).json({ 
-        error: 'You can only add activities for today' 
-      });
+      return res.status(400).json({ error: 'You can only add activities for today' });
     }
-    
-    // Validate category
-    if (!Object.values(ActivityCategory).includes(category)) {
-      return res.status(400).json({ 
-        error: 'Invalid category' 
-      });
-    }
-    
+
     // Validate required fields
-    if (!title || !duration) {
-      return res.status(400).json({ 
-        error: 'Title and duration are required' 
-      });
+    if (!category?.trim() || !title?.trim() || !duration) {
+      return res.status(400).json({ error: 'Category, title, and duration are required' });
     }
-    
-    const newActivity = new Activity({
+
+    // Create activity
+    const activity = await Activity.create({
       date,
-      category,
-      subcategory: subcategory || undefined, // Include if provided
-      title,
-      description: description || '',
+      category: category.trim(),
+      subcategory: subcategory?.trim() || undefined,
+      title: title.trim(),
+      description: description?.trim() || undefined,
       duration: Number(duration),
-      startTime: startTime || undefined, // Include if provided
-      endTime: endTime || undefined, // Include if provided
-      timestamp: new Date().toISOString()
+      startTime: startTime?.trim() || undefined,
+      endTime: endTime?.trim() || undefined
     });
-    
-    await newActivity.save();
-    res.status(201).json(newActivity);
+
+    // Update taxonomy (learn from this activity)
+    const norm = (s: string) => s.trim().toLowerCase();
+    const catName = norm(category);
+    const subName = subcategory ? norm(subcategory) : null;
+
+    // Upsert category
+    const cat = await Category.findOneAndUpdate(
+      { name: catName },
+      {
+        $setOnInsert: { name: catName, displayName: category.trim() },
+        $inc: { usageCount: 1 }
+      },
+      { new: true, upsert: true }
+    );
+
+    // Update subcategory if provided
+    if (subName && cat) {
+      const existingSubIndex = cat.subcategories.findIndex(s => s.name === subName);
+
+      if (existingSubIndex >= 0) {
+        // Increment existing subcategory
+        cat.subcategories[existingSubIndex].usageCount += 1;
+      } else {
+        // Add new subcategory
+        cat.subcategories.push({
+          name: subName,
+          displayName: subcategory.trim(),
+          usageCount: 1
+        });
+      }
+      await cat.save();
+    }
+
+    res.status(201).json(activity);
   } catch (error) {
+    console.error('Error creating activity:', error);
     res.status(500).json({ error: 'Failed to create activity' });
   }
 });
 
-// Update an existing activity
+// Update activity
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { category, subcategory, title, description, duration, startTime, endTime } = req.body;
-    
-    // Find the activity first
+    const updates = req.body;
+
     const activity = await Activity.findById(id);
-    
     if (!activity) {
       return res.status(404).json({ error: 'Activity not found' });
     }
-    
-    // Validate category if provided
-    if (category && !Object.values(ActivityCategory).includes(category)) {
-      return res.status(400).json({ error: 'Invalid category' });
+
+    // Apply updates with trimming for string fields
+    if (updates.category) activity.category = updates.category.trim();
+    if (updates.subcategory !== undefined) {
+      activity.subcategory = updates.subcategory?.trim() || undefined;
     }
-    
-    // Update fields
-    if (category) activity.category = category;
-    if (subcategory !== undefined) activity.subcategory = subcategory || undefined; // Convert empty string to undefined
-    if (title) activity.title = title;
-    if (description !== undefined) activity.description = description;
-    if (duration) activity.duration = Number(duration);
-    if (startTime !== undefined) activity.startTime = startTime;
-    if (endTime !== undefined) activity.endTime = endTime;
-    
+    if (updates.title) activity.title = updates.title.trim();
+    if (updates.description !== undefined) {
+      activity.description = updates.description?.trim() || undefined;
+    }
+    if (updates.duration) activity.duration = Number(updates.duration);
+    if (updates.startTime !== undefined) {
+      activity.startTime = updates.startTime?.trim() || undefined;
+    }
+    if (updates.endTime !== undefined) {
+      activity.endTime = updates.endTime?.trim() || undefined;
+    }
+
     await activity.save();
+
     res.json(activity);
   } catch (error) {
+    console.error('Error updating activity:', error);
     res.status(500).json({ error: 'Failed to update activity' });
   }
 });
 
-// Delete an activity
+// Delete activity
 router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    
-    const activity = await Activity.findByIdAndDelete(id);
+    const activity = await Activity.findByIdAndDelete(req.params.id);
     
     if (!activity) {
       return res.status(404).json({ error: 'Activity not found' });
@@ -188,6 +174,7 @@ router.delete('/:id', async (req, res) => {
     
     res.json({ message: 'Activity deleted successfully', activity });
   } catch (error) {
+    console.error('Error deleting activity:', error);
     res.status(500).json({ error: 'Failed to delete activity' });
   }
 });

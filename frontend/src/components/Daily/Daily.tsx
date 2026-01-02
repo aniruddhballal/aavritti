@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useDailyData } from './hooks/useDailyData';
 import { useDateNavigation } from './hooks/useDateNavigation';
 import { useActivityEdit } from './hooks/useActivityEdit';
-import { categoryColors } from '../../utils/categoryColors';
 import DailyHeader from './DailyHeader';
 import EditActivityModal from './EditActivityModal/EditActivityModal';
 import { useDarkMode } from '../../contexts/DarkModeContext';
@@ -11,13 +10,20 @@ import DailyErrorState from './DailyErrorState';
 import DailyPieSection from './DailyPieSection';
 import DailyActivitySection from './DailyActivitySection';
 
-const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateString: string; onBack: () => void }) => {
-  const CATEGORIES = Object.keys(categoryColors);
+const Daily = ({
+  selectedDate,
+  dateString,
+  onBack
+}: {
+  selectedDate: Date;
+  dateString: string;
+  onBack: () => void;
+}) => {
   const [leftColumnHeight, setLeftColumnHeight] = useState(0);
   const { isDarkMode } = useDarkMode();
 
   // Custom hooks - all data fetching and business logic
-  const { data, loading, error, categories, fetchActivities, getTotalTime } = useDailyData(dateString);
+  const { data, loading, error, fetchActivities, getTotalTime } = useDailyData(dateString);
   
   const { 
     navigateToDate, 
@@ -39,20 +45,13 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
     handleCancelEdit
   } = useActivityEdit(
     dateString,
-    categories,
-    CATEGORIES,
     fetchActivities,
     (err) => console.error(err)
   );
 
   // Early returns for loading and error states
-  if (loading) {
-    return <DailyLoadingState isDarkMode={isDarkMode} />;
-  }
-
-  if (error) {
-    return <DailyErrorState error={error} onBack={onBack} isDarkMode={isDarkMode} />;
-  }
+  if (loading) return <DailyLoadingState isDarkMode={isDarkMode} />;
+  if (error) return <DailyErrorState error={error} onBack={onBack} isDarkMode={isDarkMode} />;
 
   // Main layout render
   return (
@@ -75,7 +74,6 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <DailyPieSection
             activities={data?.activities}
-            categories={CATEGORIES}
             isDarkMode={isDarkMode}
             onHeightChange={setLeftColumnHeight}
           />
@@ -83,7 +81,6 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
           <DailyActivitySection
             activities={data?.activities || []}
             isToday={isToday()}
-            defaultCategory={CATEGORIES[0]}
             leftColumnHeight={leftColumnHeight}
             isDarkMode={isDarkMode}
             onActivityAdded={fetchActivities}
@@ -96,7 +93,6 @@ const Daily = ({ selectedDate, dateString, onBack }: { selectedDate: Date; dateS
         <EditActivityModal
           editForm={editForm}
           validationError={validationError}
-          categories={categories}
           editSubcategories={editSubcategories}
           onEditChange={handleEditChange}
           onSave={handleSaveEdit}

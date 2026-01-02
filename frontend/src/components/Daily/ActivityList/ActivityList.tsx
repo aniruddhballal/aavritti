@@ -7,12 +7,10 @@ import NoActivities from './EmptyStates/NoActivities';
 import NoFilterResults from './EmptyStates/NoFilterResults';
 import { useActivityFilters } from './ActivityFilters/useActivityFilters';
 import { activityService } from '../../../services';
-import type { Category } from './types';
 
 interface ActivityListProps {
   activities: Activity[];
   isToday: boolean;
-  defaultCategory: string;
   onActivityAdded: () => void;
   onEditActivity: (activity: Activity) => void;
 }
@@ -20,22 +18,26 @@ interface ActivityListProps {
 const ActivityList = ({ 
   activities, 
   isToday, 
-  defaultCategory,
   onEditActivity
 }: ActivityListProps) => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categorySuggestions, setCategorySuggestions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  // Fetch categories on mount
+  // Fetch initial category suggestions on mount
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchSuggestions = async () => {
       try {
-        const data = await activityService.getCategories();
-        setCategories(data.categories);
+        setLoading(true);
+        // Get all categories (empty query returns top categories)
+        const suggestions = await activityService.getCategorySuggestions('');
+        setCategorySuggestions(suggestions);
       } catch (err) {
-        console.error('Failed to fetch categories:', err);
+        console.error('Failed to fetch category suggestions:', err);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchCategories();
+    fetchSuggestions();
   }, []);
 
   // Get the latest activity's end time
@@ -64,13 +66,22 @@ const ActivityList = ({
     filterEndTime,
     expandedFilter,
     filteredAndSortedActivities,
+    availableSubcategories,
     setSearchTerm,
     handleCategoryChange,
     handleSubcategoryChange,
     handleTimeChange,
     toggleFilter,
     handleClearFilters,
-  } = useActivityFilters({ activities, categories });
+  } = useActivityFilters({ activities, categorySuggestions });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <span className="text-gray-500">Loading filters...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
@@ -83,7 +94,8 @@ const ActivityList = ({
         {/* Filters */}
         <div ref={filterRef} className="mr-4">
           <ActivityFilters
-            categories={categories}
+            categories={categorySuggestions}
+            subcategories={availableSubcategories}
             searchTerm={searchTerm}
             selectedCategory={selectedCategory}
             selectedSubcategory={selectedSubcategory}
@@ -112,7 +124,6 @@ const ActivityList = ({
               <ActivityItem
                 key={activity._id}
                 activity={activity}
-                defaultCategory={defaultCategory}
                 onEdit={onEditActivity}
               />
             ))}

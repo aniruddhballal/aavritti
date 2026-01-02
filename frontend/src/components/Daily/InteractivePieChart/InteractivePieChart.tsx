@@ -12,10 +12,9 @@ import { ChartInstructions } from './ChartInstructions';
 
 interface InteractivePieChartProps {
   activities: Activity[];
-  categories: string[];
 }
 
-const InteractivePieChart = ({ activities, categories }: InteractivePieChartProps) => {
+const InteractivePieChart = ({ activities }: InteractivePieChartProps) => {
   const { isDarkMode } = useDarkMode();
   
   const {
@@ -41,7 +40,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
 
   const displayData = getDisplayData(
     activities,
-    categories,
     drillLevel,
     drilldownCategory,
     drilldownSubcategory,
@@ -100,7 +98,6 @@ const InteractivePieChart = ({ activities, categories }: InteractivePieChartProp
         breadcrumb={breadcrumb}
         hiddenCategories={hiddenCategories}
         activities={activities}
-        categories={categories}
         isDarkMode={isDarkMode}
         onBackToCategories={handleBackToCategories}
         onBackToSubcategories={handleBackToSubcategories}

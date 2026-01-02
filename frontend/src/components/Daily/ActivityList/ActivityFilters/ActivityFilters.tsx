@@ -5,6 +5,7 @@ import type { ActivityFiltersProps } from './types';
 
 const ActivityFilters = ({
   categories,
+  subcategories,
   searchTerm,
   selectedCategory,
   selectedSubcategory,
@@ -20,15 +21,7 @@ const ActivityFilters = ({
 }: ActivityFiltersProps) => {
   const { isDarkMode } = useDarkMode();
 
-  const availableSubcategories = selectedCategory
-    ? categories.find(cat => cat.value === selectedCategory)?.subcategories || []
-    : [];
-
   const hasActiveFilters = searchTerm || selectedCategory || selectedSubcategory || filterStartTime || filterEndTime;
-
-  const getCategoryLabel = (value: string) => {
-    return categories.find(cat => cat.value === value)?.label || value;
-  };
 
   return (
     <>
@@ -96,7 +89,7 @@ const ActivityFilters = ({
                 value={selectedCategory}
                 onChange={(e) => onCategoryChange(e.target.value)}
                 autoFocus
-                className={`filter-input w-full px-4 py-2.5 rounded-lg border focus:outline-none ${
+                className={`filter-input w-full px-4 py-2.5 rounded-lg border focus:outline-none capitalize ${
                   isDarkMode
                     ? 'bg-gray-700 border-gray-600 text-gray-100'
                     : 'bg-white border-gray-200 text-gray-700'
@@ -104,8 +97,8 @@ const ActivityFilters = ({
               >
                 <option value="">All Categories</option>
                 {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
+                  <option key={cat} value={cat} className="capitalize">
+                    {cat}
                   </option>
                 ))}
               </select>
@@ -120,8 +113,8 @@ const ActivityFilters = ({
               }`}
             >
               <Tag size={16} className="icon-hover" strokeWidth={2} />
-              <span className="text-sm truncate max-w-[120px]">
-                {getCategoryLabel(selectedCategory)}
+              <span className="text-sm truncate max-w-[120px] capitalize">
+                {selectedCategory}
               </span>
             </button>
           ) : (
@@ -140,7 +133,7 @@ const ActivityFilters = ({
         </div>
 
         {/* Subcategory Filter */}
-        {selectedCategory && availableSubcategories.length > 0 && (
+        {selectedCategory && subcategories && subcategories.length > 0 && (
           <div className={`transition-all duration-200 ${
             expandedFilter === 'subcategory' ? 'flex-1 min-w-[180px]' : ''
           }`}>
@@ -150,15 +143,15 @@ const ActivityFilters = ({
                   value={selectedSubcategory}
                   onChange={(e) => onSubcategoryChange(e.target.value)}
                   autoFocus
-                  className={`filter-input w-full px-4 py-2.5 rounded-lg border focus:outline-none ${
+                  className={`filter-input w-full px-4 py-2.5 rounded-lg border focus:outline-none capitalize ${
                     isDarkMode
                       ? 'bg-gray-700 border-gray-600 text-gray-100'
                       : 'bg-white border-gray-200 text-gray-700'
                   }`}
                 >
                   <option value="">All Subcategories</option>
-                  {availableSubcategories.map(sub => (
-                    <option key={sub} value={sub}>
+                  {subcategories.map(sub => (
+                    <option key={sub} value={sub} className="capitalize">
                       {sub}
                     </option>
                   ))}
@@ -174,7 +167,7 @@ const ActivityFilters = ({
                 }`}
               >
                 <Filter size={16} className="icon-hover" strokeWidth={2} />
-                <span className="text-sm truncate max-w-[120px]">
+                <span className="text-sm truncate max-w-[120px] capitalize">
                   {selectedSubcategory}
                 </span>
               </button>

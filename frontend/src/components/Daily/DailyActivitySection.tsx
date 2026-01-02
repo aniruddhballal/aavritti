@@ -3,7 +3,6 @@ import ActivityList from './ActivityList';
 interface DailyActivitySectionProps {
   activities: any[];
   isToday: boolean;
-  defaultCategory: string;
   leftColumnHeight: number;
   isDarkMode: boolean;
   onActivityAdded: () => void;
@@ -13,7 +12,6 @@ interface DailyActivitySectionProps {
 const DailyActivitySection = ({ 
   activities, 
   isToday, 
-  defaultCategory, 
   leftColumnHeight,
   isDarkMode,
   onActivityAdded, 
@@ -30,7 +28,6 @@ const DailyActivitySection = ({
     <ActivityList
       activities={activities}
       isToday={isToday}
-      defaultCategory={defaultCategory}
       onActivityAdded={onActivityAdded}
       onEditActivity={onEditActivity}
     />

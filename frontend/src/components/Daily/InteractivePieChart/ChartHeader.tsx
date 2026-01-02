@@ -9,7 +9,6 @@ interface ChartHeaderProps {
   breadcrumb: string;
   hiddenCategories: Set<string>;
   activities: Activity[];
-  categories: string[];
   isDarkMode: boolean;
   onBackToCategories: () => void;
   onBackToSubcategories: () => void;
@@ -21,7 +20,6 @@ export const ChartHeader = ({
   breadcrumb,
   hiddenCategories,
   activities,
-  categories,
   isDarkMode,
   onBackToCategories,
   onBackToSubcategories,
@@ -29,7 +27,7 @@ export const ChartHeader = ({
   const getHiddenCategoriesText = () => {
     if (hiddenCategories.size === 0) return null;
     
-    const allCategories = Array.from(new Set(activities.map(a => a.category || categories[0])));
+    const allCategories = Array.from(new Set(activities.map(a => a.category).filter(Boolean)));  // ✅ Filter out undefined
     const visibleCategories = allCategories.filter(cat => !hiddenCategories.has(cat));
     const hiddenCategoryList = Array.from(hiddenCategories);
     

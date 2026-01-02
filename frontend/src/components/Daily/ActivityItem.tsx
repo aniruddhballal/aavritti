@@ -5,11 +5,10 @@ import { useDarkMode } from '../../contexts/DarkModeContext';
 
 interface ActivityItemProps {
   activity: Activity;
-  defaultCategory: string;
   onEdit: (activity: Activity) => void;
 }
 
-const ActivityItem = ({ activity, defaultCategory, onEdit }: ActivityItemProps) => {
+const ActivityItem = ({ activity, onEdit }: ActivityItemProps) => {
   const { isDarkMode } = useDarkMode();
 
   const formatTime = (timestamp: string) => {
@@ -33,8 +32,8 @@ const ActivityItem = ({ activity, defaultCategory, onEdit }: ActivityItemProps) 
           <Circle 
             className={isDarkMode ? 'text-gray-600' : 'text-gray-400'}
             size={20} 
-            fill={getCategoryColor(activity.category || defaultCategory)}
-            style={{ color: getCategoryColor(activity.category || defaultCategory) }}
+            fill={getCategoryColor(activity.category)}
+            style={{ color: getCategoryColor(activity.category) }}
           />
         </div>
         <div className="flex-1">
@@ -102,7 +101,7 @@ const ActivityItem = ({ activity, defaultCategory, onEdit }: ActivityItemProps) 
             isDarkMode ? 'text-gray-500' : 'text-gray-500'
           }`}>
             <Clock size={14} />
-            <span>{formatTime(activity.timestamp)} IST</span>
+            <span>{formatTime(activity.createdAt)} IST</span>
           </div>
         </div>
       </div>

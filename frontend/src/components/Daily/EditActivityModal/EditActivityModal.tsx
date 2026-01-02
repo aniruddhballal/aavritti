@@ -15,8 +15,7 @@ interface EditActivityModalProps {
     endTime: string;
   };
   validationError: string;
-  categories: Array<{value: string; label: string; subcategories?: string[]}>;
-  editSubcategories: string[];
+  editSubcategories: string[];  // ✅ Keep this (fetched dynamically)
   onEditChange: (field: string, value: any) => void;
   onSave: () => void;
   onDelete: () => void;
@@ -26,19 +25,17 @@ interface EditActivityModalProps {
 const EditActivityModal = ({
   editForm,
   validationError,
-  categories,
-  editSubcategories,
+  editSubcategories,  // ✅ Remove categories from here
   onEditChange,
   onSave,
   onDelete,
   onCancel
 }: EditActivityModalProps) => {
   const { isDarkMode } = useDarkMode();
-
+  
   return (
     <>
       <style>{getModalStyles(isDarkMode)}</style>
-
       <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center p-4 z-50">
         <div className={`modal-content rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col transition-colors ${
           isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -48,8 +45,7 @@ const EditActivityModal = ({
           <ModalBody
             editForm={editForm}
             validationError={validationError}
-            categories={categories}
-            editSubcategories={editSubcategories}
+            editSubcategories={editSubcategories}  // ✅ Remove categories prop
             onEditChange={onEditChange}
             isDarkMode={isDarkMode}
           />

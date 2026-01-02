@@ -1,82 +1,62 @@
-export const ActivityCategory = {
-  MEALS: 'meals',
-  SLEEP: 'sleep',
-  JAPA: 'japa',
-  EXERCISE: 'exercise',
-  COMMUTE: 'commute',
-  CINEMA: 'cinema',
-  READING: 'reading',
-  RESEARCH: 'research',
-  WRITING: 'writing',
-  PROJECT: 'project',
-  RECREATION: 'recreation',
-  CHORES: 'chores',
-  ART: 'art',
-  WORK: 'work'
-} as const;
+// ============================================================================
+// Activity Types - Flexible Category System
+// ============================================================================
 
-export const MealsSubcategory = {
-  BREAKFAST: 'breakfast',
-  LUNCH: 'lunch',
-  SNACKS: 'snacks',
-  DINNER: 'dinner'
-} as const;
-
-export const ExerciseSubcategory = {
-  CALISTHENICS: 'calisthenics',
-  WALK: 'walk',
-  CYCLE: 'cycle',
-  RUN: 'run',
-  SWIM: 'swim'
-} as const;
-
-export const CommuteSubcategory = {
-  METRO: 'metro',
-  BUS: 'bus',
-  AUTO: 'auto',
-  BIKE: 'bike',
-  CAR: 'car'
-} as const;
-
-export const CinemaSubcategory = {
-  WATCHING: 'watching',
-  REVIEWING: 'reviewing',
-  ANALYSING: 'analysing'
-} as const;
-
-export type ActivitySubcategory = 
-  | typeof MealsSubcategory[keyof typeof MealsSubcategory]
-  | typeof ExerciseSubcategory[keyof typeof ExerciseSubcategory]
-  | typeof CommuteSubcategory[keyof typeof CommuteSubcategory]
-  | typeof CinemaSubcategory[keyof typeof CinemaSubcategory];
-
+/**
+ * Activity record returned from the API
+ */
 export interface Activity {
   _id: string;
   date: string;
-  category: string;
-  subcategory?: string;
+  category: string;        // User-defined, learned by system
+  subcategory?: string;    // User-defined, optional
   title: string;
   description?: string;
-  duration: number; // REQUIRED - in minutes
-  startTime?: string; // Optional - HH:MM format
-  endTime?: string; // Optional - HH:MM format
-  timestamp: string;
+  duration: number;        // Duration in minutes (required)
+  startTime?: string;      // HH:MM format (optional)
+  endTime?: string;        // HH:MM format (optional)
+  createdAt: string;       // ISO timestamp from MongoDB
+  updatedAt: string;       // ISO timestamp from MongoDB
 }
 
+/**
+ * Data required to create a new activity
+ */
 export interface CreateActivityData {
   date: string;
   category: string;
   subcategory?: string;
   title: string;
   description?: string;
-  duration: number; // REQUIRED
+  duration: number;
   startTime?: string;
   endTime?: string;
 }
 
+/**
+ * Daily summary data returned from the API
+ */
 export interface DailyData {
   date: string;
   activities: Activity[];
   totalActivities: number;
-  totalDuration: number;
+  totalDuration: number;  // Total minutes for the day
+}
+
+/**
+ * Category suggestion with usage metadata (optional, for future use)
+ */
+export interface CategorySuggestion {
+  name: string;           // Normalized name (lowercase)
+  displayName: string;    // Original user input
+  usageCount: number;     // How often it's been used
+}
+
+/**
+ * Subcategory suggestion with usage metadata (optional, for future use)
+ */
+export interface SubcategorySuggestion {
+  name: string;           // Normalized name (lowercase)
+  displayName: string;    // Original user input
+  usageCount: number;     // How often it's been used
 }

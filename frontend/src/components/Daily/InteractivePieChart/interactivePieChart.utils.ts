@@ -28,7 +28,6 @@ export const hasSubcategories = (activities: Activity[], category: string): bool
  */
 export const getCategoryData = (
   activities: Activity[],
-  categories: string[],
   hiddenCategories: Set<string>
 ): ChartData[] => {
   if (!activities || activities.length === 0) return [];
@@ -36,7 +35,7 @@ export const getCategoryData = (
   const categoryTotals: Record<string, number> = {};
   
   activities.forEach(activity => {
-    const category = activity.category || categories[0];
+    const category = activity.category;
     if (!hiddenCategories.has(category)) {
       const duration = activity.duration || 0;
       categoryTotals[category] = (categoryTotals[category] || 0) + duration;
@@ -148,7 +147,6 @@ export const getActivityData = (
  */
 export const getDisplayData = (
   activities: Activity[],
-  categories: string[],
   drillLevel: DrillLevel,
   drilldownCategory: string | null,
   drilldownSubcategory: string | null,
@@ -156,7 +154,7 @@ export const getDisplayData = (
   hiddenSubcategories: Set<string>
 ): ChartData[] => {
   if (drillLevel === 'category') {
-    const categoryData = getCategoryData(activities, categories, hiddenCategories);
+    const categoryData = getCategoryData(activities, hiddenCategories);
     return categoryData.filter(cat => !hiddenCategories.has(cat.category || ''));
   } else if (drillLevel === 'subcategory' && drilldownCategory) {
     return getSubcategoryData(activities, drilldownCategory, hiddenSubcategories);

@@ -3,6 +3,7 @@ import cors from 'cors';
 import connectDB from './config/database';
 import activitiesRouter from './routes/activities';
 import cacheEntriesRouter from './routes/cacheEntries';
+import categorySuggestions from './routes/categorySuggestions';
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 // Routes
 app.use('/api/activities', activitiesRouter);
 app.use('/api', cacheEntriesRouter);
+app.use('/suggestions', categorySuggestions);
 
 app.get('/', (_req, res) => {
   res.send('API running');
