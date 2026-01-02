@@ -184,6 +184,75 @@ const AddActivity = () => {
 
   return (
     <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <style>{`
+        @keyframes shimmer-in {
+          0% {
+            transform: translateX(-100%);
+            opacity: 0;
+          }
+          50% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+        
+        @keyframes shimmer-out {
+          0% {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          50% {
+            opacity: 1;
+          }
+          100% {
+            transform: translateX(-100%);
+            opacity: 0;
+          }
+        }
+        
+        .shimmer-effect {
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .shimmer-effect::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.3),
+            transparent
+          );
+          transform: translateX(-100%);
+          opacity: 0;
+          pointer-events: none;
+        }
+        
+        .shimmer-effect:hover::before {
+          animation: shimmer-in 0.6s ease-out forwards;
+        }
+        
+        .shimmer-effect:not(:hover)::before {
+          animation: shimmer-out 0.6s ease-out forwards;
+        }
+        
+        .shimmer-effect-dark::before {
+          background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(255, 255, 255, 0.15),
+            transparent
+          );
+        }
+      `}</style>
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -216,7 +285,7 @@ const AddActivity = () => {
               <button
                 key={category.value}
                 onClick={() => handleCategorySelect(category)}
-                className={`group p-8 rounded-xl font-semibold text-white transition-all duration-300 hover:shadow-lg ${
+                className={`shimmer-effect group p-8 rounded-xl font-semibold text-white transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:rotate-1 ${
                   isDarkMode ? 'hover:shadow-gray-900/50' : 'hover:shadow-gray-400/30'
                 }`}
                 style={{ backgroundColor: getCategoryColor(category.value) }}
@@ -234,7 +303,7 @@ const AddActivity = () => {
               <button
                 key={subcategory}
                 onClick={() => handleSubcategorySelect(subcategory)}
-                className={`group p-8 rounded-xl font-semibold capitalize transition-all duration-300 ${
+                className={`shimmer-effect ${isDarkMode ? 'shimmer-effect-dark' : ''} group p-8 rounded-xl font-semibold capitalize transition-all duration-300 hover:-translate-y-1 hover:-rotate-1 ${
                   isDarkMode
                     ? 'bg-gray-800 text-gray-100 hover:bg-gray-700 border border-gray-700 shadow-sm'
                     : 'bg-white text-gray-800 hover:bg-gray-50 border border-gray-200 shadow-sm hover:shadow-md'
@@ -393,7 +462,7 @@ const AddActivity = () => {
                     <button
                       type="button"
                       onClick={handleBack}
-                      className={`flex-1 px-6 py-3 border rounded-lg font-medium transition-all duration-200 ${
+                      className={`flex-1 px-6 py-3 border rounded-lg font-medium transition-all duration-200 hover:-translate-y-0.5 ${
                         isDarkMode
                           ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
                           : 'border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -405,7 +474,7 @@ const AddActivity = () => {
                       type="button"
                       onClick={handleSubmit}
                       disabled={isSubmitting || !formData.title.trim() || !formData.duration}
-                      className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                      className={`shimmer-effect ${isDarkMode ? 'shimmer-effect-dark' : ''} flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:-translate-y-0.5 ${
                         isSubmitting || !formData.title.trim() || !formData.duration
                           ? isDarkMode
                             ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
