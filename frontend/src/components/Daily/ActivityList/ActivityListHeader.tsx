@@ -4,15 +4,17 @@ import { useDarkMode } from '../../../contexts/DarkModeContext';
 
 interface ActivityListHeaderProps {
   isToday: boolean;
+  latestEndTime?: string; // Add this prop
 }
 
-const ActivityListHeader = ({ isToday }: ActivityListHeaderProps) => {
+const ActivityListHeader = ({ isToday, latestEndTime }: ActivityListHeaderProps) => {
   const { isDarkMode } = useDarkMode();
   const navigate = useNavigate();
 
   const handleAddClick = () => {
     if (isToday) {
-      navigate('/add');
+      // Pass latestEndTime as state to the add page
+      navigate('/add', { state: { suggestedStartTime: latestEndTime } });
     }
   };
 

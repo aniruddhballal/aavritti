@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { Activity } from '../../../types/activity';
 import ActivityItem from '../ActivityItem';
 import ActivityListHeader from './ActivityListHeader';
@@ -24,7 +24,7 @@ const ActivityList = ({
   onEditActivity
 }: ActivityListProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
-
+  
   // Fetch categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
@@ -37,6 +37,23 @@ const ActivityList = ({
     };
     fetchCategories();
   }, []);
+
+  // Get the latest activity's end time
+  const latestEndTime = useMemo(() => {
+    if (!activities || activities.length === 0) return undefined;
+    
+    // Find the activity with the latest end time
+    const latestActivity = activities.reduce((latest, current) => {
+      if (!latest) return current;
+      if (!current.endTime) return latest;
+      if (!latest.endTime) return current;
+      
+      // Compare end times
+      return current.endTime > latest.endTime ? current : latest;
+    }, activities[0]);
+    
+    return latestActivity?.endTime;
+  }, [activities]);
 
   const {
     filterRef,
@@ -61,6 +78,7 @@ const ActivityList = ({
       <div className="mb-4 flex-shrink-0">
         <ActivityListHeader 
           isToday={isToday}
+          latestEndTime={latestEndTime}
         />
         {/* Filters */}
         <div ref={filterRef} className="mr-4">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { activityService } from '../../services/activityService';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import { getCategoryColor } from '../../utils/categoryColors';
@@ -13,12 +13,16 @@ interface Category {
 const AddActivity = () => {
   const { isDarkMode } = useDarkMode();
   const navigate = useNavigate();
+  const location = useLocation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
+  
+  // Get suggested start time from navigation state
+  const suggestedStartTime = location.state?.suggestedStartTime;
   
   const [formData, setFormData] = useState({
     title: '',
@@ -38,6 +42,17 @@ const AddActivity = () => {
       month: '2-digit',
       day: '2-digit'
     });
+  };
+
+  const getCurrentISTTime = () => {
+    const now = new Date();
+    const istTime = now.toLocaleTimeString('en-GB', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    return istTime;
   };
 
   const today = getTodayIST();
@@ -72,6 +87,21 @@ const AddActivity = () => {
       }
     }
   }, [formData.startTime, formData.endTime, today]);
+
+  // Calculate if activity form should be shown
+  const showActivityForm = selectedCategory && (!selectedCategory.subcategories || selectedSubcategory);
+
+  // Auto-fill times when form becomes visible
+  useEffect(() => {
+    if (showActivityForm && !formData.startTime && !formData.endTime) {
+      const currentTime = getCurrentISTTime();
+      setFormData(prev => ({
+        ...prev,
+        startTime: suggestedStartTime || currentTime,
+        endTime: currentTime
+      }));
+    }
+  }, [showActivityForm, suggestedStartTime, formData.startTime, formData.endTime]);
 
   const handleCategorySelect = (category: Category) => {
     setSelectedCategory(category);
@@ -163,8 +193,6 @@ const AddActivity = () => {
       setIsSubmitting(false);
     }
   };
-
-  const showActivityForm = selectedCategory && (!selectedCategory.subcategories || selectedSubcategory);
 
   if (loading) {
     return (
