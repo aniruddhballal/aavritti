@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { activityService } from '../../../../../services';
-import type { Category, ActivityFormData, DurationMode } from '../types';
+import type { Category, ActivityFormData } from '../types';
 
 interface UseAddActivityFormProps {
   isOpen: boolean;
@@ -24,7 +24,6 @@ export const useAddActivityForm = ({
     endTime: '',
     description: ''
   });
-  const [durationMode, setDurationMode] = useState<DurationMode>('manual');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [subcategories, setSubcategories] = useState<string[]>([]);
@@ -44,7 +43,7 @@ export const useAddActivityForm = ({
 
   // Calculate duration from start/end times
   useEffect(() => {
-    if (durationMode === 'calculated' && formData.startTime && formData.endTime) {
+    if (formData.startTime && formData.endTime) {
       const start = new Date(`${today}T${formData.startTime}`);
       const end = new Date(`${today}T${formData.endTime}`);
       const diffMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
@@ -53,7 +52,7 @@ export const useAddActivityForm = ({
         setFormData(prev => ({ ...prev, duration: diffMinutes.toString() }));
       }
     }
-  }, [formData.startTime, formData.endTime, durationMode, today]);
+  }, [formData.startTime, formData.endTime, today]);
 
   // Update subcategories when category changes
   useEffect(() => {
@@ -78,7 +77,6 @@ export const useAddActivityForm = ({
         endTime: '',
         description: ''
       });
-      setDurationMode('manual');
       setError('');
     }
   }, [isOpen]);
@@ -90,37 +88,13 @@ export const useAddActivityForm = ({
     });
   };
 
-  const handleDurationModeChange = (mode: DurationMode) => {
-    setDurationMode(mode);
-    setFormData(prev => ({
-      ...prev,
-      duration: '',
-      startTime: '',
-      endTime: ''
-    }));
-  };
-
   const handleSubmit = async () => {
     setError('');
 
-    // Convert duration from HH:MM to minutes
-    let durationInMinutes = 0;
-    
-    if (durationMode === 'manual') {
-      const timeParts = formData.duration.split(':');
-      if (timeParts.length !== 2) {
-        setError('Please enter duration in HH:MM format');
-        return;
-      }
-      const hours = parseInt(timeParts[0]) || 0;
-      const minutes = parseInt(timeParts[1]) || 0;
-      durationInMinutes = hours * 60 + minutes;
-    } else {
-      durationInMinutes = parseInt(formData.duration);
-    }
+    const durationInMinutes = parseInt(formData.duration);
 
     if (!durationInMinutes || durationInMinutes <= 0) {
-      setError('Please provide a valid duration');
+      setError('Please provide valid start and end times');
       return;
     }
 
@@ -151,12 +125,10 @@ export const useAddActivityForm = ({
 
   return {
     formData,
-    durationMode,
     isSubmitting,
     error,
     subcategories,
     handleChange,
-    handleDurationModeChange,
     handleSubmit,
   };
 };
