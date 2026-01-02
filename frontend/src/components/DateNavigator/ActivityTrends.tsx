@@ -17,35 +17,27 @@ interface DayData {
   fullDate: string;
 }
 
-interface Category {
-  value: string;
-  label: string;
-  subcategories?: string[];
-}
-
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('project');
   const [chartData, setChartData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
 
-  // Fetch categories on mount
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await activityService.getCategories();
-        setCategories(response.categories);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      }
-    };
-
-    fetchCategories();
-  }, []);
+useEffect(() => {
+  const fetchCategories = async () => {
+    try {
+      const suggestions = await activityService.getCategorySuggestions('');
+      setCategories(suggestions);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+  fetchCategories();
+}, []);
 
   useEffect(() => {
     const fetchActivityData = async () => {
@@ -233,21 +225,21 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
       {/* Category Selector */}
       <div className="mb-4 flex gap-2 flex-wrap">
         {categories.map(cat => (
-          <button
-            key={cat.value}
-            onClick={() => setSelectedCategory(cat.value)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-              selectedCategory === cat.value
-                ? 'text-white shadow-md'
-                : isDarkMode
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            style={selectedCategory === cat.value ? { backgroundColor: getCategoryColor(cat.value) } : {}}
-          >
-            {cat.label}
-          </button>
-        ))}
+  <button
+    key={cat}
+    onClick={() => setSelectedCategory(cat)}
+    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all capitalize ${
+      selectedCategory === cat
+        ? 'text-white shadow-md'
+        : isDarkMode
+          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+    }`}
+    style={selectedCategory === cat ? { backgroundColor: getCategoryColor(cat) } : {}}
+  >
+    {cat}
+  </button>
+))}
       </div>
 
       {/* Stats */}
