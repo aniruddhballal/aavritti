@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp } from 'lucide-react';
 import ReactECharts from 'echarts-for-react';
-import { api } from '../../services/api';
+import { activityService } from '../../services/activityService';
 import { formatDateForRoute } from './dateUtils';
 import { getCategoryColor } from '../../utils/categoryColors';
+import type { DailyData } from '../../types/activity';
 
 interface ActivityTrendsProps {
   isDarkMode: boolean;
@@ -16,43 +17,35 @@ interface DayData {
   fullDate: string;
 }
 
-interface Activity {
-  category: string;
-  duration: number;
+interface Category {
+  value: string;
+  label: string;
+  subcategories?: string[];
 }
-
-interface ActivityResponse {
-  date: string;
-  activities: Activity[];
-  totalActivities: number;
-  totalDuration: number;
-}
-
-const CATEGORIES = [
-  { value: 'meals', label: 'Meals' },
-  { value: 'sleep', label: 'Sleep' },
-  { value: 'japa', label: 'Japa' },
-  { value: 'exercise', label: 'Exercise' },
-  { value: 'commute', label: 'Commute' },
-  { value: 'cinema', label: 'Cinema' },
-  { value: 'reading', label: 'Reading' },
-  { value: 'research', label: 'Research' },
-  { value: 'writing', label: 'Writing' },
-  { value: 'project', label: 'Project' },
-  { value: 'recreation', label: 'Recreation' },
-  { value: 'chores', label: 'Chores' },
-  { value: 'art', label: 'Art' },
-  { value: 'work', label: 'Work' }
-];
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('project');
   const [chartData, setChartData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await activityService.getCategories();
+        setCategories(response.categories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchActivityData = async () => {
@@ -71,10 +64,11 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           const dayName = DAYS[date.getDay()].substring(0, 2);
           
           try {
-            const response = await api.get<ActivityResponse>(`/activities/${dateString}`);
+            // Use activityService instead of direct api call
+            const response: DailyData = await activityService.getActivities(dateString);
             
             // Calculate total hours for selected category
-            const categoryMinutes = response.data.activities
+            const categoryMinutes = response.activities
               .filter(activity => activity.category === selectedCategory)
               .reduce((sum, activity) => sum + activity.duration, 0);
             
@@ -238,7 +232,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
 
       {/* Category Selector */}
       <div className="mb-4 flex gap-2 flex-wrap">
-        {CATEGORIES.map(cat => (
+        {categories.map(cat => (
           <button
             key={cat.value}
             onClick={() => setSelectedCategory(cat.value)}
