@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { activityService } from '../../services/activityService';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 import { getCategoryColor } from '../../utils/categoryColors';
+import DarkModeToggle from '../DarkModeToggle/DarkModeToggle';
+import { ArrowLeft } from 'lucide-react';
 
 const AddActivity = () => {
   const { isDarkMode } = useDarkMode();
@@ -247,16 +249,22 @@ const AddActivity = () => {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
           <button
             onClick={() => navigate(-1)}
-            className={`mb-4 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:-translate-y-0.5 ${
+
+            className={`flex items-center gap-2 transition-colors ${
               isDarkMode
-                ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 border border-gray-700'
-                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 shadow-sm'
+                ? 'text-gray-400 hover:text-gray-100'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            ← Back to Daily
-          </button>
+          <ArrowLeft size={20} />
+          <span>Back to Calendar</span>
+        </button>
+
+            <DarkModeToggle />
+          </div>
           
           <div className="flex items-center gap-3 mb-2">
             <h1 className={`text-3xl font-light tracking-wide ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
