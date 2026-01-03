@@ -51,5 +51,7 @@ Thumbs.db
 *.sln
 *.sw?
 
-# personal notes
+# personal stuff
 pending.txt
+backend\src\scripts\track_hans_zimmer_2026.py
+backend\src\scripts\exchange_code_for_refresh_token.py
