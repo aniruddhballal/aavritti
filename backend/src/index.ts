@@ -17,7 +17,7 @@ app.use(express.json());
 // Routes
 app.use('/api/activities', activitiesRouter);
 app.use('/api', cacheEntriesRouter);
-app.use('/suggestions', categorySuggestions);
+app.use('/api/suggestions', categorySuggestions);
 
 app.get('/', (_req, res) => {
   res.send('API running');
