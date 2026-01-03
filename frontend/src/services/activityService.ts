@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Activity, CreateActivityData, DailyData } from '../types/activity';
+import type { Activity, CreateActivityData, DailyData, CategorySuggestion } from '../types/activity';
 
 export const activityService = {
   getActivities: async (date: string): Promise<DailyData> => {
@@ -28,7 +28,7 @@ export const activityService = {
   },
 
   // Get category suggestions based on query
-  getCategorySuggestions: async (query: string): Promise<string[]> => {
+  getCategorySuggestions: async (query: string): Promise<CategorySuggestion[]> => {
     const response = await api.get('/suggestions/categories', {
       params: { q: query }
     });

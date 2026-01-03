@@ -17,6 +17,7 @@ export interface Activity {
   endTime?: string;        // HH:MM format (optional)
   createdAt: string;       // ISO timestamp from MongoDB
   updatedAt: string;       // ISO timestamp from MongoDB
+  categoryColor?: string;  // ✅ Add this line - Hex color from backend
 }
 
 /**
@@ -49,6 +50,7 @@ export interface DailyData {
 export interface CategorySuggestion {
   name: string;           // Normalized name (lowercase)
   displayName: string;    // Original user input
+  color: string;          // Hex color code
   usageCount: number;     // How often it's been used
 }
 

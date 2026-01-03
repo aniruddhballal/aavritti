@@ -1,5 +1,4 @@
 import type { Activity } from '../../../types/activity';
-import { getCategoryColor } from '../../../utils/categoryColors';
 
 export interface ChartData {
   name: string;
@@ -49,7 +48,7 @@ export const getCategoryData = (
       name: category.charAt(0).toUpperCase() + category.slice(1),
       value: minutes,
       hours: `${hours}h ${mins}m`,
-      color: getCategoryColor(category),
+      color: activities.find(a => a.category === category)?.categoryColor || '#95A5A6',
       category: category
     };
   });
@@ -77,7 +76,7 @@ export const getSubcategoryData = (
       }
     });
 
-  const baseColor = getCategoryColor(category);
+  const baseColor = activities.find(a => a.category === category)?.categoryColor || '#95A5A6';
   const entries = Object.entries(subcategoryTotals);
   
   return entries.map(([subcategory, minutes], index) => {
@@ -118,7 +117,7 @@ export const getActivityData = (
     return true;
   });
 
-  const baseColor = getCategoryColor(category);
+  const baseColor = activities.find(a => a.category === category)?.categoryColor || '#95A5A6';
   
   return filteredActivities.map((activity, index) => {
     const hue = parseInt(baseColor.slice(1, 3), 16);

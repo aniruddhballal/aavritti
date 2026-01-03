@@ -3,9 +3,8 @@ import { TrendingUp } from 'lucide-react';
 import ReactECharts from 'echarts-for-react';
 import { activityService } from '../../services/activityService';
 import { formatDateForRoute } from './dateUtils';
-import { getCategoryColor } from '../../utils/categoryColors';
 import type { DailyData } from '../../types/activity';
-
+import type { CategorySuggestion } from '../../types/activity';
 interface ActivityTrendsProps {
   isDarkMode: boolean;
 }
@@ -20,24 +19,29 @@ interface DayData {
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<CategorySuggestion[]>([]);  // ✅ Changed from string[]
   const [selectedCategory, setSelectedCategory] = useState('project');
   const [chartData, setChartData] = useState<DayData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
 
-useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const suggestions = await activityService.getCategorySuggestions('');
-      setCategories(suggestions);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-  fetchCategories();
-}, []);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const suggestions = await activityService.getCategorySuggestions('');
+        setCategories(suggestions);
+        
+        // ✅ Set first category as default
+        if (suggestions.length > 0 && !selectedCategory) {
+          setSelectedCategory(suggestions[0].name);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchActivityData = async () => {
@@ -95,7 +99,7 @@ useEffect(() => {
     fetchActivityData();
   }, [selectedCategory]);
 
-  const categoryColor = getCategoryColor(selectedCategory);
+  const categoryColor = categories.find(c => c.name.toLowerCase() === selectedCategory.toLowerCase())?.color || '#95A5A6';
   const totalHours = chartData.reduce((sum, d) => sum + d.hours, 0);
   const avgHours = chartData.length > 0 ? totalHours / chartData.length : 0;
 
@@ -225,21 +229,21 @@ useEffect(() => {
       {/* Category Selector */}
       <div className="mb-4 flex gap-2 flex-wrap">
         {categories.map(cat => (
-  <button
-    key={cat}
-    onClick={() => setSelectedCategory(cat)}
-    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all capitalize ${
-      selectedCategory === cat
-        ? 'text-white shadow-md'
-        : isDarkMode
-          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-    }`}
-    style={selectedCategory === cat ? { backgroundColor: getCategoryColor(cat) } : {}}
-  >
-    {cat}
-  </button>
-))}
+          <button
+            key={cat.name}  // ✅ Changed from cat
+            onClick={() => setSelectedCategory(cat.name)}  // ✅ Changed from cat
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all capitalize ${
+              selectedCategory === cat.name  // ✅ Changed from cat
+                ? 'text-white shadow-md'
+                : isDarkMode
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            style={selectedCategory === cat.name ? { backgroundColor: cat.color } : {}}  // ✅ Use cat.color
+          >
+            {cat.name}  {/* ✅ Changed from {cat} */}
+          </button>
+        ))}
       </div>
 
       {/* Stats */}

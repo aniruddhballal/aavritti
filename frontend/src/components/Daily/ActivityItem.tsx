@@ -1,6 +1,5 @@
 import { Circle, Clock, Edit2 } from 'lucide-react';
 import type { Activity } from '../../types/activity';
-import { getCategoryColor } from '../../utils/categoryColors';
 import { useDarkMode } from '../../contexts/DarkModeContext';
 
 interface ActivityItemProps {
@@ -32,8 +31,8 @@ const ActivityItem = ({ activity, onEdit }: ActivityItemProps) => {
           <Circle 
             className={isDarkMode ? 'text-gray-600' : 'text-gray-400'}
             size={20} 
-            fill={getCategoryColor(activity.category)}
-            style={{ color: getCategoryColor(activity.category) }}
+            fill={activity.categoryColor || '#95A5A6'}
+            style={{ color: activity.categoryColor || '#95A5A6' }}
           />
         </div>
         <div className="flex-1">
@@ -75,7 +74,7 @@ const ActivityItem = ({ activity, onEdit }: ActivityItemProps) => {
             {activity.category && (
               <span 
                 className="inline-block px-2 py-1 text-xs font-medium rounded-full text-white"
-                style={{ backgroundColor: getCategoryColor(activity.category) }}
+                style={{ backgroundColor: activity.categoryColor || '#95A5A6' }}
               >
                 {activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
               </span>

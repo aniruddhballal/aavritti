@@ -1,8 +1,9 @@
-import type { ExpandedFilter } from '../types';  // ✅ Remove Category import
+import type { ExpandedFilter } from '../types';
+import type { CategorySuggestion } from '../../../../types/activity';  // ✅ Add this import
 
 export interface ActivityFiltersProps {
-  categories: string[];           // ✅ Changed from Category[]
-  subcategories: string[];        // ✅ Added this line
+  categories: CategorySuggestion[];  // ✅ Changed from string[]
+  subcategories: string[];
   searchTerm: string;
   selectedCategory: string;
   selectedSubcategory: string;

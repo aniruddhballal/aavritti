@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Activity from '../models/Activity';
 import Category from '../models/Category';
+import { getUniqueColor } from '../utils/colorGenerator';
 
 const router = Router();
 
@@ -11,13 +12,27 @@ router.get('/:date', async (req, res) => {
 
     const dateActivities = await Activity
       .find({ date })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // ✅ Enrich activities with category colors
+    const categoryNames = [...new Set(dateActivities.map(a => a.category))];
+    const categories = await Category.find({ 
+      name: { $in: categoryNames } 
+    }).select('name color');
+
+    const colorMap = new Map(categories.map(c => [c.name, c.color]));
+
+    const enrichedActivities = dateActivities.map(activity => ({
+      ...activity,
+      categoryColor: colorMap.get(activity.category) || '#95A5A6'
+    }));
 
     res.json({
       date,
-      activities: dateActivities,
-      totalActivities: dateActivities.length,
-      totalDuration: dateActivities.reduce((sum, a) => sum + a.duration, 0)
+      activities: enrichedActivities,
+      totalActivities: enrichedActivities.length,
+      totalDuration: enrichedActivities.reduce((sum, a) => sum + a.duration, 0)
     });
   } catch (error) {
     console.error('Error fetching activities:', error);
@@ -88,14 +103,22 @@ router.post('/', async (req, res) => {
 
     // Update taxonomy (learn from this activity)
     const norm = (s: string) => s.trim().toLowerCase();
+
     const catName = norm(category);
     const subName = subcategory ? norm(subcategory) : null;
 
-    // Upsert category
+    // Get existing colors to avoid duplicates
+    const existingCategories = await Category.find({}).select('color');
+    const usedColors = existingCategories.map(cat => cat.color);
+
     const cat = await Category.findOneAndUpdate(
       { name: catName },
       {
-        $setOnInsert: { name: catName, displayName: category.trim() },
+        $setOnInsert: { 
+          name: catName, 
+          displayName: category,
+          color: getUniqueColor(usedColors)  // ✅ Assign unique color
+        },
         $inc: { usageCount: 1 }
       },
       { new: true, upsert: true }

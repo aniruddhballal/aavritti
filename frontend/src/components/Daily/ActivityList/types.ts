@@ -1,9 +1,10 @@
-// types.ts
+import type { CategorySuggestion } from "../../../types/activity";
+
 export type ExpandedFilter = 'search' | 'category' | 'subcategory' | 'time';
 
 export interface ActivityFiltersProps {
-  categories: string[];
-  subcategories: string[];      // ✅ Add this line (not optional)
+  categories: CategorySuggestion[];  // ✅ Changed from string[]
+  subcategories: string[];
   searchTerm: string;
   selectedCategory: string;
   selectedSubcategory: string;

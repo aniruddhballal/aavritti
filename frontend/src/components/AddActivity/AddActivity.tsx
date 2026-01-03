@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { activityService } from '../../services/activityService';
 import { useDarkMode } from '../../contexts/DarkModeContext';
-import { getCategoryColor } from '../../utils/categoryColors';
 import DarkModeToggle from '../DarkModeToggle/DarkModeToggle';
 import { ArrowLeft } from 'lucide-react';
+import type { CategorySuggestion } from '../../types/activity';
 
 const AddActivity = () => {
   const { isDarkMode } = useDarkMode();
@@ -14,7 +14,7 @@ const AddActivity = () => {
   // State for user input and suggestions
   const [categoryInput, setCategoryInput] = useState('');
   const [subcategoryInput, setSubcategoryInput] = useState('');
-  const [categorySuggestions, setCategorySuggestions] = useState<string[]>([]);
+  const [categorySuggestions, setCategorySuggestions] = useState<CategorySuggestion[]>([]);
   const [subcategorySuggestions, setSubcategorySuggestions] = useState<string[]>([]);
   const [showCategorySuggestions, setShowCategorySuggestions] = useState(false);
   const [showSubcategorySuggestions, setShowSubcategorySuggestions] = useState(false);
@@ -209,10 +209,8 @@ const AddActivity = () => {
     }
   };
 
-  // Determine category color (use first suggestion if available, default otherwise)
-  const categoryColor = categorySuggestions.length > 0 
-    ? getCategoryColor(categorySuggestions[0].toLowerCase())
-    : getCategoryColor(categoryInput.toLowerCase());
+  // Determine category color from suggestions
+  const categoryColor = categorySuggestions.find(c => c.name.toLowerCase() === categoryInput.toLowerCase())?.color || '#95A5A6';
 
   return (
     <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
@@ -318,14 +316,14 @@ const AddActivity = () => {
                         <button
                           key={index}
                           type="button"
-                          onClick={() => handleCategorySelect(suggestion)}
+                          onClick={() => handleCategorySelect(suggestion.name)}
                           className={`w-full text-left px-4 py-3 transition-colors capitalize ${
                             isDarkMode
                               ? 'hover:bg-gray-700 text-gray-200'
                               : 'hover:bg-gray-50 text-gray-800'
                           } ${index !== 0 ? (isDarkMode ? 'border-t border-gray-700' : 'border-t border-gray-100') : ''}`}
                         >
-                          {suggestion}
+                          {suggestion.name}
                         </button>
                       ))}
                     </div>

@@ -18,7 +18,10 @@ router.get('/categories', async (req, res) => {
       .select('displayName name usageCount')  // 🆕 Include name for debugging
       .lean();  // 🆕 Performance boost
 
-    res.json(categories.map(c => c.displayName));
+    res.json(categories.map(c => ({
+      name: c.displayName,
+      color: c.color  // ✅ Include color
+    })));
   } catch (error) {
     console.error('Error fetching category suggestions:', error);
     res.status(500).json({ error: 'Failed to fetch suggestions' });

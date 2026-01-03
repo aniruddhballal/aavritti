@@ -10,6 +10,7 @@ export interface ICategory extends Document {
   name: string;          // normalized (lowercase)
   displayName: string;   // original user input
   usageCount: number;
+  color: string;
   subcategories: ISubcategory[];
   createdAt: Date;
   updatedAt: Date;
@@ -34,6 +35,11 @@ const CategorySchema = new Schema<ICategory>(
       type: Number,
       default: 1,
       min: 0  // 🆕 Can't be negative
+    },
+    color: {
+      type: String,
+      required: true,
+      default: '#95A5A6'  // Default gray
     },
     subcategories: [
       {
