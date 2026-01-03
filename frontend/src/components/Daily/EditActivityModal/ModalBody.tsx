@@ -4,6 +4,7 @@ import TextAreaField from './TextAreaField';
 import TimeRangeField from './TimeRangeField';
 import { useState, useEffect } from 'react';
 import { activityService } from '../../../services';
+import type { CategorySuggestion } from '../../../types/activity';
 
 interface ModalBodyProps {
   editForm: {
@@ -28,7 +29,7 @@ const ModalBody = ({
   onEditChange,
   isDarkMode
 }: ModalBodyProps) => {
-  const [categorySuggestions, setCategorySuggestions] = useState<string[]>([]);
+  const [categorySuggestions, setCategorySuggestions] = useState<CategorySuggestion[]>([]);
 
   // Fetch category suggestions
   useEffect(() => {
@@ -43,9 +44,10 @@ const ModalBody = ({
     fetchCategories();
   }, []);
 
+  // Update the options mapping:
   const categoryOptions = categorySuggestions.map(cat => ({
-    value: cat,
-    label: cat.charAt(0).toUpperCase() + cat.slice(1)
+    value: cat.name,  // ✅ Use cat.name
+    label: cat.name.charAt(0).toUpperCase() + cat.name.slice(1)  // ✅ Use cat.name
   }));
 
   const subcategoryOptions = [

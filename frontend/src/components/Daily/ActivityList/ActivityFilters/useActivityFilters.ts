@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { activityService } from '../../../../services';
-import type { Activity } from '../../../../types/activity';
+import type { Activity, CategorySuggestion } from '../../../../types/activity';
 import type { ExpandedFilter } from '../types';
 
 interface UseActivityFiltersProps {
   activities: Activity[];
-  categorySuggestions: string[];
+  categorySuggestions: CategorySuggestion[];
 }
 
 export const useActivityFilters = ({ 
-  activities,  
+  activities,
 }: UseActivityFiltersProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');

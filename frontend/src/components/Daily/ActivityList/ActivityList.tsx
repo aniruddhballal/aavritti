@@ -7,6 +7,7 @@ import NoActivities from './EmptyStates/NoActivities';
 import NoFilterResults from './EmptyStates/NoFilterResults';
 import { useActivityFilters } from './ActivityFilters/useActivityFilters';
 import { activityService } from '../../../services';
+import type { CategorySuggestion } from '../../../types/activity';
 
 interface ActivityListProps {
   activities: Activity[];
@@ -20,7 +21,7 @@ const ActivityList = ({
   isToday, 
   onEditActivity
 }: ActivityListProps) => {
-  const [categorySuggestions, setCategorySuggestions] = useState<string[]>([]);
+  const [categorySuggestions, setCategorySuggestions] = useState<CategorySuggestion[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Fetch initial category suggestions on mount

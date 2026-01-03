@@ -97,8 +97,8 @@ const ActivityFilters = ({
               >
                 <option value="">All Categories</option>
                 {categories.map(cat => (
-                  <option key={cat} value={cat} className="capitalize">
-                    {cat}
+                  <option key={cat.name} value={cat.name} className="capitalize">
+                    {cat.name}
                   </option>
                 ))}
               </select>
