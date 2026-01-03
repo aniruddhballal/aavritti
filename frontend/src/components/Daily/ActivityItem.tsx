@@ -11,8 +11,8 @@ interface ActivityItemProps {
 const ActivityItem = ({ activity, onEdit }: ActivityItemProps) => {
   const { isDarkMode } = useDarkMode();
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
+  const formatTime = (createdAt: string | Date) => {  // Better name
+    const date = new Date(createdAt);
     return date.toLocaleTimeString('en-US', { 
       timeZone: 'Asia/Kolkata',
       hour: '2-digit', 
