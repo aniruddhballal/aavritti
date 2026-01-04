@@ -1,5 +1,3 @@
-
-
 import { ArrowLeft, Plus } from 'lucide-react';
 
 interface CacheHeaderProps {

@@ -31,7 +31,8 @@ const Cache = () => {
     handleTitleBlur,
     handleBodyBlur,
     handleDelete,
-    updateEntryPosition
+    updateEntryPosition,
+    savePosition
   } = useCacheEntries(containerRef);
 
   const {
@@ -44,7 +45,7 @@ const Cache = () => {
     handleTouchMove,
     handleTouchEnd,
     isTouchDragging
-  } = useDraggableEntries(entries, updateEntryPosition, containerRef);
+  } = useDraggableEntries(entries, updateEntryPosition, savePosition, containerRef);
 
   const handleIconClick = (id: string) => {
     if (wasDragged) return;
@@ -91,88 +92,90 @@ const Cache = () => {
   }, [entries.length]);
 
   return (
-    <>
-      <DarkModeToggle />
-      <div 
-        ref={containerRef}
-        className={`w-full h-screen relative overflow-auto transition-colors ${
-          isDarkMode
-            ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
-            : 'bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50'
-        }`}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        style={{ 
-          cursor: draggedEntry ? 'grabbing' : 'default',
-          touchAction: isTouchDragging ? 'none' : 'auto'
-        }}
-      >
-        <CacheBackground isDarkMode={isDarkMode} />
-        
-        <CacheHeader
-          isDarkMode={isDarkMode}
-          entriesCount={entries.length}
-          isCreating={isCreating}
-          onBack={() => navigate('/')}
-          onCreate={handleCreateEntry}
-        />
+    <div 
+      ref={containerRef}
+      className={`w-full h-screen relative overflow-auto transition-colors ${
+        isDarkMode
+          ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
+          : 'bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50'
+      }`}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      style={{ 
+        cursor: draggedEntry ? 'grabbing' : 'default',
+        touchAction: isTouchDragging ? 'none' : 'auto'
+      }}
+    >
+      <CacheBackground isDarkMode={isDarkMode} />
+      
+      {/* Dark Mode Toggle - Positioned in top-right corner */}
+      <div className="absolute top-6 right-6 z-20">
+        <DarkModeToggle />
+      </div>
 
-        {isLoading && <LoadingState isDarkMode={isDarkMode} />}
+      <CacheHeader
+        isDarkMode={isDarkMode}
+        entriesCount={entries.length}
+        isCreating={isCreating}
+        onBack={() => navigate('/')}
+        onCreate={handleCreateEntry}
+      />
 
-        {!isLoading && entries.length === 0 && !isCreating && (
-          <EmptyState isDarkMode={isDarkMode} />
-        )}
+      {isLoading && <LoadingState isDarkMode={isDarkMode} />}
 
-        {entries.map((entry) => {
-          const isDragged = draggedEntry === entry._id;
-          const isHovered = hoveredEntry === entry._id;
-          const isExpanded = expandedEntryId === entry._id;
-          const isSaving = savingEntries.has(entry._id);
+      {!isLoading && entries.length === 0 && !isCreating && (
+        <EmptyState isDarkMode={isDarkMode} />
+      )}
 
-          if (!isExpanded) {
-            return (
-              <CollapsedEntryIcon
-                key={entry._id}
-                entry={entry}
-                isDarkMode={isDarkMode}
-                isDragged={isDragged}
-                isHovered={isHovered}
-                onMouseDown={handleMouseDown}
-                onTouchStart={handleTouchStart}
-                onMouseEnter={() => setHoveredEntry(entry._id)}
-                onMouseLeave={() => setHoveredEntry(null)}
-                onClick={() => handleIconClick(entry._id)}
-                onDoubleClick={() => handleIconDoubleClick(entry._id)}
-              />
-            );
-          }
+      {entries.map((entry) => {
+        const isDragged = draggedEntry === entry._id;
+        const isHovered = hoveredEntry === entry._id;
+        const isExpanded = expandedEntryId === entry._id;
+        const isSaving = savingEntries.has(entry._id);
 
+        if (!isExpanded) {
           return (
-            <ExpandedEntryCard
+            <CollapsedEntryIcon
               key={entry._id}
               entry={entry}
               isDarkMode={isDarkMode}
               isDragged={isDragged}
-              isSaving={isSaving}
+              isHovered={isHovered}
               onMouseDown={handleMouseDown}
               onTouchStart={handleTouchStart}
-              onTitleChange={handleTitleChange}
-              onBodyChange={handleBodyChange}
-              onTitleBlur={handleTitleBlur}
-              onBodyBlur={handleBodyBlur}
-              onClose={handleCloseExpanded}
-              onDelete={handleDelete}
+              onMouseEnter={() => setHoveredEntry(entry._id)}
+              onMouseLeave={() => setHoveredEntry(null)}
+              onClick={() => handleIconClick(entry._id)}
+              onDoubleClick={() => handleIconDoubleClick(entry._id)}
             />
           );
-        })}
+        }
 
-        {!isLoading && entries.length > 0 && entries.length <= 3 && expandedEntryId === null && (
-          <FloatingHints isDarkMode={isDarkMode} />
-        )}
-      </div>
-    </>
+        return (
+          <ExpandedEntryCard
+            key={entry._id}
+            entry={entry}
+            isDarkMode={isDarkMode}
+            isDragged={isDragged}
+            isSaving={isSaving}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            onTitleChange={handleTitleChange}
+            onBodyChange={handleBodyChange}
+            onTitleBlur={handleTitleBlur}
+            onBodyBlur={handleBodyBlur}
+            onClose={handleCloseExpanded}
+            onDelete={handleDelete}
+          />
+        );
+      })}
+
+      {!isLoading && entries.length > 0 && entries.length <= 3 && expandedEntryId === null && (
+        <FloatingHints isDarkMode={isDarkMode} />
+      )}
+    </div>
   );
 };
 

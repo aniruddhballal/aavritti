@@ -5,6 +5,7 @@ import type { CacheEntryWithPosition } from './useCacheEntries';
 export const useDraggableEntries = (
   entries: CacheEntryWithPosition[],
   updateEntryPosition: (id: string, x: number, y: number) => void,
+  savePosition: (id: string, x: number, y: number) => Promise<void>,
   containerRef: RefObject<HTMLDivElement | null>
 ) => {
   const [draggedEntry, setDraggedEntry] = useState<string | null>(null);
@@ -69,9 +70,20 @@ export const useDraggableEntries = (
     setPositionChanged(prev => new Set(prev).add(draggedEntry));
   };
 
-  const endDrag = () => {
+  const endDrag = async () => {
     if (draggedEntry && positionChanged.has(draggedEntry)) {
-      // Position saving is handled by parent component
+      // Actually save the position to the backend
+      const entry = entries.find(e => e._id === draggedEntry);
+      if (entry) {
+        await savePosition(draggedEntry, entry.x, entry.y);
+      }
+      
+      // Clear the position changed flag for this entry
+      setPositionChanged(prev => {
+        const next = new Set(prev);
+        next.delete(draggedEntry);
+        return next;
+      });
     }
     
     setDraggedEntry(null);
