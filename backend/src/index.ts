@@ -4,6 +4,8 @@ import connectDB from './config/database';
 import activitiesRouter from './routes/activities';
 import cacheEntriesRouter from './routes/cacheEntries';
 import categorySuggestions from './routes/categorySuggestions';
+import authRouter from './routes/auth';
+import { requireAuth } from './middleware/auth';
 
 const app = express();
 
@@ -14,14 +16,17 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use('/api/activities', activitiesRouter);
-app.use('/api', cacheEntriesRouter);
-app.use('/api/suggestions', categorySuggestions);
+// Public routes (no authentication required)
+app.use('/api/auth', authRouter);
 
 app.get('/', (_req, res) => {
   res.send('API running');
 });
+
+// Protected routes (authentication required)
+app.use('/api/activities', requireAuth, activitiesRouter);
+app.use('/api/cache', requireAuth, cacheEntriesRouter);
+app.use('/api/suggestions', requireAuth, categorySuggestions);
 
 const PORT = 5000;
 app.listen(PORT, () => {
