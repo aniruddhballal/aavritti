@@ -532,14 +532,14 @@ const AddActivity = () => {
                   type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting || !categoryInput.trim() || !formData.title.trim() || !formData.duration}
-                  className={`shimmer-effect flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:-translate-y-0.5 ${
+                  className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                     isSubmitting || !categoryInput.trim() || !formData.title.trim() || !formData.duration
                       ? isDarkMode
                         ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                         : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : isDarkMode
+                      : `shimmer-effect hover:-translate-y-0.5 ${isDarkMode
                         ? 'bg-gray-100 text-gray-900 hover:bg-white'
-                        : 'bg-gray-900 text-white hover:bg-black shadow-sm'
+                        : 'bg-gray-900 text-white hover:bg-black shadow-sm'}`
                   }`}
                 >
                   {isSubmitting ? 'Adding...' : 'Add Activity'}
