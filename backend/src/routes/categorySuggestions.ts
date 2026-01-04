@@ -15,7 +15,7 @@ router.get('/categories', async (req, res) => {
 
     const categories = await Category.find(filter)
       .sort({ usageCount: -1, name: 1 })  // 🆕 Secondary sort by name
-      .select('displayName name usageCount')  // 🆕 Include name for debugging
+      .select('displayName name usageCount color')  // 🆕 Include name for debugging
       .lean();  // 🆕 Performance boost
 
     res.json(categories.map(c => ({
