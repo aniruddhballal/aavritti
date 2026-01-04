@@ -6,10 +6,6 @@ const router = express.Router();
 // Login endpoint
 router.post('/login', (req: Request, res: Response): void => {
   const { password } = req.body;
-  
-  console.log('Login attempt with password:', password);
-  console.log('Expected password:', process.env.ADMIN_PASSWORD);
-  
   if (!password) {
     res.status(400).json({ 
       success: false, 
@@ -21,16 +17,11 @@ router.post('/login', (req: Request, res: Response): void => {
   if (verifyPassword(password)) {
     const token = generateToken();
     addToken(token);
-    
-    console.log('Login successful, token generated');
-    
     res.json({ 
       success: true, 
       token: token 
     });
   } else {
-    console.log('Login failed - password mismatch');
-    
     res.status(401).json({ 
       success: false, 
       message: 'Invalid password' 
