@@ -65,8 +65,8 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             
             // Calculate total hours for selected category
             const categoryMinutes = response.activities
-              .filter(activity => activity.category === selectedCategory)
-              .reduce((sum, activity) => sum + activity.duration, 0);
+              .filter(activity => activity.category.toLowerCase() === selectedCategory.toLowerCase())
+              .reduce((sum, activity) => sum + (activity.duration || 0), 0);
             
             const hours = categoryMinutes / 60;
             
