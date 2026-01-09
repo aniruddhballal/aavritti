@@ -67,24 +67,16 @@ router.get('/meta/suggestions', async (_req, res) => {
   }
 });
 
-// Add a new activity (only today, IST)
+// Add a new activity (now allows any date)
 router.post('/', async (req, res) => {
   try {
     const { date, category, subcategory, title, description, duration, startTime, endTime } = req.body;
 
-    // Validate today's date in IST
-    const today = new Date().toLocaleDateString('en-CA', {
-      timeZone: 'Asia/Kolkata',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-
-    if (date !== today) {
-      return res.status(400).json({ error: 'You can only add activities for today' });
-    }
-
     // Validate required fields
+    if (!date) {
+      return res.status(400).json({ error: 'Date is required' });
+    }
+    
     if (!category?.trim() || !title?.trim() || !duration) {
       return res.status(400).json({ error: 'Category, title, and duration are required' });
     }
