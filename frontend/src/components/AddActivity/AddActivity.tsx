@@ -31,6 +31,12 @@ const AddActivity = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
   const [loading, setLoading] = useState(true);
   
+  // State for creating new categories/subcategories
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [isCreatingSubcategory, setIsCreatingSubcategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newSubcategoryName, setNewSubcategoryName] = useState('');
+  
   const [error, setError] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
@@ -59,6 +65,7 @@ const AddActivity = () => {
       try {
         setLoading(true);
         const suggestions = await activityService.getCategorySuggestions('');
+        console.log('Fetched category suggestions:', suggestions);
         setCategorySuggestions(suggestions);
       } catch (err) {
         console.error('Error fetching categories:', err);
@@ -101,10 +108,51 @@ const AddActivity = () => {
   const handleCategorySelect = (category: CategorySuggestion) => {
     setSelectedCategory(category);
     setSelectedSubcategory(''); // Reset subcategory when category changes
+    setIsCreatingCategory(false);
+    setNewCategoryName('');
+    setIsCreatingSubcategory(false);
+    setNewSubcategoryName('');
   };
 
   const handleSubcategorySelect = (subcategory: string) => {
     setSelectedSubcategory(subcategory);
+    setIsCreatingSubcategory(false);
+    setNewSubcategoryName('');
+  };
+
+  const handleCreateNewCategory = () => {
+    if (newCategoryName.trim()) {
+      // Create a temporary category object for the new category
+      const tempCategory: CategorySuggestion = {
+        name: newCategoryName.trim().toLowerCase(),
+        displayName: newCategoryName.trim(),
+        color: '#95A5A6', // Default gray color, backend will assign proper color
+        usageCount: 0,
+        subcategories: []
+      };
+      setSelectedCategory(tempCategory);
+      setIsCreatingCategory(false);
+      setNewCategoryName('');
+      setSelectedSubcategory('');
+    }
+  };
+
+  const handleCreateNewSubcategory = () => {
+    if (newSubcategoryName.trim()) {
+      setSelectedSubcategory(newSubcategoryName.trim());
+      setIsCreatingSubcategory(false);
+      setNewSubcategoryName('');
+    }
+  };
+
+  const handleCancelNewCategory = () => {
+    setIsCreatingCategory(false);
+    setNewCategoryName('');
+  };
+
+  const handleCancelNewSubcategory = () => {
+    setIsCreatingSubcategory(false);
+    setNewSubcategoryName('');
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -118,7 +166,7 @@ const AddActivity = () => {
     setError(null);
 
     if (!selectedCategory) {
-      setError('Please select a category');
+      setError('Please select or create a category');
       return;
     }
 
@@ -138,7 +186,7 @@ const AddActivity = () => {
     try {
       const activityData = {
         date: activityDate, // Use the date from navigation state or today
-        category: selectedCategory.name,
+        category: selectedCategory.displayName, // Use displayName for both new and existing
         subcategory: selectedSubcategory || undefined,
         title: formData.title.trim(),
         duration: durationInMinutes,
@@ -243,54 +291,216 @@ const AddActivity = () => {
                 }`}>
                   CATEGORY <span className="text-red-500">*</span>
                 </label>
-                <div className="flex gap-2 flex-wrap">
-                  {categorySuggestions.map(cat => (
+                
+                {!isCreatingCategory ? (
+                  <div className="flex gap-2 flex-wrap">
+                    {categorySuggestions.map(cat => (
+                      <button
+                        key={cat.name}
+                        type="button"
+                        onClick={() => handleCategorySelect(cat)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
+                          selectedCategory?.name === cat.name
+                            ? 'text-white shadow-md transform scale-105'
+                            : isDarkMode
+                              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                        style={selectedCategory?.name === cat.name ? { backgroundColor: cat.color } : {}}
+                      >
+                        {cat.displayName}
+                      </button>
+                    ))}
+                    
+                    {/* New Category Button */}
                     <button
-                      key={cat.name}
                       type="button"
-                      onClick={() => handleCategorySelect(cat)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                        selectedCategory?.name === cat.name
-                          ? 'text-white shadow-md transform scale-105'
-                          : isDarkMode
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      onClick={() => setIsCreatingCategory(true)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${
+                        isDarkMode
+                          ? 'border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50'
+                          : 'border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
                       }`}
-                      style={selectedCategory?.name === cat.name ? { backgroundColor: cat.color } : {}}
                     >
-                      {cat.displayName}
+                      + New Category
                     </button>
-                  ))}
-                </div>
+                  </div>
+                ) : (
+                  <div className={`p-4 rounded-lg border ${
+                    isDarkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-200'
+                  }`}>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        value={newCategoryName}
+                        onChange={(e) => setNewCategoryName(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            handleCreateNewCategory();
+                          } else if (e.key === 'Escape') {
+                            handleCancelNewCategory();
+                          }
+                        }}
+                        placeholder="Enter new category name..."
+                        autoFocus
+                        className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
+                          isDarkMode
+                            ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder:text-gray-500 focus:ring-gray-500 focus:border-gray-500'
+                            : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-gray-400 focus:border-gray-400'
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCreateNewCategory}
+                        disabled={!newCategoryName.trim()}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                          !newCategoryName.trim()
+                            ? isDarkMode
+                              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                            : isDarkMode
+                              ? 'bg-green-600 text-white hover:bg-green-700'
+                              : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
+                      >
+                        Create
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelNewCategory}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                          isDarkMode
+                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      Press Enter to create, Escape to cancel
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Subcategory Selection (only if category has subcategories) */}
-              {selectedCategory && selectedCategory.subcategories && selectedCategory.subcategories.length > 0 && (
+              {/* Subcategory Selection (only if category is selected) */}
+              {selectedCategory && (
                 <div>
                   <label className={`block text-sm font-medium mb-3 tracking-wide ${
                     isDarkMode ? 'text-gray-300' : 'text-gray-700'
                   }`}>
                     SUBCATEGORY <span className={`text-xs font-light ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>(optional)</span>
                   </label>
-                  <div className="flex gap-2 flex-wrap">
-                    {selectedCategory.subcategories.map(sub => (
+                  
+                  {!isCreatingSubcategory ? (
+                    <div className="flex gap-2 flex-wrap">
+                      {/* Show existing subcategories if they exist */}
+                      {selectedCategory.subcategories && selectedCategory.subcategories.length > 0 && 
+                        selectedCategory.subcategories.map(sub => (
+                          <button
+                            key={sub.name}
+                            type="button"
+                            onClick={() => handleSubcategorySelect(sub.displayName)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
+                              selectedSubcategory === sub.displayName
+                                ? 'text-white shadow-md transform scale-105'
+                                : isDarkMode
+                                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                            style={selectedSubcategory === sub.displayName ? { backgroundColor: selectedCategory.color } : {}}
+                          >
+                            {sub.displayName}
+                          </button>
+                        ))
+                      }
+                      
+                      {/* New Subcategory Button */}
                       <button
-                        key={sub.name}
                         type="button"
-                        onClick={() => handleSubcategorySelect(sub.displayName)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                          selectedSubcategory === sub.displayName
-                            ? 'text-white shadow-md transform scale-105'
-                            : isDarkMode
-                              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        onClick={() => setIsCreatingSubcategory(true)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${
+                          isDarkMode
+                            ? 'border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50'
+                            : 'border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
                         }`}
-                        style={selectedSubcategory === sub.displayName ? { backgroundColor: selectedCategory.color } : {}}
                       >
-                        {sub.displayName}
+                        + New Subcategory
                       </button>
-                    ))}
-                  </div>
+                      
+                      {/* Clear Subcategory Button (only if one is selected) */}
+                      {selectedSubcategory && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedSubcategory('')}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            isDarkMode
+                              ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                              : 'bg-red-50 text-red-600 hover:bg-red-100'
+                          }`}
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className={`p-4 rounded-lg border ${
+                      isDarkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      <div className="flex gap-3">
+                        <input
+                          type="text"
+                          value={newSubcategoryName}
+                          onChange={(e) => setNewSubcategoryName(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              handleCreateNewSubcategory();
+                            } else if (e.key === 'Escape') {
+                              handleCancelNewSubcategory();
+                            }
+                          }}
+                          placeholder="Enter new subcategory name..."
+                          autoFocus
+                          className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
+                            isDarkMode
+                              ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder:text-gray-500 focus:ring-gray-500 focus:border-gray-500'
+                              : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-gray-400 focus:border-gray-400'
+                          }`}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleCreateNewSubcategory}
+                          disabled={!newSubcategoryName.trim()}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                            !newSubcategoryName.trim()
+                              ? isDarkMode
+                                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                              : isDarkMode
+                                ? 'bg-green-600 text-white hover:bg-green-700'
+                                : 'bg-green-600 text-white hover:bg-green-700'
+                          }`}
+                        >
+                          Create
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelNewSubcategory}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                            isDarkMode
+                              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                      <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                        Press Enter to create, Escape to cancel
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
