@@ -29,7 +29,6 @@ const Daily = ({
     navigateToDate, 
     canNavigatePrev, 
     canNavigateNext, 
-    isToday, 
     formatDate,
   } = useDateNavigation(selectedDate, dateString);
 
@@ -80,7 +79,7 @@ const Daily = ({
 
           <DailyActivitySection
             activities={data?.activities || []}
-            isToday={isToday()}
+            date={dateString} // Pass the dateString prop
             leftColumnHeight={leftColumnHeight}
             isDarkMode={isDarkMode}
             onActivityAdded={fetchActivities}

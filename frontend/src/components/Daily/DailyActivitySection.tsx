@@ -1,8 +1,8 @@
 import ActivityList from './ActivityList';
 
-interface DailyActivitySectionProps {
+interface __DailyActivitySectionProps__ {
   activities: any[];
-  isToday: boolean;
+  date: string; // Add date prop
   leftColumnHeight: number;
   isDarkMode: boolean;
   onActivityAdded: () => void;
@@ -11,12 +11,12 @@ interface DailyActivitySectionProps {
 
 const DailyActivitySection = ({ 
   activities, 
-  isToday, 
+  date, // Destructure the new prop
   leftColumnHeight,
   isDarkMode,
   onActivityAdded, 
   onEditActivity
-}: DailyActivitySectionProps) => (
+}: __DailyActivitySectionProps__) => (
   <div 
     className={`rounded-lg shadow-lg p-6 lg:p-8 flex flex-col overflow-hidden transition-colors ${
       isDarkMode ? 'bg-gray-800' : 'bg-white'
@@ -27,7 +27,7 @@ const DailyActivitySection = ({
   >
     <ActivityList
       activities={activities}
-      isToday={isToday}
+      date={date} // Pass date to ActivityList
       onActivityAdded={onActivityAdded}
       onEditActivity={onEditActivity}
     />

@@ -11,14 +11,14 @@ import type { CategorySuggestion } from '../../../types/activity';
 
 interface ActivityListProps {
   activities: Activity[];
-  isToday: boolean;
+  date: string; // Add date prop
   onActivityAdded: () => void;
   onEditActivity: (activity: Activity) => void;
 }
 
 const ActivityList = ({ 
   activities, 
-  isToday, 
+  date, // Destructure the new prop
   onEditActivity
 }: ActivityListProps) => {
   const [categorySuggestions, setCategorySuggestions] = useState<CategorySuggestion[]>([]);
@@ -89,8 +89,8 @@ const ActivityList = ({
       {/* Header */}
       <div className="mb-4 flex-shrink-0">
         <ActivityListHeader 
-          isToday={isToday}
           latestEndTime={latestEndTime}
+          date={date} // Pass the date prop
         />
         {/* Filters */}
         <div ref={filterRef} className="mr-4">
