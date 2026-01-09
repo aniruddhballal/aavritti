@@ -258,7 +258,7 @@ const AddActivity = () => {
                       }`}
                       style={selectedCategory?.name === cat.name ? { backgroundColor: cat.color } : {}}
                     >
-                      {cat.name}
+                      {cat.displayName}
                     </button>
                   ))}
                 </div>
@@ -277,17 +277,17 @@ const AddActivity = () => {
                       <button
                         key={sub.name}
                         type="button"
-                        onClick={() => handleSubcategorySelect(sub.name)}
+                        onClick={() => handleSubcategorySelect(sub.displayName)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                          selectedSubcategory === sub.name
+                          selectedSubcategory === sub.displayName
                             ? 'text-white shadow-md transform scale-105'
                             : isDarkMode
                               ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
-                        style={selectedSubcategory === sub.name ? { backgroundColor: selectedCategory.color } : {}}
+                        style={selectedSubcategory === sub.displayName ? { backgroundColor: selectedCategory.color } : {}}
                       >
-                        {sub.name}
+                        {sub.displayName}
                       </button>
                     ))}
                   </div>
@@ -301,7 +301,7 @@ const AddActivity = () => {
                 }`}>
                   <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                     Selected: <span className="font-semibold capitalize" style={{ color: selectedCategory.color }}>
-                      {selectedCategory.name}
+                      {selectedCategory.displayName}
                     </span>
                     {selectedSubcategory && (
                       <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
