@@ -17,7 +17,7 @@ export interface Activity {
   endTime?: string;        // HH:MM format (optional)
   createdAt: string;       // ISO timestamp from MongoDB
   updatedAt: string;       // ISO timestamp from MongoDB
-  categoryColor?: string;  // ✅ Add this line - Hex color from backend
+  categoryColor?: string;  // ✅ Hex color from backend
 }
 
 /**
@@ -45,20 +45,21 @@ export interface DailyData {
 }
 
 /**
- * Category suggestion with usage metadata (optional, for future use)
- */
-export interface CategorySuggestion {
-  name: string;           // Normalized name (lowercase)
-  displayName: string;    // Original user input
-  color: string;          // Hex color code
-  usageCount: number;     // How often it's been used
-}
-
-/**
- * Subcategory suggestion with usage metadata (optional, for future use)
+ * Subcategory suggestion with usage metadata
  */
 export interface SubcategorySuggestion {
   name: string;           // Normalized name (lowercase)
   displayName: string;    // Original user input
   usageCount: number;     // How often it's been used
+}
+
+/**
+ * Category suggestion with usage metadata and subcategories
+ */
+export interface CategorySuggestion {
+  name: string;                          // Normalized name (lowercase)
+  displayName: string;                   // Original user input
+  color: string;                         // Hex color code
+  usageCount: number;                    // How often it's been used
+  subcategories: SubcategorySuggestion[]; // ✅ Add subcategories array
 }
