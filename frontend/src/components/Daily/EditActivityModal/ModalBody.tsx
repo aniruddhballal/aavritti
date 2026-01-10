@@ -61,119 +61,174 @@ const ModalBody = ({
   return (
     <div className="overflow-y-auto flex-1">
       <div className="p-8 space-y-6">
-        {/* Category Selection */}
-        <div>
-          <label className={`block text-sm font-medium mb-3 tracking-wide ${
-            isDarkMode ? 'text-gray-300' : 'text-gray-700'
-          }`}>
-            CATEGORY <span className="text-red-500">*</span>
-          </label>
-          
-          <div className="flex gap-2 flex-wrap">
-            {editForm.category ? (
-              // Show only selected category with clear button
-              <>
-                <button
-                  type="button"
-                  className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
-                  style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
-                >
-                  {editForm.category}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onEditChange('category', '')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isDarkMode
-                      ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                      : 'bg-red-50 text-red-600 hover:bg-red-100'
-                  }`}
-                >
-                  Clear
-                </button>
-              </>
-            ) : (
-              // Show all categories with colored text and subtle background tint
-              <>
-                {categorySuggestions.map(cat => {
-                  const rgb = hexToRgb(cat.color);
-                  const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
-                  
-                  return (
-                    <button
-                      key={cat.name}
-                      type="button"
-                      onClick={() => onEditChange('category', cat.name)}
-                      className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize hover:shadow-md hover:scale-105"
-                      style={{ 
-                        color: cat.color,
-                        backgroundColor: bgColor
-                      }}
-                    >
-                      {cat.displayName}
-                    </button>
-                  );
-                })}
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Subcategory Selection (only if editSubcategories exist) */}
-        {editSubcategories.length > 0 && (
+        {/* Category and Subcategory Selection */}
+        {editForm.category && editForm.subcategory ? (
+          // Show selected category and subcategory side by side
           <div>
             <label className={`block text-sm font-medium mb-3 tracking-wide ${
               isDarkMode ? 'text-gray-300' : 'text-gray-700'
             }`}>
-              SUBCATEGORY <span className={`text-xs font-light ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>(optional)</span>
+              CATEGORY & SUBCATEGORY <span className="text-red-500">*</span>
             </label>
-            
             <div className="flex gap-2 flex-wrap">
-              {editForm.subcategory ? (
-                // Show only selected subcategory with clear button
-                <>
-                  <button
-                    type="button"
-                    className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
-                    style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
-                  >
-                    {editForm.subcategory.charAt(0).toUpperCase() + editForm.subcategory.slice(1)}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onEditChange('subcategory', '')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      isDarkMode
-                        ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                        : 'bg-red-50 text-red-600 hover:bg-red-100'
-                    }`}
-                  >
-                    Clear
-                  </button>
-                </>
-              ) : (
-                // Show all subcategories with colored text and subtle background
-                <>
-                  {editSubcategories.map(sub => {
-                    const rgb = hexToRgb(selectedCategoryObj?.color || '#95A5A6');
-                    const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
-                    
-                    return (
-                      <button
-                        key={sub}
-                        type="button"
-                        onClick={() => onEditChange('subcategory', sub)}
-                        className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize hover:shadow-md hover:scale-105"
-                        style={{ color: selectedCategoryObj?.color || '#95A5A6', backgroundColor: bgColor }}
-                      >
-                        {sub.charAt(0).toUpperCase() + sub.slice(1)}
-                      </button>
-                    );
-                  })}
-                </>
-              )}
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
+              >
+                {editForm.category}
+              </button>
+              <button
+                type="button"
+                onClick={() => onEditChange('category', '')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isDarkMode
+                    ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                    : 'bg-red-50 text-red-600 hover:bg-red-100'
+                }`}
+              >
+                Clear
+              </button>
+              
+              <div className={`w-px h-8 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+              
+              <button
+                type="button"
+                className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
+              >
+                {editForm.subcategory.charAt(0).toUpperCase() + editForm.subcategory.slice(1)}
+              </button>
+              <button
+                type="button"
+                onClick={() => onEditChange('subcategory', '')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  isDarkMode
+                    ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                    : 'bg-red-50 text-red-600 hover:bg-red-100'
+                }`}
+              >
+                Clear
+              </button>
             </div>
           </div>
+        ) : (
+          <>
+            {/* Category Selection */}
+            <div>
+              <label className={`block text-sm font-medium mb-3 tracking-wide ${
+                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+              }`}>
+                CATEGORY <span className="text-red-500">*</span>
+              </label>
+              
+              <div className="flex gap-2 flex-wrap">
+                {editForm.category ? (
+                  // Show only selected category with clear button
+                  <>
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                      style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
+                    >
+                      {editForm.category}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onEditChange('category', '')}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        isDarkMode
+                          ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                          : 'bg-red-50 text-red-600 hover:bg-red-100'
+                      }`}
+                    >
+                      Clear
+                    </button>
+                  </>
+                ) : (
+                  // Show all categories with colored text and subtle background tint
+                  <>
+                    {categorySuggestions.map(cat => {
+                      const rgb = hexToRgb(cat.color);
+                      const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
+                      
+                      return (
+                        <button
+                          key={cat.name}
+                          type="button"
+                          onClick={() => onEditChange('category', cat.name)}
+                          className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize hover:shadow-md hover:scale-105"
+                          style={{ 
+                            color: cat.color,
+                            backgroundColor: bgColor
+                          }}
+                        >
+                          {cat.displayName}
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Subcategory Selection (only if editSubcategories exist) */}
+            {editSubcategories.length > 0 && (
+              <div>
+                <label className={`block text-sm font-medium mb-3 tracking-wide ${
+                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                }`}>
+                  SUBCATEGORY <span className={`text-xs font-light ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>(optional)</span>
+                </label>
+                
+                <div className="flex gap-2 flex-wrap">
+                  {editForm.subcategory ? (
+                    // Show only selected subcategory with clear button
+                    <>
+                      <button
+                        type="button"
+                        className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                        style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
+                      >
+                        {editForm.subcategory.charAt(0).toUpperCase() + editForm.subcategory.slice(1)}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onEditChange('subcategory', '')}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          isDarkMode
+                            ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                            : 'bg-red-50 text-red-600 hover:bg-red-100'
+                        }`}
+                      >
+                        Clear
+                      </button>
+                    </>
+                  ) : (
+                    // Show all subcategories with colored text and subtle background
+                    <>
+                      {editSubcategories.map(sub => {
+                        const rgb = hexToRgb(selectedCategoryObj?.color || '#95A5A6');
+                        const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
+                        
+                        return (
+                          <button
+                            key={sub}
+                            type="button"
+                            onClick={() => onEditChange('subcategory', sub)}
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize hover:shadow-md hover:scale-105"
+                            style={{ color: selectedCategoryObj?.color || '#95A5A6', backgroundColor: bgColor }}
+                          >
+                            {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                          </button>
+                        );
+                      })}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         <TextInputField
