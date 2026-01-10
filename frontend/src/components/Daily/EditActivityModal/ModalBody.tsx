@@ -71,45 +71,41 @@ const ModalBody = ({
               CATEGORY & SUBCATEGORY <span className="text-red-500">*</span>
             </label>
             <div className="flex gap-2 flex-wrap">
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
-                style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
-              >
-                {editForm.category}
-              </button>
-              <button
-                type="button"
-                onClick={() => onEditChange('category', '')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isDarkMode
-                    ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                    : 'bg-red-50 text-red-600 hover:bg-red-100'
-                }`}
-              >
-                Clear
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  className="px-4 py-2 pr-8 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                  style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
+                >
+                  {editForm.category}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onEditChange('category', '')}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white hover:bg-gray-100 shadow-md flex items-center justify-center text-xs transition-all"
+                >
+                  <span className="text-red-500 font-bold">✕</span>
+                </button>
+              </div>
               
-              <div className={`w-px h-8 ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
+              <div className={`w-px h-8 self-center ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
               
-              <button
-                type="button"
-                className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
-                style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
-              >
-                {editForm.subcategory.charAt(0).toUpperCase() + editForm.subcategory.slice(1)}
-              </button>
-              <button
-                type="button"
-                onClick={() => onEditChange('subcategory', '')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                  isDarkMode
-                    ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                    : 'bg-red-50 text-red-600 hover:bg-red-100'
-                }`}
-              >
-                Clear
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  className="px-4 py-2 pr-8 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                  style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
+                >
+                  {editForm.subcategory.charAt(0).toUpperCase() + editForm.subcategory.slice(1)}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onEditChange('subcategory', '')}
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white hover:bg-gray-100 shadow-md flex items-center justify-center text-xs transition-all"
+                >
+                  <span className="text-red-500 font-bold">✕</span>
+                </button>
+              </div>
             </div>
           </div>
         ) : (
@@ -124,11 +120,11 @@ const ModalBody = ({
               
               <div className="flex gap-2 flex-wrap">
                 {editForm.category ? (
-                  // Show only selected category with clear button
-                  <>
+                  // Show only selected category with X button
+                  <div className="relative">
                     <button
                       type="button"
-                      className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                      className="px-4 py-2 pr-8 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
                       style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
                     >
                       {editForm.category}
@@ -136,15 +132,11 @@ const ModalBody = ({
                     <button
                       type="button"
                       onClick={() => onEditChange('category', '')}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                        isDarkMode
-                          ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                          : 'bg-red-50 text-red-600 hover:bg-red-100'
-                      }`}
+                      className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white hover:bg-gray-100 shadow-md flex items-center justify-center text-xs transition-all"
                     >
-                      Clear
+                      <span className="text-red-500 font-bold">✕</span>
                     </button>
-                  </>
+                  </div>
                 ) : (
                   // Show all categories with colored text and subtle background tint
                   <>
@@ -183,11 +175,11 @@ const ModalBody = ({
                 
                 <div className="flex gap-2 flex-wrap">
                   {editForm.subcategory ? (
-                    // Show only selected subcategory with clear button
-                    <>
+                    // Show only selected subcategory with X button
+                    <div className="relative">
                       <button
                         type="button"
-                        className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                        className="px-4 py-2 pr-8 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
                         style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
                       >
                         {editForm.subcategory.charAt(0).toUpperCase() + editForm.subcategory.slice(1)}
@@ -195,15 +187,11 @@ const ModalBody = ({
                       <button
                         type="button"
                         onClick={() => onEditChange('subcategory', '')}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                          isDarkMode
-                            ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                            : 'bg-red-50 text-red-600 hover:bg-red-100'
-                        }`}
+                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-white hover:bg-gray-100 shadow-md flex items-center justify-center text-xs transition-all"
                       >
-                        Clear
+                        <span className="text-red-500 font-bold">✕</span>
                       </button>
-                    </>
+                    </div>
                   ) : (
                     // Show all subcategories with colored text and subtle background
                     <>
