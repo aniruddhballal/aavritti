@@ -115,6 +115,12 @@ export const PieRenderer = ({
               fontWeight: '500',
               color: isDarkMode ? '#e5e7eb' : '#374151'
             }}
+              labelStyle={{
+                color: isDarkMode ? '#f3f4f6' : '#111827'
+              }}
+              itemStyle={{
+                color: isDarkMode ? '#f3f4f6' : '#111827'
+              }}
           />
         </PieChart>
       </ResponsiveContainer>
