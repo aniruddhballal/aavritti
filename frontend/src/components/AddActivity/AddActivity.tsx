@@ -316,7 +316,7 @@ const AddActivity = () => {
                               : 'bg-red-50 text-red-600 hover:bg-red-100'
                           }`}
                         >
-                          ✕ Cancel
+                          Clear
                         </button>
                       </>
                     ) : (
@@ -439,23 +439,40 @@ const AddActivity = () => {
                     <div className="flex gap-2 flex-wrap">
                       {/* Show existing subcategories if they exist */}
                       {selectedCategory.subcategories && selectedCategory.subcategories.length > 0 && 
-                        selectedCategory.subcategories.map(sub => (
-                          <button
-                            key={sub.name}
-                            type="button"
-                            onClick={() => handleSubcategorySelect(sub.displayName)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                              selectedSubcategory === sub.displayName
-                                ? 'text-white shadow-md transform scale-105'
-                                : isDarkMode
-                                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                            style={selectedSubcategory === sub.displayName ? { backgroundColor: selectedCategory.color } : {}}
-                          >
-                            {sub.displayName}
-                          </button>
-                        ))
+                        selectedCategory.subcategories.map(sub => {
+                          // Convert hex color to RGB for opacity
+                          const hexToRgb = (hex: string) => {
+                            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                            return result ? {
+                              r: parseInt(result[1], 16),
+                              g: parseInt(result[2], 16),
+                              b: parseInt(result[3], 16)
+                            } : { r: 0, g: 0, b: 0 };
+                          };
+                          
+                          const rgb = hexToRgb(selectedCategory.color);
+                          const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
+                          
+                          return (
+                            <button
+                              key={sub.name}
+                              type="button"
+                              onClick={() => handleSubcategorySelect(sub.displayName)}
+                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
+                                selectedSubcategory === sub.displayName
+                                  ? 'text-white shadow-md transform scale-105'
+                                  : 'hover:shadow-md hover:scale-105'
+                              }`}
+                              style={
+                                selectedSubcategory === sub.displayName
+                                  ? { backgroundColor: selectedCategory.color }
+                                  : { color: selectedCategory.color, backgroundColor: bgColor }
+                              }
+                            >
+                              {sub.displayName}
+                            </button>
+                          );
+                        })
                       }
                       
                       {/* New Subcategory Button */}
