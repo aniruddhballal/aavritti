@@ -4,6 +4,7 @@ import connectDB from './config/database';
 import activitiesRouter from './routes/activities';
 import cacheEntriesRouter from './routes/cacheEntries';
 import categorySuggestions from './routes/categorySuggestions';
+import categoriesRouter from './routes/categories'; // ✅ NEW
 import authRouter from './routes/auth';
 import { requireAuth } from './middleware/auth';
 
@@ -27,6 +28,7 @@ app.get('/', (_req, res) => {
 app.use('/api/activities', requireAuth, activitiesRouter);
 app.use('/api/cache', requireAuth, cacheEntriesRouter);
 app.use('/api/suggestions', requireAuth, categorySuggestions);
+app.use('/api/categories', requireAuth, categoriesRouter); // ✅ NEW
 
 const PORT = 5000;
 app.listen(PORT, () => {

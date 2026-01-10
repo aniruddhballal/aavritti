@@ -119,28 +119,97 @@ const AddActivity = () => {
     setNewSubcategoryName('');
   };
 
-  const handleCreateNewCategory = () => {
-    if (newCategoryName.trim()) {
-      // Create a temporary category object for the new category
-      const tempCategory: CategorySuggestion = {
-        name: newCategoryName.trim().toLowerCase(),
-        displayName: newCategoryName.trim(),
-        color: '#95A5A6', // Default gray color, backend will assign proper color
-        usageCount: 0,
-        subcategories: []
-      };
-      setSelectedCategory(tempCategory);
+  const handleCreateNewCategory = async () => {
+    if (!newCategoryName.trim()) return;
+
+    try {
+      setError(null);
+      setIsSubmitting(true);
+
+      // ✅ Create category immediately via API
+      const newCategory = await activityService.createCategory(newCategoryName.trim());
+      
+      // Set as selected category
+      setSelectedCategory(newCategory);
       setIsCreatingCategory(false);
       setNewCategoryName('');
       setSelectedSubcategory('');
+      
+      // ✅ Refresh categories list to include the new one
+      const updatedCategories = await activityService.getCategorySuggestions('');
+      setCategorySuggestions(updatedCategories);
+    } catch (err: any) {
+      // Handle "already exists" error gracefully
+      if (err.response?.status === 409 && err.response?.data?.category) {
+        const existingCategory = err.response.data.category;
+        setSelectedCategory(existingCategory);
+        setIsCreatingCategory(false);
+        setNewCategoryName('');
+        setSelectedSubcategory('');
+        
+        // Still refresh the list
+        const updatedCategories = await activityService.getCategorySuggestions('');
+        setCategorySuggestions(updatedCategories);
+      } else {
+        setError(err.response?.data?.error || 'Failed to create category');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleCreateNewSubcategory = () => {
-    if (newSubcategoryName.trim()) {
-      setSelectedSubcategory(newSubcategoryName.trim());
+  const handleCreateNewSubcategory = async () => {
+    if (!newSubcategoryName.trim() || !selectedCategory) return;
+
+    try {
+      setError(null);
+      setIsSubmitting(true);
+
+      // ✅ Create subcategory immediately via API
+      const newSubcategory = await activityService.createSubcategory(
+        selectedCategory.name,
+        newSubcategoryName.trim()
+      );
+      
+      // Set as selected subcategory
+      setSelectedSubcategory(newSubcategory.displayName);
       setIsCreatingSubcategory(false);
       setNewSubcategoryName('');
+      
+      // ✅ Refresh categories list to get updated subcategories
+      const updatedCategories = await activityService.getCategorySuggestions('');
+      setCategorySuggestions(updatedCategories);
+      
+      // ✅ Update the selected category to include the new subcategory
+      const updatedSelectedCategory = updatedCategories.find(
+        cat => cat.name === selectedCategory.name
+      );
+      if (updatedSelectedCategory) {
+        setSelectedCategory(updatedSelectedCategory);
+      }
+    } catch (err: any) {
+      // Handle "already exists" error gracefully
+      if (err.response?.status === 409 && err.response?.data?.subcategory) {
+        const existingSubcategory = err.response.data.subcategory;
+        setSelectedSubcategory(existingSubcategory.displayName);
+        setIsCreatingSubcategory(false);
+        setNewSubcategoryName('');
+        
+        // Still refresh the list
+        const updatedCategories = await activityService.getCategorySuggestions('');
+        setCategorySuggestions(updatedCategories);
+        
+        const updatedSelectedCategory = updatedCategories.find(
+          cat => cat.name === selectedCategory.name
+        );
+        if (updatedSelectedCategory) {
+          setSelectedCategory(updatedSelectedCategory);
+        }
+      } else {
+        setError(err.response?.data?.error || 'Failed to create subcategory');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -393,7 +462,7 @@ const AddActivity = () => {
                       <button
                         type="button"
                         onClick={handleCreateNewCategory}
-                        disabled={!newCategoryName.trim()}
+                        disabled={!newCategoryName.trim() || isSubmitting}
                         className={`px-4 py-2 rounded-lg font-medium transition-all ${
                           !newCategoryName.trim()
                             ? isDarkMode
@@ -532,7 +601,7 @@ const AddActivity = () => {
                         <button
                           type="button"
                           onClick={handleCreateNewSubcategory}
-                          disabled={!newSubcategoryName.trim()}
+                          disabled={!newSubcategoryName.trim() || isSubmitting}
                           className={`px-4 py-2 rounded-lg font-medium transition-all ${
                             !newSubcategoryName.trim()
                               ? isDarkMode

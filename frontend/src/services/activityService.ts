@@ -1,5 +1,5 @@
 import { api } from './api';
-import type { Activity, CreateActivityData, DailyData, CategorySuggestion } from '../types/activity';
+import type { Activity, CreateActivityData, DailyData, CategorySuggestion, SubcategorySuggestion } from '../types/activity';
 
 export const activityService = {
   getActivities: async (date: string): Promise<DailyData> => {
@@ -43,6 +43,24 @@ export const activityService = {
     const response = await api.get('/suggestions/subcategories', {
       params: { category, q: query }
     });
+    return response.data;
+  },
+
+  // ✅ NEW: Create a new category
+  createCategory: async (name: string): Promise<CategorySuggestion> => {
+    const response = await api.post<CategorySuggestion>('/categories', { name });
+    return response.data;
+  },
+
+  // ✅ NEW: Create a new subcategory
+  createSubcategory: async (
+    categoryName: string,
+    subcategoryName: string
+  ): Promise<SubcategorySuggestion> => {
+    const response = await api.post<SubcategorySuggestion>(
+      `/categories/${categoryName}/subcategories`,
+      { name: subcategoryName }
+    );
     return response.data;
   }
 };
