@@ -70,7 +70,7 @@ const ModalBody = ({
             }`}>
               CATEGORY & SUBCATEGORY <span className="text-red-500">*</span>
             </label>
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-5 flex-wrap">
               <div className="relative">
                 <button
                   type="button"
@@ -87,8 +87,6 @@ const ModalBody = ({
                   <span className="text-red-500 font-bold">✕</span>
                 </button>
               </div>
-              
-              <div className={`w-px h-8 self-center ${isDarkMode ? 'bg-gray-600' : 'bg-gray-300'}`}></div>
               
               <div className="relative">
                 <button
