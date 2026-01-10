@@ -12,16 +12,30 @@ router.get('/:date', async (req, res) => {
 
     const dateActivities = await Activity
       .find({ date })
-      .populate('categoryId') // ✅ Populate category details
+      .populate('categoryId')
       .sort({ createdAt: -1 })
       .lean();
 
-    // ✅ Transform to include category info
-    const enrichedActivities = dateActivities.map(activity => ({
-      ...activity,
-      category: (activity.categoryId as any).name, // For backward compatibility
-      categoryColor: (activity.categoryId as any).color || '#95A5A6'
-    }));
+    // Transform to include category and subcategory info
+    const enrichedActivities = dateActivities.map(activity => {
+      const category = activity.categoryId as any;
+      let subcategoryName = null;
+      
+      // Find subcategory name if subcategoryId exists
+      if (activity.subcategoryId && category.subcategories) {
+        const subcategory = category.subcategories.find(
+          (sub: any) => sub._id.toString() === activity.subcategoryId?.toString()
+        );
+        subcategoryName = subcategory?.displayName || null;
+      }
+
+      return {
+        ...activity,
+        category: category.name,
+        categoryColor: category.color || '#95A5A6',
+        subcategory: subcategoryName
+      };
+    });
 
     res.json({
       date,
@@ -35,7 +49,7 @@ router.get('/:date', async (req, res) => {
   }
 });
 
-// Get suggested categories and subcategories (replaces /meta/categories)
+// Get suggested categories and subcategories
 router.get('/meta/suggestions', async (_req, res) => {
   try {
     const categories = await Category.find()
@@ -62,12 +76,11 @@ router.get('/meta/suggestions', async (_req, res) => {
   }
 });
 
-// Add a new activity (now allows any date)
+// Add a new activity
 router.post('/', async (req, res) => {
   try {
     const { date, category, subcategory, title, description, duration, startTime, endTime } = req.body;
 
-    // Validate required fields
     if (!date) {
       return res.status(400).json({ error: 'Date is required' });
     }
@@ -76,9 +89,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Category, title, and duration are required' });
     }
 
-    // Update taxonomy (learn from this activity)
     const norm = (s: string) => s.trim().toLowerCase();
-
     const catName = norm(category);
     const subName = subcategory ? norm(subcategory) : null;
 
@@ -92,12 +103,14 @@ router.post('/', async (req, res) => {
         $setOnInsert: { 
           name: catName, 
           displayName: category,
-          color: getUniqueColor(usedColors)  // ✅ Assign unique color
+          color: getUniqueColor(usedColors)
         },
         $inc: { usageCount: 1 }
       },
       { new: true, upsert: true }
     );
+
+    let subcategoryId = null;
 
     // Update subcategory if provided
     if (subName && cat) {
@@ -106,22 +119,29 @@ router.post('/', async (req, res) => {
       if (existingSubIndex >= 0) {
         // Increment existing subcategory
         cat.subcategories[existingSubIndex].usageCount += 1;
+        subcategoryId = cat.subcategories[existingSubIndex]._id;
       } else {
         // Add new subcategory
         cat.subcategories.push({
           name: subName,
           displayName: subcategory.trim(),
           usageCount: 1
-        });
+        } as any);
+        await cat.save();
+        
+        // Get the newly created subcategory ID
+        const newSub = cat.subcategories.find(s => s.name === subName);
+        subcategoryId = newSub?._id;
       }
+      
       await cat.save();
     }
 
-    // ✅ Create activity with categoryId instead of category string
+    // Create activity with categoryId and subcategoryId
     const activity = await Activity.create({
       date,
-      categoryId: cat._id, // ✅ Use ObjectId reference
-      subcategory: subcategory?.trim() || undefined,
+      categoryId: cat._id,
+      subcategoryId: subcategoryId || undefined,
       title: title.trim(),
       description: description?.trim() || undefined,
       duration: Number(duration),
@@ -147,12 +167,11 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Activity not found' });
     }
 
-    // ✅ Handle category update - convert name to ID
+    // Handle category update - convert name to ID
     if (updates.category) {
       const norm = (s: string) => s.trim().toLowerCase();
       const catName = norm(updates.category);
       
-      // Find or create the category
       const existingCategories = await Category.find({}).select('color');
       const usedColors = existingCategories.map(cat => cat.color);
       
@@ -169,12 +188,46 @@ router.put('/:id', async (req, res) => {
         { new: true, upsert: true }
       );
       
-      activity.categoryId = cat._id; // ✅ Update with ObjectId
+      activity.categoryId = cat._id;
+      
+      // Clear subcategory when category changes
+      activity.subcategoryId = undefined;
     }
     
+    // Handle subcategory update - convert name to ID
     if (updates.subcategory !== undefined) {
-      activity.subcategory = updates.subcategory?.trim() || undefined;
+      if (updates.subcategory === null || updates.subcategory === '') {
+        activity.subcategoryId = undefined;
+      } else {
+        const norm = (s: string) => s.trim().toLowerCase();
+        const subName = norm(updates.subcategory);
+        
+        // Get the category to find/create subcategory
+        const cat = await Category.findById(activity.categoryId);
+        
+        if (cat) {
+          const existingSubIndex = cat.subcategories.findIndex(s => s.name === subName);
+          
+          if (existingSubIndex >= 0) {
+            cat.subcategories[existingSubIndex].usageCount += 1;
+            activity.subcategoryId = cat.subcategories[existingSubIndex]._id;
+          } else {
+            cat.subcategories.push({
+              name: subName,
+              displayName: updates.subcategory.trim(),
+              usageCount: 1
+            } as any);
+            await cat.save();
+            
+            const newSub = cat.subcategories.find(s => s.name === subName);
+            activity.subcategoryId = newSub?._id;
+          }
+          
+          await cat.save();
+        }
+      }
     }
+    
     if (updates.title) activity.title = updates.title.trim();
     if (updates.description !== undefined) {
       activity.description = updates.description?.trim() || undefined;
