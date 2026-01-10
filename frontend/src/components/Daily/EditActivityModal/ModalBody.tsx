@@ -129,44 +129,48 @@ const ModalBody = ({
             </label>
             
             <div className="flex gap-2 flex-wrap">
-              {editSubcategories.map(sub => {
-                const rgb = hexToRgb(selectedCategoryObj?.color || '#95A5A6');
-                const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
-                
-                return (
+              {editForm.subcategory ? (
+                // Show only selected subcategory with clear button
+                <>
                   <button
-                    key={sub}
                     type="button"
-                    onClick={() => onEditChange('subcategory', sub)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                      editForm.subcategory === sub
-                        ? 'text-white shadow-md transform scale-105'
-                        : 'hover:shadow-md hover:scale-105'
-                    }`}
-                    style={
-                      editForm.subcategory === sub
-                        ? { backgroundColor: selectedCategoryObj?.color || '#95A5A6' }
-                        : { color: selectedCategoryObj?.color || '#95A5A6', backgroundColor: bgColor }
-                    }
+                    className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                    style={{ backgroundColor: selectedCategoryObj?.color || '#95A5A6' }}
                   >
-                    {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                    {editForm.subcategory.charAt(0).toUpperCase() + editForm.subcategory.slice(1)}
                   </button>
-                );
-              })}
-              
-              {/* Clear Subcategory Button (only if one is selected) */}
-              {editForm.subcategory && (
-                <button
-                  type="button"
-                  onClick={() => onEditChange('subcategory', '')}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                    isDarkMode
-                      ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                      : 'bg-red-50 text-red-600 hover:bg-red-100'
-                  }`}
-                >
-                  Clear
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => onEditChange('subcategory', '')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                      isDarkMode
+                        ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                        : 'bg-red-50 text-red-600 hover:bg-red-100'
+                    }`}
+                  >
+                    Clear
+                  </button>
+                </>
+              ) : (
+                // Show all subcategories with colored text and subtle background
+                <>
+                  {editSubcategories.map(sub => {
+                    const rgb = hexToRgb(selectedCategoryObj?.color || '#95A5A6');
+                    const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
+                    
+                    return (
+                      <button
+                        key={sub}
+                        type="button"
+                        onClick={() => onEditChange('subcategory', sub)}
+                        className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize hover:shadow-md hover:scale-105"
+                        style={{ color: selectedCategoryObj?.color || '#95A5A6', backgroundColor: bgColor }}
+                      >
+                        {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                      </button>
+                    );
+                  })}
+                </>
               )}
             </div>
           </div>
