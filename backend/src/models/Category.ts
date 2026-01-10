@@ -1,14 +1,15 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 export interface ISubcategory {
+  _id: Types.ObjectId;  // ✅ Add this for references
   name: string;
   displayName: string;
   usageCount: number;
 }
 
 export interface ICategory extends Document {
-  name: string;          // normalized (lowercase)
-  displayName: string;   // original user input
+  name: string;
+  displayName: string;
   usageCount: number;
   color: string;
   subcategories: ISubcategory[];
@@ -16,13 +17,32 @@ export interface ICategory extends Document {
   updatedAt: Date;
 }
 
+const SubcategorySchema = new Schema({
+  name: { 
+    type: String, 
+    required: true,
+    lowercase: true,
+    trim: true
+  },
+  displayName: { 
+    type: String, 
+    required: true,
+    trim: true
+  },
+  usageCount: { 
+    type: Number, 
+    default: 1,
+    min: 0
+  }
+}, { _id: true });  // ✅ Enable _id for subdocuments
+
 const CategorySchema = new Schema<ICategory>(
   {
     name: {
-      type: String,  // ⚠️ Was __type__ - should be "type"
+      type: String,
       required: true,
       unique: true,
-      lowercase: true,  // 🆕 Auto-normalize
+      lowercase: true,
       trim: true,
       index: true
     },
@@ -34,40 +54,20 @@ const CategorySchema = new Schema<ICategory>(
     usageCount: {
       type: Number,
       default: 1,
-      min: 0  // 🆕 Can't be negative
+      min: 0
     },
     color: {
       type: String,
       required: true,
-      default: '#95A5A6'  // Default gray
+      default: '#95A5A6'
     },
-    subcategories: [
-      {
-        name: { 
-          type: String, 
-          required: true,
-          lowercase: true,  // 🆕 Auto-normalize
-          trim: true
-        },
-        displayName: { 
-          type: String, 
-          required: true,
-          trim: true
-        },
-        usageCount: { 
-          type: Number, 
-          default: 1,
-          min: 0
-        }
-      }
-    ]
+    subcategories: [SubcategorySchema]
   },
   { 
-    timestamps: true  // 🆕 Adds createdAt/updatedAt
+    timestamps: true
   }
 );
 
-// 🆕 Compound index for finding subcategories efficiently
 CategorySchema.index({ 'subcategories.name': 1 });
 
 export default model<ICategory>('Category', CategorySchema);
