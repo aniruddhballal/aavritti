@@ -65,7 +65,6 @@ const AddActivity = () => {
       try {
         setLoading(true);
         const suggestions = await activityService.getCategorySuggestions('');
-        console.log('Fetched category suggestions:', suggestions);
         setCategorySuggestions(suggestions);
       } catch (err) {
         console.error('Error fetching categories:', err);
