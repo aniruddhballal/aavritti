@@ -295,7 +295,7 @@ const AddActivity = () => {
                 {!isCreatingCategory ? (
                   <div className="flex gap-2 flex-wrap">
                     {selectedCategory ? (
-                      // Show only selected category with cancel button
+                      // Show only selected category with full color
                       <>
                         <button
                           type="button"
@@ -320,19 +320,37 @@ const AddActivity = () => {
                         </button>
                       </>
                     ) : (
-                      // Show all categories with their colors
+                      // Show all categories with colored text and subtle background tint
                       <>
-                        {categorySuggestions.map(cat => (
-                          <button
-                            key={cat.name}
-                            type="button"
-                            onClick={() => handleCategorySelect(cat)}
-                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize text-white hover:shadow-md hover:scale-105"
-                            style={{ backgroundColor: cat.color }}
-                          >
-                            {cat.displayName}
-                          </button>
-                        ))}
+                        {categorySuggestions.map(cat => {
+                          // Convert hex color to RGB for opacity
+                          const hexToRgb = (hex: string) => {
+                            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                            return result ? {
+                              r: parseInt(result[1], 16),
+                              g: parseInt(result[2], 16),
+                              b: parseInt(result[3], 16)
+                            } : { r: 0, g: 0, b: 0 };
+                          };
+                          
+                          const rgb = hexToRgb(cat.color);
+                          const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
+                          
+                          return (
+                            <button
+                              key={cat.name}
+                              type="button"
+                              onClick={() => handleCategorySelect(cat)}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize hover:shadow-md hover:scale-105"
+                              style={{ 
+                                color: cat.color,
+                                backgroundColor: bgColor
+                              }}
+                            >
+                              {cat.displayName}
+                            </button>
+                          );
+                        })}
                         
                         {/* New Category Button */}
                         <button
