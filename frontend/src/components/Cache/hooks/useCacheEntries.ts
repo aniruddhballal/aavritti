@@ -31,7 +31,7 @@ export const useCacheEntries = (containerRef: RefObject<HTMLDivElement | null>) 
     const fetchEntries = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(apiUrl('/cache-entries'));
+        const response = await fetch(apiUrl('/cache/cache-entries'));
         const data = await response.json();
         
         const entriesWithPositions = data.map((entry: CacheEntry, index: number) => ({
@@ -64,7 +64,7 @@ export const useCacheEntries = (containerRef: RefObject<HTMLDivElement | null>) 
       const x = window.innerWidth / 2 + scrollX;
       const y = window.innerHeight / 2 + scrollY;
 
-      const response = await fetch(apiUrl('/cache-entries'), {
+      const response = await fetch(apiUrl('/cache/cache-entries'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,7 +86,7 @@ export const useCacheEntries = (containerRef: RefObject<HTMLDivElement | null>) 
   const updateEntry = async (id: string, data: Partial<CacheEntry>) => {
     setSavingEntries(prev => new Set(prev).add(id));
     try {
-      await fetch(apiUrl(`/cache-entries/${id}`), {
+      await fetch(apiUrl(`/cache/cache-entries/${id}`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -144,7 +144,7 @@ export const useCacheEntries = (containerRef: RefObject<HTMLDivElement | null>) 
     if (!confirmed) return;
 
     try {
-      const response = await fetch(apiUrl(`/cache-entries/${id}`), {
+      const response = await fetch(apiUrl(`/cache/cache-entries/${id}`), {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
