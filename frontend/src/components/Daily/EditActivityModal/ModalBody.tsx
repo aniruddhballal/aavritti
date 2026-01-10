@@ -172,24 +172,6 @@ const ModalBody = ({
           </div>
         )}
 
-        {/* Selected Category Display */}
-        {editForm.category && (
-          <div className={`rounded-lg p-4 border ${
-            isDarkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-200'
-          }`}>
-            <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-              Selected: <span className="font-semibold capitalize" style={{ color: selectedCategoryObj?.color || '#95A5A6' }}>
-                {editForm.category}
-              </span>
-              {editForm.subcategory && (
-                <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
-                  {' → '}<span className="capitalize">{editForm.subcategory}</span>
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
         <TextInputField
           label="Title"
           value={editForm.title}
@@ -214,22 +196,8 @@ const ModalBody = ({
           onStartChange={(value) => onEditChange('startTime', value)}
           onEndChange={(value) => onEditChange('endTime', value)}
           isDarkMode={isDarkMode}
+          duration={editForm.duration}
         />
-
-        {/* Display calculated duration */}
-        {editForm.startTime && editForm.endTime && editForm.duration > 0 && (
-          <div className={`rounded-lg p-4 border ${
-            isDarkMode 
-              ? 'bg-blue-900/20 border-blue-800' 
-              : 'bg-blue-50 border-blue-200'
-          }`}>
-            <div className={`text-sm font-medium ${
-              isDarkMode ? 'text-blue-300' : 'text-blue-700'
-            }`}>
-              Calculated Duration: {editForm.duration} minutes ({Math.floor(editForm.duration / 60)}h {editForm.duration % 60}m)
-            </div>
-          </div>
-        )}
 
         {validationError && (
           <div className={`error-alert border rounded-lg p-4 text-sm flex items-start gap-2 ${
