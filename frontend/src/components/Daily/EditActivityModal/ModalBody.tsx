@@ -53,8 +53,6 @@ const ModalBody = ({
     } : { r: 0, g: 0, b: 0 };
   };
 
-  const durationHelperText = `${editForm.duration} minutes = ${Math.floor(editForm.duration / 60)}h ${editForm.duration % 60}m`;
-
   // Find the selected category object for color
   const selectedCategoryObj = categorySuggestions.find(
     cat => cat.name.toLowerCase() === editForm.category.toLowerCase()
@@ -209,17 +207,6 @@ const ModalBody = ({
           placeholder="Add details about this activity"
         />
 
-        <TextInputField
-          label="Duration (minutes)"
-          value={editForm.duration}
-          onChange={(value) => onEditChange('duration', parseInt(value) || 0)}
-          isDarkMode={isDarkMode}
-          type="number"
-          required
-          min="1"
-          helperText={durationHelperText}
-        />
-
         <TimeRangeField
           startTime={editForm.startTime}
           endTime={editForm.endTime}
@@ -227,6 +214,21 @@ const ModalBody = ({
           onEndChange={(value) => onEditChange('endTime', value)}
           isDarkMode={isDarkMode}
         />
+
+        {/* Display calculated duration */}
+        {editForm.startTime && editForm.endTime && editForm.duration > 0 && (
+          <div className={`rounded-lg p-4 border ${
+            isDarkMode 
+              ? 'bg-blue-900/20 border-blue-800' 
+              : 'bg-blue-50 border-blue-200'
+          }`}>
+            <div className={`text-sm font-medium ${
+              isDarkMode ? 'text-blue-300' : 'text-blue-700'
+            }`}>
+              Calculated Duration: {editForm.duration} minutes ({Math.floor(editForm.duration / 60)}h {editForm.duration % 60}m)
+            </div>
+          </div>
+        )}
 
         {validationError && (
           <div className={`error-alert border rounded-lg p-4 text-sm flex items-start gap-2 ${

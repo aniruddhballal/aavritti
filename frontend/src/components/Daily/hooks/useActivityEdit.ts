@@ -40,25 +40,24 @@ export const useActivityEdit = (
     });
   };
 
-  const validateDuration = (form: EditForm): string => {
-    if (form.startTime && form.endTime) {
+  // Auto-calculate duration when start or end time changes
+  useEffect(() => {
+    if (editForm.startTime && editForm.endTime) {
       const today = getTodayIST();
-      const start = new Date(`${today}T${form.startTime}`);
-      const end = new Date(`${today}T${form.endTime}`);
+      const start = new Date(`${today}T${editForm.startTime}`);
+      const end = new Date(`${today}T${editForm.endTime}`);
       const calculatedMinutes = Math.round((end.getTime() - start.getTime()) / 60000);
       
-      if (calculatedMinutes <= 0) {
-        return 'End time must be after start time';
-      }
-      
-      if (calculatedMinutes !== form.duration) {
-        return `Duration mismatch: Start/End times = ${calculatedMinutes} mins, but Duration field = ${form.duration} mins. Please fix one of them.`;
+      if (calculatedMinutes > 0) {
+        setEditForm(prev => ({ ...prev, duration: calculatedMinutes }));
+        setValidationError('');
+      } else {
+        setValidationError('End time must be after start time');
       }
     }
-    return '';
-  };
+  }, [editForm.startTime, editForm.endTime]);
 
-  // ✅ Fetch subcategories when category changes
+  // Fetch subcategories when category changes
   useEffect(() => {
     const fetchSubcategories = async () => {
       if (!editForm.category) {
@@ -92,7 +91,7 @@ export const useActivityEdit = (
     });
     setValidationError('');
 
-    // ✅ Fetch subcategories for the activity's category
+    // Fetch subcategories for the activity's category
     if (activity.category) {
       try {
         const subs = await activityService.getSubcategorySuggestions(activity.category, '');
@@ -113,13 +112,16 @@ export const useActivityEdit = (
     }
     
     setEditForm(updatedForm);
-    
-    const error = validateDuration(updatedForm);
-    setValidationError(error);
   };
 
   const handleSaveEdit = async () => {
     if (!editingActivity) return;
+
+    // Validate before saving
+    if (editForm.duration <= 0) {
+      setValidationError('Please provide valid start and end times');
+      return;
+    }
 
     try {
       await activityService.updateActivity(editingActivity._id, {
