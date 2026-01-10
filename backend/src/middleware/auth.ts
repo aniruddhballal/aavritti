@@ -1,49 +1,53 @@
 import { Request, Response, NextFunction } from 'express';
-import crypto from 'crypto';
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const validTokens = new Set<string>();
+// Get allowed IPs from environment variable
+const ALLOWED_IPS = process.env.ALLOWED_IPS?.split(',').map(ip => ip.trim()) || [];
 
-// Generate a secure random token
-export const generateToken = (): string => {
-  return crypto.randomBytes(32).toString('hex');
+// Helper function to get client IP address
+const getClientIp = (req: Request): string => {
+  const forwarded = req.headers['x-forwarded-for'];
+  
+  if (forwarded) {
+    return Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0].trim();
+  }
+  
+  return req.headers['x-real-ip'] as string ||
+         req.socket.remoteAddress ||
+         req.ip ||
+         '';
 };
 
-// Validate token
-export const isValidToken = (token: string): boolean => {
-  return validTokens.has(token);
+// Helper function to normalize IP for comparison
+const normalizeIp = (ip: string): string => {
+  if (ip === '::ffff:127.0.0.1' || ip === '::1') {
+    return '127.0.0.1';
+  }
+  return ip;
 };
 
-// Add token to valid set
-export const addToken = (token: string): void => {
-  validTokens.add(token);
+// Check if IP is allowed
+const isIpAllowed = (ip: string): boolean => {
+  const normalizedClientIp = normalizeIp(ip);
+  
+  return ALLOWED_IPS.some(allowedIp => {
+    const normalizedAllowedIp = normalizeIp(allowedIp);
+    return normalizedClientIp === normalizedAllowedIp;
+  });
 };
 
-// Remove token (for logout)
-export const removeToken = (token: string): void => {
-  validTokens.delete(token);
-};
-
-// Middleware to protect routes
+// Middleware to protect routes based on IP address
 export const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
-  const authHeader = req.headers.authorization;
+  const clientIp = getClientIp(req);
   
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ message: 'Unauthorized: No token provided' });
-    return;
-  }
-
-  const token = authHeader.split(' ')[1];
-  
-  if (!isValidToken(token)) {
-    res.status(401).json({ message: 'Unauthorized: Invalid token' });
+  if (!isIpAllowed(clientIp)) {
+    console.log('Unauthorized access attempt from IP:', clientIp);
+    res.status(403).json({ 
+      message: 'Forbidden: IP address not authorized',
+      ip: clientIp
+    });
     return;
   }
   
+  // IP is authorized, proceed to the route
   next();
-};
-
-// Verify password
-export const verifyPassword = (password: string): boolean => {
-  return password === ADMIN_PASSWORD;
 };
