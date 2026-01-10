@@ -294,36 +294,60 @@ const AddActivity = () => {
                 
                 {!isCreatingCategory ? (
                   <div className="flex gap-2 flex-wrap">
-                    {categorySuggestions.map(cat => (
-                      <button
-                        key={cat.name}
-                        type="button"
-                        onClick={() => handleCategorySelect(cat)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                          selectedCategory?.name === cat.name
-                            ? 'text-white shadow-md transform scale-105'
-                            : isDarkMode
-                              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                        style={selectedCategory?.name === cat.name ? { backgroundColor: cat.color } : {}}
-                      >
-                        {cat.displayName}
-                      </button>
-                    ))}
-                    
-                    {/* New Category Button */}
-                    <button
-                      type="button"
-                      onClick={() => setIsCreatingCategory(true)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${
-                        isDarkMode
-                          ? 'border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50'
-                          : 'border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      + New Category
-                    </button>
+                    {selectedCategory ? (
+                      // Show only selected category with cancel button
+                      <>
+                        <button
+                          type="button"
+                          className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                          style={{ backgroundColor: selectedCategory.color }}
+                        >
+                          {selectedCategory.displayName}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedCategory(null);
+                            setSelectedSubcategory('');
+                          }}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            isDarkMode
+                              ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                              : 'bg-red-50 text-red-600 hover:bg-red-100'
+                          }`}
+                        >
+                          ✕ Cancel
+                        </button>
+                      </>
+                    ) : (
+                      // Show all categories with their colors
+                      <>
+                        {categorySuggestions.map(cat => (
+                          <button
+                            key={cat.name}
+                            type="button"
+                            onClick={() => handleCategorySelect(cat)}
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize text-white hover:shadow-md hover:scale-105"
+                            style={{ backgroundColor: cat.color }}
+                          >
+                            {cat.displayName}
+                          </button>
+                        ))}
+                        
+                        {/* New Category Button */}
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingCategory(true)}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${
+                            isDarkMode
+                              ? 'border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50'
+                              : 'border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          + New Category
+                        </button>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className={`p-4 rounded-lg border ${
