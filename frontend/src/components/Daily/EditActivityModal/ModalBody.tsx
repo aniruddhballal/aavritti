@@ -204,6 +204,7 @@ const ModalBody = ({
           value={editForm.description}
           onChange={(value) => onEditChange('description', value)}
           isDarkMode={isDarkMode}
+          rows={1}
           placeholder="Add details about this activity"
         />
 
