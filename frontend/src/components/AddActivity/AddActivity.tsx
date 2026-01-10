@@ -437,70 +437,73 @@ const AddActivity = () => {
                   
                   {!isCreatingSubcategory ? (
                     <div className="flex gap-2 flex-wrap">
-                      {/* Show existing subcategories if they exist */}
-                      {selectedCategory.subcategories && selectedCategory.subcategories.length > 0 && 
-                        selectedCategory.subcategories.map(sub => {
-                          // Convert hex color to RGB for opacity
-                          const hexToRgb = (hex: string) => {
-                            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-                            return result ? {
-                              r: parseInt(result[1], 16),
-                              g: parseInt(result[2], 16),
-                              b: parseInt(result[3], 16)
-                            } : { r: 0, g: 0, b: 0 };
-                          };
+                      {selectedSubcategory ? (
+                        // Show only selected subcategory with clear button
+                        <>
+                          <button
+                            type="button"
+                            className="px-4 py-2 rounded-lg text-sm font-medium text-white shadow-md transform scale-105 transition-all capitalize"
+                            style={{ backgroundColor: selectedCategory.color }}
+                          >
+                            {selectedSubcategory}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedSubcategory('')}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                              isDarkMode
+                                ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
+                                : 'bg-red-50 text-red-600 hover:bg-red-100'
+                            }`}
+                          >
+                            Clear
+                          </button>
+                        </>
+                      ) : (
+                        // Show all subcategories with colored text and subtle background
+                        <>
+                          {selectedCategory.subcategories && selectedCategory.subcategories.length > 0 && 
+                            selectedCategory.subcategories.map(sub => {
+                              // Convert hex color to RGB for opacity
+                              const hexToRgb = (hex: string) => {
+                                const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                                return result ? {
+                                  r: parseInt(result[1], 16),
+                                  g: parseInt(result[2], 16),
+                                  b: parseInt(result[3], 16)
+                                } : { r: 0, g: 0, b: 0 };
+                              };
+                              
+                              const rgb = hexToRgb(selectedCategory.color);
+                              const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
+                              
+                              return (
+                                <button
+                                  key={sub.name}
+                                  type="button"
+                                  onClick={() => handleSubcategorySelect(sub.displayName)}
+                                  className="px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize hover:shadow-md hover:scale-105"
+                                  style={{ color: selectedCategory.color, backgroundColor: bgColor }}
+                                >
+                                  {sub.displayName}
+                                </button>
+                              );
+                            })
+                          }
                           
-                          const rgb = hexToRgb(selectedCategory.color);
-                          const bgColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`;
-                          
-                          return (
-                            <button
-                              key={sub.name}
-                              type="button"
-                              onClick={() => handleSubcategorySelect(sub.displayName)}
-                              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all capitalize ${
-                                selectedSubcategory === sub.displayName
-                                  ? 'text-white shadow-md transform scale-105'
-                                  : 'hover:shadow-md hover:scale-105'
-                              }`}
-                              style={
-                                selectedSubcategory === sub.displayName
-                                  ? { backgroundColor: selectedCategory.color }
-                                  : { color: selectedCategory.color, backgroundColor: bgColor }
-                              }
-                            >
-                              {sub.displayName}
-                            </button>
-                          );
-                        })
-                      }
-                      
-                      {/* New Subcategory Button */}
-                      <button
-                        type="button"
-                        onClick={() => setIsCreatingSubcategory(true)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${
-                          isDarkMode
-                            ? 'border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50'
-                            : 'border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        + New Subcategory
-                      </button>
-                      
-                      {/* Clear Subcategory Button (only if one is selected) */}
-                      {selectedSubcategory && (
-                        <button
-                          type="button"
-                          onClick={() => setSelectedSubcategory('')}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            isDarkMode
-                              ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                              : 'bg-red-50 text-red-600 hover:bg-red-100'
-                          }`}
-                        >
-                          Clear
-                        </button>
+                          {/* New Subcategory Button */}
+                          <button
+                            type="button"
+                            onClick={() => setIsCreatingSubcategory(true)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${
+                              isDarkMode
+                                ? 'border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50'
+                                : 'border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                            }`}
+                          >
+                            + New Subcategory
+                          </button>
+                        </>
                       )}
                     </div>
                   ) : (
