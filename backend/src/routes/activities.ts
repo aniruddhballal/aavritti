@@ -12,20 +12,15 @@ router.get('/:date', async (req, res) => {
 
     const dateActivities = await Activity
       .find({ date })
+      .populate('categoryId') // ✅ Populate category details
       .sort({ createdAt: -1 })
       .lean();
 
-    // ✅ Enrich activities with category colors
-    const categoryNames = [...new Set(dateActivities.map(a => a.category))];
-    const categories = await Category.find({ 
-      name: { $in: categoryNames } 
-    }).select('name color');
-
-    const colorMap = new Map(categories.map(c => [c.name, c.color]));
-
+    // ✅ Transform to include category info
     const enrichedActivities = dateActivities.map(activity => ({
       ...activity,
-      categoryColor: colorMap.get(activity.category) || '#95A5A6'
+      category: (activity.categoryId as any).name, // For backward compatibility
+      categoryColor: (activity.categoryId as any).color || '#95A5A6'
     }));
 
     res.json({
@@ -81,18 +76,6 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Category, title, and duration are required' });
     }
 
-    // Create activity
-    const activity = await Activity.create({
-      date,
-      category: category.trim(),
-      subcategory: subcategory?.trim() || undefined,
-      title: title.trim(),
-      description: description?.trim() || undefined,
-      duration: Number(duration),
-      startTime: startTime?.trim() || undefined,
-      endTime: endTime?.trim() || undefined
-    });
-
     // Update taxonomy (learn from this activity)
     const norm = (s: string) => s.trim().toLowerCase();
 
@@ -134,6 +117,18 @@ router.post('/', async (req, res) => {
       await cat.save();
     }
 
+    // ✅ Create activity with categoryId instead of category string
+    const activity = await Activity.create({
+      date,
+      categoryId: cat._id, // ✅ Use ObjectId reference
+      subcategory: subcategory?.trim() || undefined,
+      title: title.trim(),
+      description: description?.trim() || undefined,
+      duration: Number(duration),
+      startTime: startTime?.trim() || undefined,
+      endTime: endTime?.trim() || undefined
+    });
+
     res.status(201).json(activity);
   } catch (error) {
     console.error('Error creating activity:', error);
@@ -152,8 +147,31 @@ router.put('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Activity not found' });
     }
 
-    // Apply updates with trimming for string fields
-    if (updates.category) activity.category = updates.category.trim();
+    // ✅ Handle category update - convert name to ID
+    if (updates.category) {
+      const norm = (s: string) => s.trim().toLowerCase();
+      const catName = norm(updates.category);
+      
+      // Find or create the category
+      const existingCategories = await Category.find({}).select('color');
+      const usedColors = existingCategories.map(cat => cat.color);
+      
+      const cat = await Category.findOneAndUpdate(
+        { name: catName },
+        {
+          $setOnInsert: { 
+            name: catName, 
+            displayName: updates.category,
+            color: getUniqueColor(usedColors)
+          },
+          $inc: { usageCount: 1 }
+        },
+        { new: true, upsert: true }
+      );
+      
+      activity.categoryId = cat._id; // ✅ Update with ObjectId
+    }
+    
     if (updates.subcategory !== undefined) {
       activity.subcategory = updates.subcategory?.trim() || undefined;
     }
