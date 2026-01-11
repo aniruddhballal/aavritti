@@ -23,13 +23,18 @@ export const PasswordProtect = ({ children }: { children: React.ReactNode }) => 
       if (response.status === 200) {
         setIsAuthenticated(true);
       } else {
+        // Token invalid, clear it and show login
         localStorage.removeItem('authToken');
+        setIsAuthenticated(false);
       }
     } catch (error) {
+      // Token verification failed (401 or network error)
       console.error('Token verification failed:', error);
       localStorage.removeItem('authToken');
+      setIsAuthenticated(false);  // CHANGED: explicitly set to false
+    } finally {
+      setIsLoading(false);  // CHANGED: always stop loading
     }
-    setIsLoading(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,7 +43,7 @@ export const PasswordProtect = ({ children }: { children: React.ReactNode }) => 
 
     try {
       const response = await api.post('/auth/login', { password });
-
+      
       if (response.data.success) {
         localStorage.setItem('authToken', response.data.token);
         setIsAuthenticated(true);
@@ -58,9 +63,18 @@ export const PasswordProtect = ({ children }: { children: React.ReactNode }) => 
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center', 
-        minHeight: '100vh' 
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5'
       }}>
-        Loading...
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ 
+            fontSize: '18px', 
+            color: '#333',
+            marginBottom: '10px'
+          }}>
+            Verifying authentication...
+          </div>
+        </div>
       </div>
     );
   }
@@ -75,16 +89,21 @@ export const PasswordProtect = ({ children }: { children: React.ReactNode }) => 
       justifyContent: 'center', 
       alignItems: 'center', 
       minHeight: '100vh',
-      padding: '20px'
+      padding: '20px',
+      backgroundColor: '#f5f5f5'
     }}>
       <form onSubmit={handleSubmit} style={{ 
         display: 'flex', 
         flexDirection: 'column', 
         gap: '15px',
         maxWidth: '300px',
-        width: '100%'
+        width: '100%',
+        backgroundColor: 'white',
+        padding: '30px',
+        borderRadius: '8px',
+        boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
       }}>
-        <h2>Enter Password</h2>
+        <h2 style={{ margin: 0, textAlign: 'center' }}>Enter Password</h2>
         <input
           type="password"
           value={password}
