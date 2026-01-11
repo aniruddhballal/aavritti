@@ -1,5 +1,6 @@
-import { useState, useEffect} from 'react';
+import { useState, useEffect } from 'react';
 import type { RefObject } from 'react';
+import { api } from '../../../services/api'; // ADD THIS IMPORT - adjust path as needed
 
 interface CacheEntry {
   _id: string;
@@ -25,14 +26,13 @@ export const useCacheEntries = (containerRef: RefObject<HTMLDivElement | null>) 
   const [isCreating, setIsCreating] = useState(false);
   const [savingEntries, setSavingEntries] = useState<Set<string>>(new Set());
 
-  const apiUrl = (path: string) => `${import.meta.env.VITE_API_BASE_URL || ''}${path}`;
-
   useEffect(() => {
     const fetchEntries = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(apiUrl('/cache/cache-entries'));
-        const data = await response.json();
+        // CHANGED: Use api instance instead of fetch
+        const response = await api.get('/cache/cache-entries');
+        const data = response.data;
         
         const entriesWithPositions = data.map((entry: CacheEntry, index: number) => ({
           ...entry,
@@ -64,17 +64,14 @@ export const useCacheEntries = (containerRef: RefObject<HTMLDivElement | null>) 
       const x = window.innerWidth / 2 + scrollX;
       const y = window.innerHeight / 2 + scrollY;
 
-      const response = await fetch(apiUrl('/cache/cache-entries'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: '',
-          body: '',
-          position: { x, y }
-        }),
+      // CHANGED: Use api instance instead of fetch
+      const response = await api.post('/cache/cache-entries', {
+        title: '',
+        body: '',
+        position: { x, y }
       });
       
-      const newEntry = await response.json();
+      const newEntry = response.data;
       setEntries([...entries, { ...newEntry, x, y }]);
     } catch (error) {
       console.error('Error creating cache entry:', error);
@@ -86,11 +83,8 @@ export const useCacheEntries = (containerRef: RefObject<HTMLDivElement | null>) 
   const updateEntry = async (id: string, data: Partial<CacheEntry>) => {
     setSavingEntries(prev => new Set(prev).add(id));
     try {
-      await fetch(apiUrl(`/cache/cache-entries/${id}`), {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      // CHANGED: Use api instance instead of fetch
+      await api.patch(`/cache/cache-entries/${id}`, data);
       
       setTimeout(() => {
         setSavingEntries(prev => {
@@ -144,14 +138,9 @@ export const useCacheEntries = (containerRef: RefObject<HTMLDivElement | null>) 
     if (!confirmed) return;
 
     try {
-      const response = await fetch(apiUrl(`/cache/cache-entries/${id}`), {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      });
-
-      if (response.ok) {
-        setEntries(entries.filter(entry => entry._id !== id));
-      }
+      // CHANGED: Use api instance instead of fetch
+      await api.delete(`/cache/cache-entries/${id}`);
+      setEntries(entries.filter(entry => entry._id !== id));
     } catch (error) {
       console.error('Error deleting cache entry:', error);
     }
