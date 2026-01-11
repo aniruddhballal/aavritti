@@ -5,6 +5,7 @@ import { activityService } from '../../services/activityService';
 import { formatDateForRoute, CALENDAR_START_DATE, getISTDate, normalizeDateToMidnight } from './dateUtils';
 import type { DailyData } from '../../types/activity';
 import type { CategorySuggestion } from '../../types/activity';
+import { getTheme } from '../../theme';
 
 interface ActivityTrendsProps {
   isDarkMode: boolean;
@@ -20,6 +21,7 @@ interface DayData {
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
+  const theme = getTheme(isDarkMode);
   const [categories, setCategories] = useState<CategorySuggestion[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('project');
   const [chartData, setChartData] = useState<DayData[]>([]);
@@ -302,13 +304,11 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   };
 
   return (
-    <div className={`p-4 ${isDarkMode ? '' : ''}`}>
+    <div className="p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <TrendingUp className={isDarkMode ? 'text-blue-400' : 'text-blue-600'} size={20} />
-          <h3 className={`text-sm font-semibold ${
-            isDarkMode ? 'text-white' : 'text-gray-900'
-          }`}>
+          <h3 className={`text-sm font-semibold ${theme.textPrimary}`}>
             Activity Trends
           </h3>
         </div>
@@ -320,19 +320,15 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             disabled={!canGoPrevWeek || loading}
             className={`p-1.5 rounded-lg transition-colors relative ${
               canGoPrevWeek && !loading
-                ? isDarkMode
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                : isDarkMode
-                  ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
-                  : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                ? `${theme.bgSecondary} hover:${theme.bgHover} ${theme.textPrimary}`
+                : `${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'} ${isDarkMode ? 'text-gray-600' : 'text-gray-300'} cursor-not-allowed`
             }`}
             aria-label="Previous week"
           >
             <ChevronLeft size={18} className={loading && canGoPrevWeek ? 'animate-pulse' : ''} />
           </button>
           
-          <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} min-w-[80px] text-center`}>
+          <span className={`text-xs ${theme.textTertiary} min-w-[80px] text-center`}>
             {getWeekRangeText()}
           </span>
           
@@ -341,12 +337,8 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             disabled={!canGoNextWeek || loading}
             className={`p-1.5 rounded-lg transition-colors relative ${
               canGoNextWeek && !loading
-                ? isDarkMode
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                : isDarkMode
-                  ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
-                  : 'bg-gray-50 text-gray-300 cursor-not-allowed'
+                ? `${theme.bgSecondary} hover:${theme.bgHover} ${theme.textPrimary}`
+                : `${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'} ${isDarkMode ? 'text-gray-600' : 'text-gray-300'} cursor-not-allowed`
             }`}
             aria-label="Next week"
           >
@@ -365,9 +357,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all capitalize ${
               selectedCategory === cat.name && !pendingCategory
                 ? 'text-white shadow-md'
-                : isDarkMode
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : `${theme.bgSecondary} ${theme.textSecondary} hover:${theme.bgHover}`
             } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
             style={selectedCategory === cat.name && !pendingCategory ? { backgroundColor: cat.color } : {}}
           >
@@ -378,35 +368,29 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
 
       {/* Stats */}
       <div className="flex gap-4 mb-4">
-        <div className={`flex-1 p-3 rounded-lg ${
-          isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
-        }`}>
-          <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        <div className={`flex-1 p-3 rounded-lg ${theme.bgSecondary}`}>
+          <div className={`text-xs ${theme.textTertiary}`}>
             Total Hours
           </div>
-          <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className={`text-xl font-bold ${theme.textPrimary}`}>
             {formatDuration(totalHours)}
           </div>
         </div>
-        <div className={`flex-1 p-3 rounded-lg ${
-          isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
-        }`}>
-          <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        <div className={`flex-1 p-3 rounded-lg ${theme.bgSecondary}`}>
+          <div className={`text-xs ${theme.textTertiary}`}>
             Daily Average
           </div>
-          <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className={`text-xl font-bold ${theme.textPrimary}`}>
             {formatDuration(avgHours)}
           </div>
         </div>
-        <div className={`flex-1 p-3 rounded-lg ${
-          isDarkMode ? 'bg-gray-700' : 'bg-gray-50'
-        }`}>
-          <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+        <div className={`flex-1 p-3 rounded-lg ${theme.bgSecondary}`}>
+          <div className={`text-xs ${theme.textTertiary}`}>
             {selectedDayIndex !== null && selectedDayIndex !== chartData.length - 1
               ? chartData[selectedDayIndex]?.date
               : 'Today'}
           </div>
-          <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+          <div className={`text-xl font-bold ${theme.textPrimary}`}>
             {formatDuration(
               selectedDayIndex !== null ? chartData[selectedDayIndex]?.hours || 0 : chartData[chartData.length - 1]?.hours || 0
             )}
@@ -423,9 +407,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             {error}
           </div>
         ) : chartData.length === 0 ? (
-          <div className={`h-full flex items-center justify-center ${
-            isDarkMode ? 'text-gray-400' : 'text-gray-600'
-          }`}>
+          <div className={`h-full flex items-center justify-center ${theme.textTertiary}`}>
             No data available
           </div>
         ) : (
