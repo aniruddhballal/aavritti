@@ -5,11 +5,11 @@ import Cache from './components/Cache/Cache.tsx'
 import DailyWrapper from './components/Daily/DailyWrapper.tsx'
 import { DarkModeProvider } from './contexts/DarkModeContext';
 import AddActivity from './components/AddActivity/AddActivity.tsx'
-import { IpProtect } from './components/IpProtect.tsx';
+import { PasswordProtect } from './components/PasswordProtect.tsx'
 
 function App() {
   return (
-    <IpProtect>
+    <PasswordProtect>
       <DarkModeProvider>
         <Routes>
           <Route path="/" element={<DateNavigator />} />
@@ -19,7 +19,7 @@ function App() {
           <Route path="/cache" element={<Cache />} />
         </Routes>
       </DarkModeProvider>
-    </IpProtect>
+    </PasswordProtect>
   )
 }
 
