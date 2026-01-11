@@ -28,10 +28,15 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only redirect on 401 if it's NOT the login endpoint
-    if (error.response?.status === 401 && !error.config?.url?.includes('/auth/login')) {
+    // Only handle 401 if it's NOT the login or verify endpoint
+    if (
+      error.response?.status === 401 && 
+      !error.config?.url?.includes('/auth/login') &&
+      !error.config?.url?.includes('/auth/verify')  // ADD THIS LINE
+    ) {
       localStorage.removeItem('authToken');
-      window.location.reload();
+      // REMOVE: window.location.reload();
+      // The PasswordProtect component will handle showing the login form
     }
     return Promise.reject(error);
   }
