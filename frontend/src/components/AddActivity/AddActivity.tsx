@@ -5,9 +5,11 @@ import { useDarkMode } from '../../contexts/DarkModeContext';
 import DarkModeToggle from '../DarkModeToggle/DarkModeToggle';
 import { ArrowLeft } from 'lucide-react';
 import type { CategorySuggestion } from '../../types/activity';
+import { getTheme } from '../../theme';
 
 const AddActivity = () => {
   const { isDarkMode } = useDarkMode();
+  const theme = getTheme(isDarkMode);
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -274,16 +276,16 @@ const AddActivity = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+      <div className={`min-h-screen p-6 ${theme.bgPrimary}`}>
         <div className="max-w-3xl mx-auto flex items-center justify-center h-64">
-          <span className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Loading categories...</span>
+          <span className={theme.textTertiary}>Loading categories...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`min-h-screen p-6 ${isDarkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <div className={`min-h-screen p-6 ${theme.bgPrimary}`}>
       <style>{`
         @keyframes shimmer-in {
           0% { transform: translateX(-100%); opacity: 0; }
@@ -320,11 +322,7 @@ const AddActivity = () => {
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={() => navigate(-1)}
-              className={`flex items-center gap-2 transition-colors ${
-                isDarkMode
-                  ? 'text-gray-400 hover:text-gray-100'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`flex items-center gap-2 transition-colors ${theme.textTertiary} hover:${theme.textPrimary}`}
             >
               <ArrowLeft size={20} />
               <span>Back to Calendar</span>
@@ -334,29 +332,23 @@ const AddActivity = () => {
           </div>
           
           <div className="flex items-center gap-3 mb-2">
-            <h1 className={`text-3xl font-light tracking-wide ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            <h1 className={`text-3xl font-light tracking-wide ${theme.textPrimary}`}>
               Add Activity
             </h1>
-            <span className={`text-sm ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+            <span className={`text-sm ${theme.textMuted}`}>
               for {new Date(activityDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </span>
           </div>
-          <div className={`w-16 h-0.5 ${isDarkMode ? 'bg-gradient-to-r from-gray-600 to-gray-800' : 'bg-gradient-to-r from-gray-900 to-gray-600'}`}></div>
+          <div className={`w-16 h-0.5 ${theme.gradient}`}></div>
         </div>
 
         {/* Main Form */}
-        <div className={`rounded-xl overflow-hidden ${
-          isDarkMode 
-            ? 'bg-gray-800 border border-gray-700 shadow-sm' 
-            : 'bg-white border border-gray-200 shadow-sm'
-        }`}>
+        <div className={`rounded-xl overflow-hidden ${theme.bgCard} border ${theme.borderPrimary} ${theme.shadow}`}>
           <div className="px-8 py-8">
             <div className="space-y-6">
               {/* Category Selection */}
               <div>
-                <label className={`block text-sm font-medium mb-3 tracking-wide ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
+                <label className={`block text-sm font-medium mb-3 tracking-wide ${theme.textSecondary}`}>
                   CATEGORY <span className="text-red-500">*</span>
                 </label>
                 
@@ -378,11 +370,7 @@ const AddActivity = () => {
                             setSelectedCategory(null);
                             setSelectedSubcategory('');
                           }}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            isDarkMode
-                              ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                              : 'bg-red-50 text-red-600 hover:bg-red-100'
-                          }`}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${theme.buttonDanger}`}
                         >
                           Clear
                         </button>
@@ -424,11 +412,7 @@ const AddActivity = () => {
                         <button
                           type="button"
                           onClick={() => setIsCreatingCategory(true)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${
-                            isDarkMode
-                              ? 'border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50'
-                              : 'border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
-                          }`}
+                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${theme.borderDashed} ${theme.textTertiary} hover:${theme.bgHover}`}
                         >
                           + New Category
                         </button>
@@ -436,9 +420,7 @@ const AddActivity = () => {
                     )}
                   </div>
                 ) : (
-                  <div className={`p-4 rounded-lg border ${
-                    isDarkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-200'
-                  }`}>
+                  <div className={`p-4 rounded-lg border ${theme.bgTertiary} ${theme.borderPrimary}`}>
                     <div className="flex gap-3">
                       <input
                         type="text"
@@ -453,11 +435,7 @@ const AddActivity = () => {
                         }}
                         placeholder="Enter new category name..."
                         autoFocus
-                        className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
-                          isDarkMode
-                            ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder:text-gray-500 focus:ring-gray-500 focus:border-gray-500'
-                            : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-gray-400 focus:border-gray-400'
-                        }`}
+                        className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${theme.bgInput} ${theme.borderSecondary} ${theme.textPrimary} ${theme.textPlaceholder} ${theme.focusRing}`}
                       />
                       <button
                         type="button"
@@ -465,12 +443,8 @@ const AddActivity = () => {
                         disabled={!newCategoryName.trim() || isSubmitting}
                         className={`px-4 py-2 rounded-lg font-medium transition-all ${
                           !newCategoryName.trim()
-                            ? isDarkMode
-                              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                            : isDarkMode
-                              ? 'bg-green-600 text-white hover:bg-green-700'
-                              : 'bg-green-600 text-white hover:bg-green-700'
+                            ? theme.buttonDisabled + ' cursor-not-allowed'
+                            : 'bg-green-600 text-white hover:bg-green-700'
                         }`}
                       >
                         Create
@@ -478,16 +452,12 @@ const AddActivity = () => {
                       <button
                         type="button"
                         onClick={handleCancelNewCategory}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                          isDarkMode
-                            ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all ${theme.buttonSecondary}`}
                       >
                         Cancel
                       </button>
                     </div>
-                    <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                    <p className={`text-xs mt-2 ${theme.textMuted}`}>
                       Press Enter to create, Escape to cancel
                     </p>
                   </div>
@@ -497,10 +467,8 @@ const AddActivity = () => {
               {/* Subcategory Selection (only if category is selected) */}
               {selectedCategory && (
                 <div>
-                  <label className={`block text-sm font-medium mb-3 tracking-wide ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    SUBCATEGORY <span className={`text-xs font-light ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>(optional)</span>
+                  <label className={`block text-sm font-medium mb-3 tracking-wide ${theme.textSecondary}`}>
+                    SUBCATEGORY <span className={`text-xs font-light ${theme.textMuted}`}>(optional)</span>
                   </label>
                   
                   {!isCreatingSubcategory ? (
@@ -518,11 +486,7 @@ const AddActivity = () => {
                           <button
                             type="button"
                             onClick={() => setSelectedSubcategory('')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                              isDarkMode
-                                ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                                : 'bg-red-50 text-red-600 hover:bg-red-100'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${theme.buttonDanger}`}
                           >
                             Clear
                           </button>
@@ -563,11 +527,7 @@ const AddActivity = () => {
                           <button
                             type="button"
                             onClick={() => setIsCreatingSubcategory(true)}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${
-                              isDarkMode
-                                ? 'border-gray-600 text-gray-400 hover:border-gray-500 hover:text-gray-300 hover:bg-gray-700/50'
-                                : 'border-gray-300 text-gray-500 hover:border-gray-400 hover:text-gray-600 hover:bg-gray-50'
-                            }`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border-2 border-dashed ${theme.borderDashed} ${theme.textTertiary} hover:${theme.bgHover}`}
                           >
                             + New Subcategory
                           </button>
@@ -575,9 +535,7 @@ const AddActivity = () => {
                       )}
                     </div>
                   ) : (
-                    <div className={`p-4 rounded-lg border ${
-                      isDarkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-200'
-                    }`}>
+                    <div className={`p-4 rounded-lg border ${theme.bgTertiary} ${theme.borderPrimary}`}>
                       <div className="flex gap-3">
                         <input
                           type="text"
@@ -592,11 +550,7 @@ const AddActivity = () => {
                           }}
                           placeholder="Enter new subcategory name..."
                           autoFocus
-                          className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
-                            isDarkMode
-                              ? 'bg-gray-800 border-gray-600 text-gray-100 placeholder:text-gray-500 focus:ring-gray-500 focus:border-gray-500'
-                              : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-gray-400 focus:border-gray-400'
-                          }`}
+                          className={`flex-1 px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${theme.bgInput} ${theme.borderSecondary} ${theme.textPrimary} ${theme.textPlaceholder} ${theme.focusRing}`}
                         />
                         <button
                           type="button"
@@ -604,12 +558,8 @@ const AddActivity = () => {
                           disabled={!newSubcategoryName.trim() || isSubmitting}
                           className={`px-4 py-2 rounded-lg font-medium transition-all ${
                             !newSubcategoryName.trim()
-                              ? isDarkMode
-                                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                              : isDarkMode
-                                ? 'bg-green-600 text-white hover:bg-green-700'
-                                : 'bg-green-600 text-white hover:bg-green-700'
+                              ? theme.buttonDisabled + ' cursor-not-allowed'
+                              : 'bg-green-600 text-white hover:bg-green-700'
                           }`}
                         >
                           Create
@@ -617,16 +567,12 @@ const AddActivity = () => {
                         <button
                           type="button"
                           onClick={handleCancelNewSubcategory}
-                          className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                            isDarkMode
-                              ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                          }`}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all ${theme.buttonSecondary}`}
                         >
                           Cancel
                         </button>
                       </div>
-                      <p className={`text-xs mt-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                      <p className={`text-xs mt-2 ${theme.textMuted}`}>
                         Press Enter to create, Escape to cancel
                       </p>
                     </div>
@@ -636,15 +582,13 @@ const AddActivity = () => {
 
               {/* Selected Category Display */}
               {selectedCategory && (
-                <div className={`rounded-lg p-4 border ${
-                  isDarkMode ? 'bg-gray-900/50 border-gray-700' : 'bg-gray-50 border-gray-200'
-                }`}>
-                  <div className={`text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <div className={`rounded-lg p-4 border ${theme.bgTertiary} ${theme.borderPrimary}`}>
+                  <div className={`text-sm font-medium ${theme.textTertiary}`}>
                     Selected: <span className="font-semibold capitalize" style={{ color: selectedCategory.color }}>
                       {selectedCategory.displayName}
                     </span>
                     {selectedSubcategory && (
-                      <span className={isDarkMode ? 'text-gray-300' : 'text-gray-700'}>
+                      <span className={theme.textSecondary}>
                         {' → '}<span className="capitalize">{selectedSubcategory}</span>
                       </span>
                     )}
@@ -654,9 +598,7 @@ const AddActivity = () => {
 
               {/* Activity Title */}
               <div>
-                <label className={`block text-sm font-medium mb-2 tracking-wide ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
+                <label className={`block text-sm font-medium mb-2 tracking-wide ${theme.textSecondary}`}>
                   ACTIVITY TITLE <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -665,20 +607,14 @@ const AddActivity = () => {
                   value={formData.title}
                   onChange={handleChange}
                   placeholder="e.g., Morning Run"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
-                    isDarkMode
-                      ? 'bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 focus:ring-gray-600 focus:border-gray-600'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-gray-400 focus:border-gray-400'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${theme.bgInput} ${theme.borderPrimary} ${theme.textPrimary} ${theme.textPlaceholder} ${theme.focusRing}`}
                 />
               </div>
 
               {/* Description */}
               <div>
-                <label className={`block text-sm font-medium mb-2 tracking-wide ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
-                  DESCRIPTION <span className={`text-xs font-light ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>(optional)</span>
+                <label className={`block text-sm font-medium mb-2 tracking-wide ${theme.textSecondary}`}>
+                  DESCRIPTION <span className={`text-xs font-light ${theme.textMuted}`}>(optional)</span>
                 </label>
                 <textarea
                   name="description"
@@ -686,26 +622,18 @@ const AddActivity = () => {
                   onChange={handleChange}
                   placeholder="Add details, links, or proof of activity..."
                   rows={4}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 resize-y transition-all ${
-                    isDarkMode
-                      ? 'bg-gray-900 border-gray-700 text-gray-100 placeholder:text-gray-500 focus:ring-gray-600 focus:border-gray-600'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder:text-gray-400 focus:ring-gray-400 focus:border-gray-400'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 resize-y transition-all ${theme.bgInput} ${theme.borderPrimary} ${theme.textPrimary} ${theme.textPlaceholder} ${theme.focusRing}`}
                 />
               </div>
 
               {/* Duration */}
               <div className="space-y-4">
-                <label className={`block text-sm font-medium tracking-wide ${
-                  isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                }`}>
+                <label className={`block text-sm font-medium tracking-wide ${theme.textSecondary}`}>
                   DURATION <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-5">
                   <div>
-                    <label className={`block text-xs font-medium mb-2 tracking-wider ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
+                    <label className={`block text-xs font-medium mb-2 tracking-wider ${theme.textTertiary}`}>
                       START TIME
                     </label>
                     <input
@@ -713,17 +641,11 @@ const AddActivity = () => {
                       name="startTime"
                       value={formData.startTime}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
-                        isDarkMode
-                          ? 'bg-gray-900 border-gray-700 text-gray-100 focus:ring-gray-600 focus:border-gray-600'
-                          : 'bg-white border-gray-300 text-gray-900 focus:ring-gray-400 focus:border-gray-400'
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${theme.bgInput} ${theme.borderPrimary} ${theme.textPrimary} ${theme.focusRing}`}
                     />
                   </div>
                   <div>
-                    <label className={`block text-xs font-medium mb-2 tracking-wider ${
-                      isDarkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
+                    <label className={`block text-xs font-medium mb-2 tracking-wider ${theme.textTertiary}`}>
                       END TIME
                     </label>
                     <input
@@ -731,23 +653,13 @@ const AddActivity = () => {
                       name="endTime"
                       value={formData.endTime}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${
-                        isDarkMode
-                          ? 'bg-gray-900 border-gray-700 text-gray-100 focus:ring-gray-600 focus:border-gray-600'
-                          : 'bg-white border-gray-300 text-gray-900 focus:ring-gray-400 focus:border-gray-400'
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-all ${theme.bgInput} ${theme.borderPrimary} ${theme.textPrimary} ${theme.focusRing}`}
                     />
                   </div>
                 </div>
                 {formData.startTime && formData.endTime && formData.duration && (
-                  <div className={`rounded-lg p-4 border ${
-                    isDarkMode 
-                      ? 'bg-blue-900/20 border-blue-800' 
-                      : 'bg-blue-50 border-blue-200'
-                  }`}>
-                    <div className={`text-sm font-medium ${
-                      isDarkMode ? 'text-blue-300' : 'text-blue-700'
-                    }`}>
+                  <div className={`rounded-lg p-4 border ${theme.bgInfo}`}>
+                    <div className={`text-sm font-medium ${theme.textInfo}`}>
                       Calculated Duration: {formData.duration} minutes ({Math.floor(parseInt(formData.duration) / 60)}h {parseInt(formData.duration) % 60}m)
                     </div>
                   </div>
@@ -756,11 +668,7 @@ const AddActivity = () => {
 
               {/* Error Alert */}
               {error && (
-                <div className={`border rounded-lg p-4 text-sm flex items-start gap-3 ${
-                  isDarkMode
-                    ? 'bg-red-900/30 border-red-800 text-red-300'
-                    : 'bg-red-50 border-red-200 text-red-700'
-                }`}>
+                <div className={`border rounded-lg p-4 text-sm flex items-start gap-3 ${theme.bgError} ${theme.textError}`}>
                   <span className="text-base">⚠️</span>
                   <span className="font-medium">{error}</span>
                 </div>
@@ -771,11 +679,7 @@ const AddActivity = () => {
                 <button
                   type="button"
                   onClick={() => navigate(-1)}
-                  className={`flex-1 px-6 py-3 border rounded-lg font-medium transition-all duration-200 hover:-translate-y-0.5 ${
-                    isDarkMode
-                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
-                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`flex-1 px-6 py-3 border rounded-lg font-medium transition-all duration-200 hover:-translate-y-0.5 ${theme.buttonSecondary} border ${theme.borderSecondary}`}
                 >
                   Cancel
                 </button>
@@ -785,12 +689,8 @@ const AddActivity = () => {
                   disabled={isSubmitting || !selectedCategory || !formData.title.trim() || !formData.duration}
                   className={`flex-1 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                     isSubmitting || !selectedCategory || !formData.title.trim() || !formData.duration
-                      ? isDarkMode
-                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                        : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                      : `shimmer-effect hover:-translate-y-0.5 ${isDarkMode
-                        ? 'bg-gray-100 text-gray-900 hover:bg-white'
-                        : 'bg-gray-900 text-white hover:bg-black shadow-sm'}`
+                      ? theme.buttonDisabled + ' cursor-not-allowed'
+                      : `shimmer-effect hover:-translate-y-0.5 ${theme.buttonPrimary} ${theme.shadow}`
                   }`}
                 >
                   {isSubmitting ? 'Adding...' : 'Add Activity'}
