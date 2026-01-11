@@ -23,6 +23,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   const [categories, setCategories] = useState<CategorySuggestion[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('project');
   const [chartData, setChartData] = useState<DayData[]>([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   
@@ -30,6 +31,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, -1 = previous week, +1 = next week (not used)
   const [canGoPrevWeek, setCanGoPrevWeek] = useState(true);
   const [canGoNextWeek, setCanGoNextWeek] = useState(false);
+  const [pendingCategory, setPendingCategory] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -79,6 +81,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
 
   useEffect(() => {
     const fetchActivityData = async () => {
+      setLoading(true);
       setError(null);
       
       try {
@@ -133,9 +136,18 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
         // Only update chart data after all data is fetched
         setChartData(data);
         updateWeekNavigationState(weekStart);
+        
+        // If there's a pending category, apply it now
+        if (pendingCategory) {
+          setSelectedCategory(pendingCategory);
+          setPendingCategory(null);
+        }
+        
+        setLoading(false);
       } catch (error: any) {
         console.error('Error fetching activity trends:', error);
         setError(error?.message || 'Failed to load activity data');
+        setLoading(false);
       }
     };
 
@@ -143,14 +155,22 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   }, [selectedCategory, weekOffset]);
 
   const handlePrevWeek = () => {
-    if (canGoPrevWeek) {
+    if (canGoPrevWeek && !loading) {
       setWeekOffset(prev => prev - 1);
     }
   };
 
   const handleNextWeek = () => {
-    if (canGoNextWeek) {
+    if (canGoNextWeek && !loading) {
       setWeekOffset(prev => prev + 1);
+    }
+  };
+
+  const handleCategoryChange = (category: string) => {
+    if (!loading) {
+      setPendingCategory(category);
+      // Trigger refetch by updating selectedCategory
+      setSelectedCategory(category);
     }
   };
 
@@ -297,9 +317,9 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrevWeek}
-            disabled={!canGoPrevWeek}
-            className={`p-1.5 rounded-lg transition-colors ${
-              canGoPrevWeek
+            disabled={!canGoPrevWeek || loading}
+            className={`p-1.5 rounded-lg transition-colors relative ${
+              canGoPrevWeek && !loading
                 ? isDarkMode
                   ? 'bg-gray-700 hover:bg-gray-600 text-white'
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -309,7 +329,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             }`}
             aria-label="Previous week"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={18} className={loading && canGoPrevWeek ? 'animate-pulse' : ''} />
           </button>
           
           <span className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'} min-w-[80px] text-center`}>
@@ -318,9 +338,9 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           
           <button
             onClick={handleNextWeek}
-            disabled={!canGoNextWeek}
-            className={`p-1.5 rounded-lg transition-colors ${
-              canGoNextWeek
+            disabled={!canGoNextWeek || loading}
+            className={`p-1.5 rounded-lg transition-colors relative ${
+              canGoNextWeek && !loading
                 ? isDarkMode
                   ? 'bg-gray-700 hover:bg-gray-600 text-white'
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
@@ -330,7 +350,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             }`}
             aria-label="Next week"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={18} className={loading && canGoNextWeek ? 'animate-pulse' : ''} />
           </button>
         </div>
       </div>
@@ -340,15 +360,16 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
         {categories.map(cat => (
           <button
             key={cat.name}
-            onClick={() => setSelectedCategory(cat.name)}
+            onClick={() => handleCategoryChange(cat.name)}
+            disabled={loading}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all capitalize ${
-              selectedCategory === cat.name
+              selectedCategory === cat.name && !pendingCategory
                 ? 'text-white shadow-md'
                 : isDarkMode
                   ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-            style={selectedCategory === cat.name ? { backgroundColor: cat.color } : {}}
+            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            style={selectedCategory === cat.name && !pendingCategory ? { backgroundColor: cat.color } : {}}
           >
             {cat.name}
           </button>
