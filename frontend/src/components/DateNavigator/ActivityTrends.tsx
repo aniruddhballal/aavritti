@@ -23,7 +23,6 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   const [categories, setCategories] = useState<CategorySuggestion[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('project');
   const [chartData, setChartData] = useState<DayData[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
   
@@ -80,7 +79,6 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
 
   useEffect(() => {
     const fetchActivityData = async () => {
-      setLoading(true);
       setError(null);
       
       try {
@@ -132,13 +130,12 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           }
         }
         
+        // Only update chart data after all data is fetched
         setChartData(data);
         updateWeekNavigationState(weekStart);
       } catch (error: any) {
         console.error('Error fetching activity trends:', error);
         setError(error?.message || 'Failed to load activity data');
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -367,7 +364,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             Total Hours
           </div>
           <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            {loading ? '...' : formatDuration(totalHours)}
+            {formatDuration(totalHours)}
           </div>
         </div>
         <div className={`flex-1 p-3 rounded-lg ${
@@ -377,7 +374,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             Daily Average
           </div>
           <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            {loading ? '...' : formatDuration(avgHours)}
+            {formatDuration(avgHours)}
           </div>
         </div>
         <div className={`flex-1 p-3 rounded-lg ${
@@ -389,7 +386,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
               : 'Today'}
           </div>
           <div className={`text-xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            {loading ? '...' : formatDuration(
+            {formatDuration(
               selectedDayIndex !== null ? chartData[selectedDayIndex]?.hours || 0 : chartData[chartData.length - 1]?.hours || 0
             )}
           </div>
@@ -398,13 +395,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
 
       {/* Chart */}
       <div className="h-48 w-full">
-        {loading ? (
-          <div className={`h-full flex items-center justify-center ${
-            isDarkMode ? 'text-gray-400' : 'text-gray-600'
-          }`}>
-            Loading chart data...
-          </div>
-        ) : error ? (
+        {error ? (
           <div className={`h-full flex items-center justify-center ${
             isDarkMode ? 'text-red-400' : 'text-red-600'
           }`}>
