@@ -388,7 +388,16 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           <div className={`text-xs ${theme.textTertiary}`}>
             {selectedDayIndex !== null && selectedDayIndex !== chartData.length - 1
               ? chartData[selectedDayIndex]?.date
-              : 'Today'}
+              : (() => {
+                  // Check if the last day of the displayed week is actually today
+                  const lastDayData = chartData[chartData.length - 1];
+                  if (!lastDayData) return 'Today';
+                  
+                  const todayIST = getISTDate();
+                  const todayFormatted = formatDateForRoute(todayIST);
+                  
+                  return lastDayData.fullDate === todayFormatted ? 'Today' : lastDayData.date;
+                })()}
           </div>
           <div className={`text-xl font-bold ${theme.textPrimary}`}>
             {formatDuration(
