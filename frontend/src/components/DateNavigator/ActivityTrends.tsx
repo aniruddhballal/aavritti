@@ -19,6 +19,7 @@ interface DayData {
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
   const theme = getTheme(isDarkMode);
@@ -110,7 +111,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
               const hours = categoryMinutes / 60;
               
               data.push({
-                date: `${date.getDate()}/${date.getMonth() + 1}`,
+                date: `${date.getDate()} ${MONTHS[date.getMonth()]}`,
                 day: dayName,
                 hours: Math.round(hours * 100) / 100,
                 fullDate: dateString
@@ -118,7 +119,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
             } catch (error: any) {
               // If date has no activities or API error, add 0 hours
               data.push({
-                date: `${date.getDate()}/${date.getMonth() + 1}`,
+                date: `${date.getDate()} ${MONTHS[date.getMonth()]}`,
                 day: dayName,
                 hours: 0,
                 fullDate: dateString
@@ -127,7 +128,7 @@ const ActivityTrends = ({ isDarkMode }: ActivityTrendsProps) => {
           } else {
             // Date not available, add 0 hours
             data.push({
-              date: `${date.getDate()}/${date.getMonth() + 1}`,
+              date: `${date.getDate()} ${MONTHS[date.getMonth()]}`,
               day: dayName,
               hours: 0,
               fullDate: dateString
